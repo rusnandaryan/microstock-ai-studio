@@ -16,14 +16,14 @@ Tugas Anda adalah menganalisis dan memprediksi 4 kategori gambar komersial yang 
 Untuk setiap kategori, berikan:
 1. "category": Nama kategori tren tersebut.
 2. "reason": Penjelasan singkat MENGAPA ini sangat laku di pasaran saat ini.
-3. "base_idea": Satu ide dasar (base idea) gambar yang spesifik, sangat komersial, dan 100% AMAN dari pelanggaran hak cipta (tanpa nama merk, tanpa tokoh asli).
+3. "base_idea": Satu ide dasar (base idea) gambar yang spesifik, sangat komersial, 100% AMAN dari hak cipta, TANPA karakter wanita, TANPA teks/tulisan apapun, dan berorientasi faceless / objek / arsitektur / teknologi.
 
 Keluarkan HANYA array JSON yang valid tanpa markdown formatting. Contoh:
 [
   {
     "category": "Teknologi Hijau & Keberlanjutan",
     "reason": "Banyak perusahaan membutuhkan aset visual untuk laporan ESG dan kampanye ramah lingkungan.",
-    "base_idea": "Insinyur wanita menanam bibit pohon kecil di dalam lab modern berteknologi tinggi dengan cahaya matahari terang"
+    "base_idea": "Seorang arsitek pria tampak belakang sedang mengamati maket kota ramah lingkungan dengan pencahayaan alami jendela"
   }
 ]
 """

@@ -5,3 +5,4 @@ __pycache__/
 .env
 exports/
 .DS_Store
+upscayl_bin/

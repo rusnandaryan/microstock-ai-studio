@@ -123,7 +123,7 @@ with tab1:
             "Konsep Utama",
             key="tab1_base_idea",
             height=100,
-            placeholder="Contoh: Barista wanita tersenyum menuangkan latte art di kedai kopi hangat bernuansa kayu",
+            placeholder="Contoh: Seorang arsitek tampak belakang mengamati maket gedung modern dengan pencahayaan alami jendela",
             label_visibility="collapsed",
         )
 
@@ -304,6 +304,14 @@ with tab2:
             unsafe_allow_html=True,
         )
 
+        st.markdown("**Pengaturan Upscaler & Metadata**")
+        col_up1, col_up2 = st.columns(2)
+        with col_up1:
+            do_upscale = st.checkbox("Lakukan Upscale Gambar (Otomatis Lokal)", value=False, help="Menggunakan mesin Upscayl NCNN CLI lokal.")
+        with col_up2:
+            upscale_factor = st.selectbox("Tingkat Perbesaran (Scale)", [2, 3, 4], index=2, disabled=not do_upscale)
+
+        st.markdown("<br>", unsafe_allow_html=True)
         btn_analyze = st.button(
             f"Mulai Analisis {len(image_entries)} Gambar & Susun Metadata SEO",
             type="primary",
@@ -328,9 +336,30 @@ with tab2:
                         label=f"Gambar #{idx+1}",
                     )
 
+                    target_bytes = raw_bytes
+                    if do_upscale:
+                        progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (Upscale {upscale_factor}x) #{idx+1} dari {len(image_entries)}: {filename}...")
+                        import tempfile
+                        from microstock.upscaler import run_upscale
+                        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
+                            in_f.write(raw_bytes)
+                            in_path = in_f.name
+                        out_path = in_path.replace(".jpg", "_up.jpg")
+                        success = await asyncio.to_thread(run_upscale, in_path, out_path, upscale_factor)
+                        if success:
+                            with open(out_path, "rb") as out_f:
+                                target_bytes = out_f.read()
+                            try: os.remove(out_path)
+                            except: pass
+                        else:
+                            st.toast(f"Upscale gagal untuk {filename}, menggunakan resolusi asli.", icon="⚠️")
+                        try: os.remove(in_path)
+                        except: pass
+
+                    progress_bar.progress(idx / len(image_entries), text=f"Menyiapkan resolusi & preview #{idx+1}...")
                     # Finalize image & thumbnail (Preserve original resolution, 300 DPI)
                     exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
-                        finalize_image, raw_bytes, "JPEG", False
+                        finalize_image, target_bytes, "JPEG", False
                     )
 
                     item = BatchItem(
