@@ -25,7 +25,7 @@ Punya gambar hasil AI? Masukkan ke sini! AI akan melihat isi gambar Anda secara 
 ## ⚠️ PERHATIAN PENTING (Wajib Dibaca)
 
 1. **Ukuran Gambar Harus Diperbesar (Upscale):** 
-   Gambar asli yang Anda unduh langsung dari website AI (seperti Gemini Web) **ukurannya terlalu kecil** untuk dijual. Anda **WAJIB** memperbesar resolusi gambar tersebut (melakukan *Upscale*) menggunakan aplikasi pihak ketiga (seperti *Upscayl*, *Topaz*, atau *Magnific*) SEBELUM diunggah ke Tab 2 aplikasi ini.
+   Gambar asli yang Anda unduh langsung dari website AI (seperti Gemini Web) **ukurannya terlalu kecil** untuk dijual. Anda **WAJIB** memperbesar resolusi gambar tersebut (melakukan *Upscale*) menggunakan aplikasi pihak ketiga (seperti *Upscayl*, *Topaz*, atau *Magnific*) SEBELUM diunggah ke website microstock.
 2. **Memakan Memori Komputer Anda:** 
    Setiap kali Anda menggunakan Tab 2, aplikasi ini akan menyimpan salinan gambar dan file CSV di komputer Anda (di dalam folder bernama `exports/`). **Folder ini akan semakin membengkak dan membuat penyimpanan komputer Anda penuh.** Pastikan Anda sering mengecek dan menghapus isi folder `exports/` secara berkala!
 
