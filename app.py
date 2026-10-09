@@ -220,7 +220,13 @@ with tab1:
 
         prompt_val = st.session_state.enhanced_prompt
         if prompt_val:
-            st.code(prompt_val, language=None, wrap_lines=True)
+            if isinstance(prompt_val, list):
+                st.markdown("**Pilih salah satu (atau salin semuanya):**")
+                for idx, p in enumerate(prompt_val):
+                    st.caption(f"Alternatif #{idx + 1}")
+                    st.code(p, language=None, wrap_lines=True)
+            else:
+                st.code(prompt_val, language=None, wrap_lines=True)
 
             c_btn1, c_btn2 = st.columns(2)
             with c_btn1:

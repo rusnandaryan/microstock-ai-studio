@@ -15,28 +15,29 @@ Rewrite the user's short idea into ONE highly detailed, production-ready image g
 
 CRITICAL ADOBE STOCK GENERATIVE AI GUIDELINES & COMPLIANCE RULES:
 1. THIRD-PARTY RIGHTS & INTELLECTUAL PROPERTY (ZERO TOLERANCE):
-   - NO real people or celebrities: Never name real people, public figures, celebrities, or recognizable individuals. All people must be purely fictional.
-   - NO artist names: Never reference other artists, illustrators, or photographers (e.g. NEVER write "in the style of [Artist]", "art by [Artist]").
-   - NO brands, logos, or trademarks: Never describe branded clothing, tech gadgets (e.g. no Apple/iPhone logos, no Nike swoosh, no Starbucks cups), copyrighted characters (e.g. Marvel, Disney, anime characters), or proprietary product designs. All props and wardrobe must be completely unbranded, generic, and commercial-safe.
-   - NO private landmarks or copyrighted architectural structures requiring property releases.
+   - NO real people or celebrities: Never name real people, public figures, celebrities, or recognizable individuals.
+   - NO artist names: Never reference other artists, illustrators, or photographers.
+   - NO brands, logos, or trademarks: Never describe branded clothing or tech gadgets. All props must be generic.
+   - NO private landmarks or copyrighted architectural structures.
 
-2. ANATOMICAL & TECHNICAL QUALITY STANDARDS:
-   - Flawless human and animal anatomy: Exactly five fingers per hand, natural eye symmetry, accurate limb attachments, clean proportions, no extra or melted fingers/limbs.
-   - Professional photographic lighting: True-to-life exposure, balanced highlights and shadows, physically accurate reflections.
-   - Clean commercial composition: Include generous negative space (clean copy space) for commercial advertising headlines/copy where appropriate.
-   - Pristine visual clarity: NO blurry AI artifacts, NO warped backgrounds, NO readable text, NO signatures, and NO watermarks.
+2. MANDATORY FACELESS RULE (ZERO TOLERANCE):
+   - If the prompt features ANY living creatures (humans, animals, insects) or humanoid robots, their faces MUST NOT be fully visible.
+   - You MUST use techniques to hide the face: "shot from behind", "face hidden in shadows", "wearing an opaque mask/helmet", "cropped at the neck", "silhouette", or "facing away from the camera".
 
-3. COMMERCIAL MICROSTOCK RELEVANCE:
-   - Depict authentic, candid, natural human interactions, relatable expressions, and diverse modern lifestyles.
-   - Specify rich physical textures (fabrics, skin, wood, glass, metals) and cohesive color palettes.
+3. ANATOMICAL & TECHNICAL QUALITY STANDARDS:
+   - Flawless human and animal anatomy: Exactly five fingers per hand, accurate limb attachments.
+   - Professional photographic lighting and clean commercial composition with generous negative space.
+   - Pristine visual clarity: NO blurry AI artifacts, NO readable text, NO signatures.
+
+4. COMMERCIAL MICROSTOCK RELEVANCE:
+   - Depict authentic human interactions (faceless), rich physical textures, and cohesive color palettes.
    - Strictly honor and reinforce the user's chosen aesthetic style.
 
-4. MANDATORY ASPECT RATIO & ORIENTATION:
-   - Explicitly mention the scene framing corresponding to the target aspect ratio within the prompt (e.g. "16:9 widescreen composition", "9:16 vertical framing", "1:1 square composition", "4:3 landscape framing", or "3:4 portrait framing").
-   - You MUST end the prompt with the text "[Aspect Ratio: {aspect_ratio}]" (e.g., "[Aspect Ratio: 16:9]", "[Aspect Ratio: 9:16]").
+5. MANDATORY ASPECT RATIO & ORIENTATION:
+   - Explicitly mention the scene framing corresponding to the target aspect ratio within the prompt.
+   - You MUST end each prompt with the text "[Aspect Ratio: {aspect_ratio}]".
 
-Output ONLY the final prompt as a single paragraph of 80-160 words in English ending with the Aspect Ratio tag.
-No preamble, no quotes, no markdown, no bullet points.
+Output a valid JSON array containing exactly 5 alternative prompt strings. Each string must be a highly detailed paragraph of 80-160 words in English ending with the Aspect Ratio tag. Provide completely different concepts/angles for each alternative. Do not output anything other than the JSON array.
 """
 
 
@@ -74,7 +75,7 @@ def build_enhancer_input(
         parts.append(f"Composition framing: {comp_desc}")
 
     parts.append(
-        "Write ONE detailed, coherent, photography/art-grade prompt in English that blends all these directives naturally."
+        "Write 5 alternative detailed, coherent, photography/art-grade prompts in English that blend all these directives naturally, in the requested JSON format."
     )
     return "\n".join(parts)
 
@@ -88,12 +89,13 @@ def enhance_prompt(
     camera: str = "",
     composition: str = "",
     on_retry: Optional[Callable[[str], None]] = None,
-) -> str:
-    """Call the Gemini text model to produce a detailed image prompt."""
+) -> List[str]:
+    """Call the Gemini text model to produce detailed image prompts."""
     if not base_idea or not base_idea.strip():
         raise ValueError("Please enter a base idea first.")
 
     import re
+    import json
 
     def _format_with_aspect_ratio(raw_text: str) -> str:
         clean = (raw_text or "").strip().strip('"').strip()
@@ -106,7 +108,17 @@ def enhance_prompt(
             clean = f"{clean} [Aspect Ratio: {aspect_ratio}]"
         return clean
 
-    def _call() -> str:
+    def _parse_and_format(text: str) -> List[str]:
+        if text.startswith("```json"): text = text[7:]
+        if text.startswith("```"): text = text[3:]
+        if text.endswith("```"): text = text[:-3]
+        try:
+            arr = json.loads(text.strip())
+            return [_format_with_aspect_ratio(str(item)) for item in arr if str(item).strip()]
+        except Exception as e:
+            raise TransientError(f"Failed to parse JSON: {e}")
+
+    def _call() -> List[str]:
         prompt_input = build_enhancer_input(base_idea, style_name, aspect_ratio, lighting, camera, composition)
         last_err = None
         # Try primary model then fallbacks if 503 UNAVAILABLE or 404 NOT_FOUND
@@ -116,8 +128,9 @@ def enhance_prompt(
                     from google.genai import types
                     config_obj = types.GenerateContentConfig(
                         system_instruction=ENHANCER_SYSTEM_INSTRUCTION,
-                        temperature=0.7,
-                        max_output_tokens=300,
+                        temperature=0.8,
+                        max_output_tokens=1500,
+                        response_mime_type="application/json",
                         thinking_config=types.ThinkingConfig(thinking_budget=0),
                     )
                     response = client.models.generate_content(
@@ -127,7 +140,7 @@ def enhance_prompt(
                     )
                     text = (response.text or "").strip()
                     if text:
-                        return _format_with_aspect_ratio(text)
+                        return _parse_and_format(text)
                 elif hasattr(client, "interactions"):
                     interaction = client.interactions.create(
                         model=model_name,
@@ -137,7 +150,7 @@ def enhance_prompt(
                     )
                     text = (interaction.output_text or "").strip()
                     if text:
-                        return _format_with_aspect_ratio(text)
+                        return _parse_and_format(text)
             except Exception as e:
                 last_err = e
                 # If high demand (503) or not found (404), try next fallback model
