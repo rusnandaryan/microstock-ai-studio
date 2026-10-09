@@ -1,0 +1,9 @@
+[theme]
+base = "light"
+primaryColor = "#FF5436"
+backgroundColor = "#F8F6F0"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#1A191E"
+
+[server]
+maxMessageSize = 1000   # MB – full-res 4K batches + ZIP can be large
