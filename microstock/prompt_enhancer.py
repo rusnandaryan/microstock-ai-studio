@@ -31,8 +31,10 @@ CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT):
    - NO brands, logos, trademarks, or copyrighted gadget designs (no Apple logos, no recognizable smartphone/car designs).
    - Describe technology as "sleek minimalist unbranded matte aluminum chassis with clean blank displays".
 
-5. COMMERCIAL COPY SPACE / NEGATIVE SPACE:
-   - Always compose the scene with 30% to 40% clean, uncluttered negative space (clean wall, soft sky, or smooth creamy bokeh background) on one side, reserved for advertising headlines and copy.
+5. COMMERCIAL COMPOSITION & NEGATIVE SPACE:
+   - FOR STICKER PACKS / CLIPART / ICON SETS: ALWAYS arrange the stickers in a balanced, evenly-spaced grid (sticker sheet / knolling arrangement) neatly distributed across the canvas with equal margins on all sides, isolated on a clean solid white background. Each sticker MUST have its own distinct white die-cut contour cutline border and subtle shadow. NEVER leave a lopsided empty void on one side, and NEVER merge them into a borderless scenic full-frame picture.
+   - FOR GENERAL SCENES: If the composition framing requests "Full Frame" or "Tanpa Ruang Kosong", compose a dynamic, full-bleed edge-to-edge frame filled with rich visual detail across the entire scene without empty negative space.
+   - OTHERWISE (STANDARD COMMERCIAL STOCK): Compose the scene with 30% to 40% clean, uncluttered negative space (clean wall, soft sky, or smooth creamy bokeh background) on one side, reserved for advertising headlines and copy.
 
 6. AUTHENTIC LIGHTING & ANTI-PLASTIC GLOW:
    - Use strictly real photographic lighting: "natural directional window sunlight", "diffused studio softbox", or "warm golden hour ambient illumination".

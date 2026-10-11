@@ -7,18 +7,25 @@ Aplikasi ini dibuat khusus untuk membantu Anda yang ingin berjualan gambar AI (s
 
 ## ✨ Apa Saja yang Bisa Dilakukan Aplikasi Ini?
 
-Aplikasi ini dibagi menjadi 2 bagian utama:
+Aplikasi ini dibagi menjadi 3 bagian utama:
 
-### 🎯 Tab 1: Studio Pembuat Prompt (Kalimat Perintah)
-Ubah ide singkat Anda (misal: "kucing main bola") menjadi 5 pilihan kalimat perintah (*prompt*) bahasa Inggris tingkat profesional.
-* **Fitur Cek Tren:** Bingung mau buat gambar apa? Ada tombol khusus untuk melihat daftar gambar apa saja yang sedang laris manis didownload orang hari ini!
-* **Otomatis Tanpa Wajah (Faceless):** Agar gambar Anda tidak ditolak karena masalah hak cipta tokoh asli, aplikasi ini punya aturan wajib rahasia. Setiap karakter hidup atau robot otomatis akan dibuat tanpa wajah (*faceless*, tampak belakang, atau siluet).
-* **5 Pilihan Prompt:** Anda tidak hanya dapat 1, tapi langsung **5 pilihan prompt** berbeda untuk satu ide. Tinggal *copy-paste*!
+### 🎯 Tab 1: Studio Pembuat Prompt (Text to Prompt)
+Ubah ide singkat Anda (misal: "arsitek mengamati maket") menjadi 5 pilihan kalimat perintah (*prompt*) bahasa Inggris tingkat profesional.
+* **Fitur Cek Tren:** Melihat daftar gambar apa saja yang sedang laris manis didownload orang di Adobe Stock saat ini.
+* **Aturan Ketat Otomatis:** Prompt dijamin bebas wanita (*no female*), tanpa teks (*zero typography*), dan karakter selalu tanpa wajah (*faceless*).
+* **5 Pilihan Prompt:** Disediakan 5 variasi sudut pandang berbeda untuk 1 ide dasar.
 
-### 🔍 Tab 2: Pemeriksa Gambar & Pembuat Judul (SEO)
-Punya gambar hasil AI? Masukkan ke sini! AI akan melihat isi gambar Anda secara nyata.
-* **Otomatis Bikin Keyword:** AI akan membuatkan Judul, Deskripsi, dan tepat 50 kata kunci (*keywords*) super akurat yang paling sering dicari pembeli.
-* **Bisa Langsung Upload:** Hasilnya berupa file ZIP berisi gambar Anda dan dokumen Excel (CSV) yang formatnya sudah disesuaikan dengan standar Adobe Stock dan Shutterstock. Tinggal klik *Upload* di website agensi!
+### 🔍 Tab 2: Pemeriksa Gambar, Upscale & SEO Metadata (Gemini Vision)
+Unggah gambar hasil AI Anda untuk dianalisis dan dibungkus menjadi paket siap jual.
+* **Auto-Upscaler Lokal (NCNN):** Pilihan memperbesar resolusi gambar hingga 4K secara otomatis langsung dari kartu grafis komputer Anda.
+* **Hemat Memori (Auto-Cleanup):** Jika Anda memilih tidak melakukan *upscale*, file gambar asli tidak akan disimpan di disk (hanya menyimpan CSV-nya saja), menjaga penyimpanan komputer Anda tetap lega.
+* **50 Keywords Anti-Reject:** Menghasilkan Judul (<100 karakter), Deskripsi, dan tepat 50 keywords yang siap dimasukkan ke Adobe Stock & Shutterstock.
+
+### 🖼️ Tab 3: Reverse Prompt Studio (Image to Prompt)
+Punya gambar referensi yang bagus dan ingin membuat prompt serupa?
+* **Bedah Visual Otomatis:** Gemini Vision membaca pencahayaan, lensa, dan komposisi dari gambar referensi Anda.
+* **Prompt Bersih Standar Microstock:** Menghasilkan 1 prompt komersial yang telah disterilkan sesuai 7 aturan ketat.
+* **Auto-Save ke `.txt`:** Prompt otomatis tersimpan di komputer Anda pada folder `exports/prompts/prompt_[nama_file].txt` agar tidak hilang.
 
 ---
 

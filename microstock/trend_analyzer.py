@@ -6,35 +6,39 @@ from typing import Any, Callable, Dict, List, Optional
 
 from google import genai
 
+from datetime import datetime
+
 from . import config
 from .rate_limit import TransientError, retry_sync
 
 TREND_SYSTEM_INSTRUCTION = """\
-Anda adalah Analis Data Adobe Stock Profesional dan Pakar Microstock.
-Tugas Anda adalah menganalisis dan memprediksi 4 kategori gambar komersial yang saat ini SEDANG TRENDING dan PALING BANYAK DIUNDUH di Adobe Stock atau Shutterstock.
+Anda adalah Analis Data Adobe Stock Profesional dan Pakar Riset Pasar Microstock.
+Tugas Anda adalah menganalisis dan memprediksi 4 kategori aset komersial yang saat ini SEDANG TRENDING dan PALING BANYAK DIUNDUH di Adobe Stock & Shutterstock berdasarkan kalender pemasaran global dan tren kreatif.
 
-Untuk setiap kategori, berikan:
-1. "category": Nama kategori tren tersebut.
-2. "reason": Penjelasan singkat MENGAPA ini sangat laku di pasaran saat ini.
-3. "base_idea": Satu ide dasar (base idea) gambar yang spesifik, sangat komersial, 100% AMAN dari hak cipta, TANPA karakter wanita, TANPA teks/tulisan apapun, dan berorientasi faceless / objek / arsitektur / teknologi.
+Untuk setiap tren, berikan:
+1. "category": Nama kategori tren (contoh: "AI & Otomasi Hijau", "Kuliner Artisan Lokal").
+2. "reason": Penjelasan ringkas mengapa aset ini sangat diminati oleh pembeli agensi.
+3. "base_idea": Ide dasar (base idea) konkret, 100% AMAN hak cipta, TANPA wanita, TANPA teks, faceless/objek/arsitektur.
+4. "market_status": Status potensi pasar, pilih salah satu yang paling relevan:
+   - "🔥 High Demand / Low Competition"
+   - "⭐ Evergreen Best Seller"
+   - "🚀 Rising Market Trend"
+5. "recommended_cat": Kategori visual yang paling cocok, WAJIB salah satu dari:
+   ["Fotografi (Photorealism)", "Ilustrasi & Seni Lukis", "Animasi & Kartun", "3D & Render", "Desain & Digital Art"]
+6. "recommended_style": Sub-gaya yang direkomendasikan (misal: "📷 Foto Komersial Bersih (Commercial Advertising)", "📐 3D Isometric Illustration (Tech & Business)", "🏷️ Paket Stiker Die-Cut (Die-Cut Sticker Pack)", dll).
+7. "recommended_ratio": Rasio aspek terbaik, pilih salah satu dari: ["16:9", "1:1", "9:16", "4:3"].
 
-Keluarkan HANYA array JSON yang valid tanpa markdown formatting. Contoh:
-[
-  {
-    "category": "Teknologi Hijau & Keberlanjutan",
-    "reason": "Banyak perusahaan membutuhkan aset visual untuk laporan ESG dan kampanye ramah lingkungan.",
-    "base_idea": "Seorang arsitek pria tampak belakang sedang mengamati maket kota ramah lingkungan dengan pencahayaan alami jendela"
-  }
-]
+Keluarkan HANYA array JSON yang valid berisi 4 objek tanpa markdown formatting.
 """
 
 def get_trending_ideas(
     client: genai.Client,
     on_retry: Optional[Callable[[str], None]] = None,
-) -> List[Dict[str, str]]:
-    """Call Gemini to get trending microstock ideas."""
+) -> Dict[str, Any]:
+    """Call Gemini to get trending microstock ideas with detailed market metadata."""
+    now_str = datetime.now().strftime("%d %B %Y")
     
-    def _call() -> List[Dict[str, str]]:
+    def _call() -> Dict[str, Any]:
         last_err = None
         for model_name in config.TEXT_MODEL_FALLBACKS:
             try:
@@ -42,17 +46,17 @@ def get_trending_ideas(
                     from google.genai import types
                     config_obj = types.GenerateContentConfig(
                         system_instruction=TREND_SYSTEM_INSTRUCTION,
-                        temperature=0.9, # Higher temperature for creative/varied trends
+                        temperature=0.85,
                         response_mime_type="application/json",
                     )
+                    prompt_query = f"Analisis 4 tren komersial teratas Adobe Stock untuk periode {now_str}."
                     response = client.models.generate_content(
                         model=model_name,
-                        contents="Berikan 4 trend gambar microstock paling laris saat ini.",
+                        contents=prompt_query,
                         config=config_obj,
                     )
                     text = (response.text or "").strip()
                     if text:
-                        # Clean up markdown if model ignored instruction
                         if text.startswith("```json"):
                             text = text[7:]
                         if text.startswith("```"):
@@ -62,7 +66,9 @@ def get_trending_ideas(
                             
                         data = json.loads(text.strip())
                         if isinstance(data, list) and len(data) > 0:
-                            return data
+                            return {"period": now_str, "trends": data}
+                        elif isinstance(data, dict) and "trends" in data:
+                            return {"period": now_str, "trends": data["trends"]}
                 elif hasattr(client, "interactions"):
                     interaction = client.interactions.create(
                         model=model_name,
@@ -81,7 +87,9 @@ def get_trending_ideas(
                             
                         data = json.loads(text.strip())
                         if isinstance(data, list) and len(data) > 0:
-                            return data
+                            return {"period": now_str, "trends": data}
+                        elif isinstance(data, dict) and "trends" in data:
+                            return {"period": now_str, "trends": data["trends"]}
             except Exception as e:
                 last_err = e
                 err_str = str(e).lower()
