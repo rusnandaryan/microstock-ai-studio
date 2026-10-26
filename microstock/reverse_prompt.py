@@ -17,24 +17,28 @@ Your task is to analyze the user's uploaded image and generate ONE production-re
 
 CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT):
 
-1. ZERO FEMALE CHARACTERS (STRICT RULE):
-   - NO female characters, women, girls, or feminine figures in ANY form (human, silhouette, cyborg, humanoid robot, or illustration).
-   - If the uploaded image contains female figures, TRANSLATE/REPLACE them into male figures (faceless), gender-neutral hands/silhouettes, or purely focus on inanimate objects, architecture, food, nature, tools, or concepts.
+1. ZERO FEMALE CHARACTERS (STRICT UNIVERSAL PROHIBITION):
+   - ABSOLUTELY ZERO female figures, women, girls, or feminine representations in ANY form (human, cartoon, cyborg, robot, mascot, or illustration).
+   - If the uploaded image contains female figures, TRANSLATE/REPLACE them into inanimate objects, architecture, food, tools, or male figures (strictly faceless).
+   - You MUST explicitly include in the prompt: "strictly no women, no female characters, no visible facial features, completely faceless and clean".
 
 2. ZERO TEXT & ZERO TYPOGRAPHY (STRICT CLEANLINESS):
    - Absolutely NO text, letters, words, numbers, typography, calligraphy, inscriptions, watermarks, signatures, logos, or UI labels anywhere in the image.
    - All surfaces, packaging, books, posters, and screens must be completely clean and blank.
 
-3. MANDATORY FACELESS CHARACTERS (ZERO TOLERANCE):
-   - If ANY living creature (human, animal) or humanoid robot is present, their face MUST NEVER be fully visible.
-   - Use techniques: "shot from behind", "face hidden in cinematic shadow", "cropped at the neck/shoulders", "over-the-shoulder view", "focus strictly on hands", or "deep silhouette".
+3. MANDATORY FACELESS CREATURES & CHARACTERS (ZERO TOLERANCE):
+   - ANY living creature (human, animal, insect) or humanoid robot MUST BE 100% FACELESS: zero visible eyes, zero facial features, zero expressions.
+   - Use techniques: "shot from behind", "face hidden in deep shadow", "cropped at the neck/shoulders", "facing away from camera", or "deep silhouette".
+   - For sticker packs, clipart, and icons: avoid characters/mascots with facial features; prioritize objects, food, tools, nature, and architecture.
+   - If male figures are present, they MUST be viewed strictly from behind, cropped at the neck/hands, or in deep faceless silhouette.
 
 4. UNBRANDED & GENERIC PROPS:
    - NO brands, logos, trademarks, or copyrighted gadget designs (no Apple logos, no recognizable smartphone/car designs).
    - Describe technology as "sleek minimalist unbranded matte aluminum chassis with clean blank displays".
 
-5. COMMERCIAL COPY SPACE / NEGATIVE SPACE:
-   - Always compose the scene with 30% to 40% clean, uncluttered negative space (clean wall, soft sky, or smooth creamy bokeh background) on one side, reserved for advertising headlines and copy.
+5. COMMERCIAL COMPOSITION & NEGATIVE SPACE:
+   - FOR STICKER PACKS / CLIPART / ICON SETS: ALWAYS arrange the stickers in a balanced, evenly-spaced grid (sticker sheet / knolling arrangement) neatly distributed across the canvas with equal margins on all sides, isolated on a clean solid white background. Each sticker MUST have its own distinct white die-cut contour cutline border and subtle shadow. NEVER leave a lopsided empty void on one side, and NEVER merge them into a borderless scenic full-frame picture.
+   - FOR GENERAL SCENES: If the subject is an environment or pattern, ensure a balanced composition; for standard commercial stock, compose with clean copy space reserved for advertising headlines.
 
 6. AUTHENTIC LIGHTING & ANTI-PLASTIC GLOW:
    - Use strictly real photographic lighting: "natural directional window sunlight", "diffused studio softbox", or "warm golden hour ambient illumination".
@@ -82,8 +86,10 @@ async def generate_reverse_prompt_async(
     """Analyze image using Gemini Vision and return a production-ready prompt string."""
     from google.genai import types
 
+    from .metadata import _prepare_vision_bytes
     detected_ratio = _detect_ratio(width, height)
-    image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+    safe_bytes, safe_mime = _prepare_vision_bytes(image_bytes, mime_type)
+    image_part = types.Part.from_bytes(data=safe_bytes, mime_type=safe_mime)
     
     user_instruction = (
         f"Analyze this image and write a detailed, compliant commercial microstock prompt in English. "
@@ -102,7 +108,6 @@ async def generate_reverse_prompt_async(
                         system_instruction=REVERSE_PROMPT_SYSTEM_INSTRUCTION,
                         temperature=0.7,
                         max_output_tokens=600,
-                        thinking_config=types.ThinkingConfig(thinking_budget=0),
                     )
                     response = client.models.generate_content(
                         model=model_name,
@@ -122,7 +127,7 @@ async def generate_reverse_prompt_async(
             except Exception as e:
                 last_err = e
                 err_str = str(e).lower()
-                if "503" in err_str or "unavailable" in err_str or "high demand" in err_str or "404" in err_str:
+                if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
                     continue
                 raise
         if last_err:

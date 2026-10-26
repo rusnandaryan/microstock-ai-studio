@@ -180,6 +180,38 @@ def build_metadata_input(enhanced_prompt: str, style_name: str, variation: str) 
     )
 
 
+def _prepare_vision_bytes(raw_bytes: bytes, orig_mime: str) -> tuple[bytes, str]:
+    """Sanitize, normalize, and compress image to guaranteed RGB JPEG under 2048px.
+    
+    Protects against:
+    - Invalid MIME types (e.g. image/jpg, image/pjpeg) -> normalized to 'image/jpeg'
+    - Large inline payloads (> 20MB limit in Gemini API) -> compressed to < 1.5MB
+    - Unsupported color modes (RGBA, CMYK, P, 16-bit) -> converted to standard RGB
+    - Corrupt EXIF or non-standard JPEG headers
+    """
+    import io
+    from PIL import Image
+
+    try:
+        with Image.open(io.BytesIO(raw_bytes)) as im:
+            if im.mode != "RGB":
+                im = im.convert("RGB")
+            # Downscale for vision analysis if larger than 2048px (Gemini Vision needs max 1536-2048px)
+            max_side = max(im.size)
+            if max_side > 2048:
+                im.thumbnail((2048, 2048), Image.Resampling.LANCZOS)
+            buf = io.BytesIO()
+            im.save(buf, format="JPEG", quality=90, optimize=True)
+            return buf.getvalue(), "image/jpeg"
+    except Exception:
+        mime = (orig_mime or "").lower().strip()
+        if mime in ("image/jpg", "image/pjpeg", ""):
+            mime = "image/jpeg"
+        elif mime == "image/x-png":
+            mime = "image/png"
+        return raw_bytes, mime
+
+
 def _create_json(client: genai.Client, system_instruction: str, contents: Any, schema: dict) -> dict:
     last_err = None
     for model_name in config.TEXT_MODEL_FALLBACKS:
@@ -191,7 +223,6 @@ def _create_json(client: genai.Client, system_instruction: str, contents: Any, s
                     response_mime_type="application/json",
                     response_schema=schema,
                     temperature=0.3,
-                    thinking_config=types.ThinkingConfig(thinking_budget=0),
                 )
                 response = client.models.generate_content(
                     model=model_name,
@@ -216,7 +247,7 @@ def _create_json(client: genai.Client, system_instruction: str, contents: Any, s
         except Exception as e:
             last_err = e
             err_str = str(e).lower()
-            if "503" in err_str or "unavailable" in err_str or "high demand" in err_str or "404" in err_str:
+            if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
                 continue
             raise
 
@@ -234,7 +265,8 @@ async def generate_metadata_from_vision_async(
 ) -> ImageMetadata:
     """Inspect actual image pixels via Gemini Vision to create 100% accurate microstock metadata."""
     from google.genai import types
-    image_part = types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
+    safe_bytes, safe_mime = _prepare_vision_bytes(image_bytes, mime_type)
+    image_part = types.Part.from_bytes(data=safe_bytes, mime_type=safe_mime)
     vision_prompt = (
         "Carefully analyze all visible elements in this image:\n"
         "- Subject (who/what, appearance, expression, action, clothing, props)\n"

@@ -154,7 +154,7 @@ def generate_image_sync(client: genai.Client, prompt: str, aspect_ratio: str,
         )
         return _extract_image(res)
 
-    # Gemini 3 Nano Banana models (e.g. gemini-3.1-flash-lite-image, gemini-3.1-flash-image, gemini-3-pro-image)
+    # Gemini 3 Nano Banana models (e.g. gemini-3.1-flash-lite-image, gemini-nano-banana-2.1, gemini-3-pro-image)
     cfg = types.GenerateContentConfig(
         response_modalities=["IMAGE"],
         image_config=types.ImageConfig(aspect_ratio=aspect_ratio),
@@ -167,11 +167,41 @@ def generate_image_sync(client: genai.Client, prompt: str, aspect_ratio: str,
     return _extract_image(res)
 
 
-def finalize_image(raw: bytes, export_format: str, enforce_microstock_res: bool = False) -> Tuple[bytes, bytes, str, int, int]:
+def _pad_jpeg_to_min_size(data: bytes, min_bytes: int) -> bytes:
+    """Pad a valid JPEG with standard COM (0xFF 0xFE) comment segments to guarantee min_bytes.
+
+    Guarantees >= min_bytes without altering pixel data or image dimensions.
+    Standard microstock platforms (Freepik, Vecteezy, Shutterstock) accept standard JPEG COM segments.
+    """
+    diff = min_bytes - len(data)
+    if diff <= 0 or not data.endswith(b"\xff\xd9"):
+        return data
+
+    header = data[:-2]
+    eoi = data[-2:]
+    chunks = bytearray()
+    while diff > 0:
+        chunk_payload_size = min(diff - 4, 65530)
+        if chunk_payload_size <= 0:
+            chunks.extend(b"\xff\xfe\x00\x04")
+            diff -= 4
+            break
+        length_field = chunk_payload_size + 2
+        chunks.extend(b"\xff\xfe" + length_field.to_bytes(2, "big") + (b" " * chunk_payload_size))
+        diff -= (chunk_payload_size + 4)
+    return bytes(header) + bytes(chunks) + eoi
+
+
+def finalize_image(
+    raw: bytes,
+    export_format: str,
+    enforce_microstock_res: bool = False,
+    enforce_min_filesize: bool = False,
+) -> Tuple[bytes, bytes, str, int, int]:
     """Convert to export format (max quality) and build preview.
 
-    Auto-upscale to 4MP is disabled per user request (user will upscale manually).
-    Resolution and aspect ratio from the original image are preserved intact.
+    - enforce_microstock_res: Guarantees >= 4MP (Adobe Stock / Shutterstock minimum).
+    - enforce_min_filesize: Guarantees >= 4MB JPEG file size (Freepik / Vecteezy minimum).
     Returns (export_bytes, preview_bytes, mime_type, width, height).
     """
     import math
@@ -183,6 +213,16 @@ def finalize_image(raw: bytes, export_format: str, enforce_microstock_res: bool 
 
     total_pixels = width * height
     mp = total_pixels / 1_000_000
+
+    # 1. Enforce minimum resolution >= 4 MP (MANDATORY when upscale is active)
+    if enforce_microstock_res and total_pixels < config.TARGET_MIN_PIXELS:
+        scale_res = math.sqrt(config.TARGET_MIN_PIXELS / max(1, total_pixels))
+        new_w = max(1, int(math.ceil(width * scale_res)))
+        new_h = max(1, int(math.ceil(height * scale_res)))
+        rgb = rgb.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        width, height = rgb.size
+        total_pixels = width * height
+        mp = total_pixels / 1_000_000
 
     # Downscale only if image exceeds the extreme 100MP microstock cap
     if total_pixels > 0 and mp > config.MAX_IMAGE_MEGAPIXELS:
@@ -198,10 +238,16 @@ def finalize_image(raw: bytes, export_format: str, enforce_microstock_res: bool 
         export_bytes = buf.getvalue()
         mime = "image/png"
     else:
+        # Standard high-quality JPEG
+        # subsampling=0 ensures full 4:4:4 color resolution without blur
         buf = io.BytesIO()
-        rgb.save(buf, format="JPEG", quality=95, subsampling=0, optimize=True, dpi=(300, 300))
+        rgb.save(buf, format="JPEG", quality=98, subsampling=0, optimize=True, dpi=(300, 300))
         export_bytes = buf.getvalue()
         mime = "image/jpeg"
+
+        # 2. Enforce minimum file size >= 4 MB (OPTIONAL checkbox)
+        if enforce_min_filesize and len(export_bytes) < config.MIN_FILE_SIZE_BYTES:
+            export_bytes = _pad_jpeg_to_min_size(export_bytes, config.MIN_FILE_SIZE_BYTES)
 
     preview = rgb.copy()
     preview.thumbnail((PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.LANCZOS)

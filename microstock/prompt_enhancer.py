@@ -15,17 +15,20 @@ Rewrite the user's short idea into 5 highly detailed, production-ready, ultra-cl
 
 CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT):
 
-1. ZERO FEMALE CHARACTERS (STRICT RULE):
-   - NO female characters, women, girls, or feminine figures in ANY form (human, silhouette, cyborg, humanoid robot, or illustration).
-   - Depict ONLY male figures (faceless), gender-neutral hands/silhouettes, or purely focus on inanimate objects, architecture, food, nature, tools, or concepts.
+1. ZERO FEMALE CHARACTERS (STRICT UNIVERSAL PROHIBITION):
+   - ABSOLUTELY ZERO female figures, women, girls, or feminine representations in ANY form (human, cartoon, cyborg, robot, mascot, or illustration).
+   - When people are not explicitly requested by the user, focus strictly on inanimate objects, architecture, food, nature, tools, and scenery.
+   - If people are requested, depict ONLY male figures that are completely faceless.
+   - In EVERY prompt, you MUST explicitly include: "strictly no women, no female characters, no visible facial features, completely faceless and clean".
 
 2. ZERO TEXT & ZERO TYPOGRAPHY (STRICT CLEANLINESS):
    - Absolutely NO text, letters, words, numbers, typography, calligraphy, inscriptions, watermarks, signatures, logos, or UI labels anywhere in the image.
    - All surfaces, packaging, books, posters, and screens must be completely clean and blank.
 
-3. MANDATORY FACELESS CHARACTERS (ZERO TOLERANCE):
-   - If ANY living creature (human, animal) or humanoid robot is present, their face MUST NEVER be fully visible.
-   - Use techniques: "shot from behind", "face hidden in cinematic shadow", "cropped at the neck/shoulders", "over-the-shoulder view", "focus strictly on hands", or "deep silhouette".
+3. MANDATORY FACELESS CREATURES & CHARACTERS (ZERO TOLERANCE):
+   - ANY living creature (human, animal, insect) or humanoid robot MUST BE 100% FACELESS: zero visible eyes, zero facial features, zero expressions.
+   - Use techniques: "shot from behind", "face hidden in deep shadow", "cropped at the neck/shoulders", "facing away from camera", or "deep silhouette".
+   - For sticker packs, clipart, and icons: avoid characters/mascots with facial features; prioritize objects, food, tools, nature, and architecture.
 
 4. UNBRANDED & GENERIC PROPS:
    - NO brands, logos, trademarks, or copyrighted gadget designs (no Apple logos, no recognizable smartphone/car designs).
@@ -86,6 +89,10 @@ def build_enhancer_input(
         parts.append(f"Composition framing: {comp_desc}")
 
     parts.append(
+        "MANDATORY UNIVERSAL EXCLUSIONS: Strictly NO female characters, NO women, NO visible facial features; "
+        "all living beings must be completely faceless. Prioritize inanimate objects, architecture, food, nature, tools, or faceless subjects."
+    )
+    parts.append(
         "Write 5 alternative detailed, coherent, photography/art-grade prompts in English that blend all these directives naturally, in the requested JSON format."
     )
     return "\n".join(parts)
@@ -142,7 +149,6 @@ def enhance_prompt(
                         temperature=0.8,
                         max_output_tokens=1500,
                         response_mime_type="application/json",
-                        thinking_config=types.ThinkingConfig(thinking_budget=0),
                     )
                     response = client.models.generate_content(
                         model=model_name,
@@ -164,9 +170,9 @@ def enhance_prompt(
                         return _parse_and_format(text)
             except Exception as e:
                 last_err = e
-                # If high demand (503) or not found (404), try next fallback model
+                # If high demand (503), not found (404), or invalid argument (400), try next fallback model
                 err_str = str(e).lower()
-                if "503" in err_str or "unavailable" in err_str or "high demand" in err_str or "404" in err_str:
+                if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
                     continue
                 raise
 

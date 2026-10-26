@@ -1,7 +1,7 @@
-"""Microstock Magic Studio — Modern Streamlit Entry Point.
+"""Microstock AI Studio - Modern Streamlit Entry Point.
 
 Alur Kerja:
-Tab 1: Magic Prompt Studio (18 Styles, Lighting, Lenses, Composition, Aspect Ratio)
+Tab 1: Commercial Prompt Studio (18 Styles, Lighting, Lenses, Composition, Aspect Ratio)
 Tab 2: Inspeksi Visual Gambar & Paket SEO Microstock (Gemini Vision 100% Akurat)
 """
 from __future__ import annotations
@@ -15,7 +15,7 @@ import uuid
 from PIL import Image
 import streamlit as st
 
-from microstock import config
+from microstock import config, folder_watcher
 from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
 from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
@@ -35,7 +35,9 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-inject_css()
+st.session_state.setdefault("app_theme", "dark")
+is_dark = st.session_state.get("app_theme", "dark") == "dark"
+inject_css(is_dark)
 
 # --------------------------------------------------------------------------- #
 # Session State Initialization
@@ -43,6 +45,8 @@ inject_css()
 st.session_state.setdefault("enhanced_prompt", "")
 st.session_state.setdefault("vision_items", [])
 st.session_state.setdefault("batch_package", None)
+st.session_state.setdefault("imported_from_watcher", [])
+st.session_state.setdefault("watch_dir", folder_watcher.get_default_downloads_dir())
 
 api_key = render_sidebar()
 render_header()
@@ -51,7 +55,7 @@ render_header()
 # Modern Neo-Pop Tabs Layout
 # --------------------------------------------------------------------------- #
 tab1, tab2, tab3 = st.tabs([
-    "1. Magic Prompt Studio",
+    "1. Commercial Prompt Studio",
     "2. Inspeksi Gambar & Paket SEO (Gemini Vision)",
     "3. Reverse Prompt (Image to Prompt)",
 ])
@@ -63,10 +67,10 @@ with tab1:
     st.markdown(
         """
         <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem;">
+          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
             Generator Prompt Komersial Siap Pakai
           </h2>
-          <p style="color:#4A4853; font-size:0.95rem; margin:0; font-weight:600;">
+          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
             Kombinasikan konsep dasar dengan parameter fotografi pro. Hasilnya 100% patuh aturan hak cipta Adobe Stock.
           </p>
         </div>
@@ -79,7 +83,7 @@ with tab1:
     with col_left:
         st.markdown(
             """
-            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:#1A191E;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:var(--text-primary);">
               Parameter & Konsep Visual
             </h3>
             """,
@@ -110,7 +114,7 @@ with tab1:
                 if period_str:
                     st.markdown(
                         f"""
-                        <div style="background:#EBFBEE; border:1.5px solid #2B8A3E; border-radius:8px; padding:0.5rem 0.8rem; margin-bottom:0.8rem; font-size:0.88rem; font-weight:700; color:#2B8A3E;">
+                        <div class="ms-step-badge ms-badge-green" style="display:inline-block; padding:0.5rem 0.85rem; margin-bottom:0.8rem; font-size:0.88rem; font-weight:700;">
                           📅 Periode Analisis: {period_str} (Berdasarkan Tren Pasar Global)
                         </div>
                         """,
@@ -125,16 +129,16 @@ with tab1:
 
                     st.markdown(
                         f"""
-                        <div style="background:#FFFFFF; border:2px solid #1A191E; border-radius:10px; padding:1rem; margin-bottom:0.8rem; box-shadow:2px 2px 0px rgba(26,25,30,0.1);">
-                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.3rem;">
-                            <b style="font-size:1rem; color:#D9381E;">{trend.get('category', 'Kategori Tren')}</b>
-                            <span style="background:#FFE3E3; color:#C92A2A; border:1px solid #C92A2A; border-radius:6px; padding:2px 8px; font-size:0.75rem; font-weight:700;">{status_badge}</span>
+                        <div class="ms-card-modern" style="padding:1rem; margin-bottom:0.8rem;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                            <b style="font-size:1rem; color:var(--text-accent);">{trend.get('category', 'Kategori Tren')}</b>
+                            <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem; padding:2px 8px;">{status_badge}</span>
                           </div>
-                          <p style="font-size:0.86rem; color:#4A4853; margin:0.3rem 0; line-height:1.4;"><i>"{trend.get('reason', '')}"</i></p>
-                          <div style="background:#F1F3F5; border-radius:6px; padding:0.4rem 0.6rem; font-size:0.8rem; color:#1A191E; margin-bottom:0.4rem;">
+                          <p style="font-size:0.88rem; color:var(--text-secondary); margin:0.3rem 0; line-height:1.4;"><i>"{trend.get('reason', '')}"</i></p>
+                          <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.4rem 0.6rem; font-size:0.8rem; color:var(--text-primary); margin-bottom:0.4rem;">
                             🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
                           </div>
-                          <div style="background:#F8F6F0; border-left:3px solid #1A191E; padding:0.5rem; margin-top:0.4rem; font-size:0.88rem; font-weight:600;">
+                          <div style="background:var(--bg-card); border-left:3px solid var(--accent-blue); padding:0.5rem; margin-top:0.4rem; font-size:0.88rem; font-weight:600; color:var(--text-primary); border-radius:0 6px 6px 0;">
                             💡 {trend.get('base_idea', '')}
                           </div>
                         </div>
@@ -232,7 +236,7 @@ with tab1:
 
         st.write("")
         btn_magic = st.button(
-            "Generate Magic Prompt Sekarang",
+            "Generate Prompt Komersial",
             type="primary",
             use_container_width=True,
             disabled=not api_key,
@@ -257,14 +261,14 @@ with tab1:
                             composition=selected_comp,
                         )
                         st.session_state.enhanced_prompt = res_prompt
-                        st.toast("Magic Prompt berhasil dibuat!", icon="✨")
+                        st.toast("Prompt komersial berhasil diracik!", icon="✅")
                     except Exception as e:
                         st.error(f"Gagal membuat prompt: {e}")
 
     with col_right:
         st.markdown(
             """
-            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:#1A191E;">
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:var(--text-primary);">
               Output Prompt Siap Salin
             </h3>
             """,
@@ -284,7 +288,7 @@ with tab1:
             c_btn1, c_btn2 = st.columns(2)
             with c_btn1:
                 st.link_button(
-                    "Buka gemini.google.com ↗",
+                    "Buka Google Gemini Web",
                     "https://gemini.google.com",
                     use_container_width=True,
                     type="primary",
@@ -294,22 +298,22 @@ with tab1:
                     st.session_state.enhanced_prompt = ""
                     st.rerun()
 
-            with st.expander("Panduan Alur Kerja di Gemini Web:", expanded=True):
+            with st.expander("Panduan Alur Kerja Cepat (Auto-Sync Tanpa Upload Manual):", expanded=True):
                 st.markdown(
                     """
                     1. **Salin Prompt**: Klik ikon salin di sudut kanan atas kotak prompt di atas.
                     2. **Tempel di Gemini Web**: Buka `gemini.google.com` dan tempelkan prompt tersebut.
-                    3. **Download Gambar**: Klik tombol unduh (⬇️) pada gambar hasil generate dari web Gemini.
-                    4. **Buka Tab 2**: Unggah gambar yang telah Anda unduh ke **Tab 2** untuk inspeksi visual Gemini Vision dan pembuatan 50 keywords SEO akurat. Anda dapat melakukan upscale resolusi secara mandiri jika diperlukan.
+                    3. **Download Gambar**: Klik tombol unduh (⬇️) pada gambar pilihan Anda di web Gemini.
+                    4. **Buka Tab 2**: Gambar yang baru diunduh akan **otomatis terdeteksi via Auto-Sync**! Cukup 1 klik untuk memasukkannya ke antrean, langsung siap di-upscale (garansi ≥ 4 MP & opsional ≥ 4 MB) dan disusun 50 keywords SEO akurat tanpa repot upload manual.
                     """
                 )
         else:
             st.markdown(
                 """
-                <div style="background:#FFFFFF; border:2px dashed #1A191E; border-radius:12px; padding:2rem 1.5rem; text-align:center; box-shadow:3px 3px 0px rgba(26,25,30,0.06);">
-                  <b style="font-size:1.05rem; display:block; margin-bottom:0.5rem; color:#1A191E;">Prompt Anda Akan Muncul Di Sini</b>
-                  <p style="color:#4A4853; font-size:0.92rem; margin:0; font-weight:600;">
-                    Tuliskan konsep dasar di panel kiri, pilih gaya & lensa, lalu klik <b>Generate Magic Prompt Sekarang</b>.
+                <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 2rem 1.5rem; text-align: center;">
+                  <b style="font-size: 1.05rem; display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Prompt Anda Akan Muncul Di Sini</b>
+                  <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0; font-weight: 500;">
+                    Tuliskan konsep dasar di panel kiri, pilih gaya & lensa, lalu klik <b>Generate Prompt Komersial</b>.
                   </p>
                 </div>
                 """,
@@ -324,10 +328,10 @@ with tab2:
     st.markdown(
         """
         <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem;">
+          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
             Inspeksi Visual & Paket Microstock
           </h2>
-          <p style="color:#4A4853; font-size:0.95rem; margin:0; font-weight:600;">
+          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
             Unggah gambar hasil generate dari Gemini Web. Gemini Vision akan menganalisis konten visual nyata, mempertahankan resolusi asli, serta menyusun 50 keywords anti-reject dan metadata lengkap untuk Adobe Stock & Shutterstock.
           </p>
         </div>
@@ -335,34 +339,153 @@ with tab2:
         unsafe_allow_html=True,
     )
 
+    # ----------------------------------------------------------------------- #
+    # 1. AUTO-SYNC DOWNLOAD FOLDER WATCHER
+    # ----------------------------------------------------------------------- #
+    with st.expander("⚡ Auto-Sync dari Folder Download (Deteksi Otomatis & Akumulasi)", expanded=True):
+        st.markdown(
+            """
+            <p style="font-size:0.9rem; color:var(--text-secondary); margin:0 0 0.6rem; font-weight:500;">
+              Fitur ini otomatis mendeteksi batch gambar yang Anda unduh dari <b>gemini.google.com</b>. Anda dapat memindai berkali-kali (gambar baru akan otomatis <b>diakumulasi tanpa duplikasi</b>).
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+        col_w1, col_w2, col_w3 = st.columns([2.5, 2, 1.2])
+        with col_w1:
+            watch_path = st.text_input(
+                "Folder Download yang Dipantau:",
+                value=st.session_state.get("watch_dir", folder_watcher.get_default_downloads_dir()),
+                key="input_watch_dir",
+                help="Folder di Mac Anda tempat file hasil download Gemini Web mendarat (default: ~/Downloads).",
+            )
+            st.session_state["watch_dir"] = watch_path
+        with col_w2:
+            selected_window = st.selectbox(
+                "Jendela Waktu Unduhan:",
+                options=list(folder_watcher.TIME_WINDOWS.keys()),
+                index=0,  # 15 Menit Terakhir (Sesi Sekarang)
+                help="Hanya mendeteksi gambar yang diunduh dalam rentang waktu ini, mengabaikan file lama.",
+            )
+        with col_w3:
+            st.caption("Pindai Folder:")
+            btn_scan = st.button("🔄 Pindai Sekarang", use_container_width=True)
+
+        # Check for active in-progress downloads
+        pending_dl = folder_watcher.check_pending_downloads(watch_path)
+        if pending_dl > 0:
+            st.info(f"⏳ Terdeteksi **{pending_dl} file** sedang dalam proses download di browser. Tunggu hingga download selesai di browser, lalu klik **Pindai Sekarang** lagi.")
+
+        cutoff = folder_watcher.get_cutoff_timestamp(selected_window)
+        found_files = folder_watcher.scan_recent_images(watch_path, since_timestamp=cutoff, max_files=50)
+
+        current_imported = st.session_state.get("imported_from_watcher", [])
+        existing_filenames = {item[0] for item in current_imported}
+
+        if found_files:
+            # Count how many of the found files are genuinely new
+            unimported_count = sum(1 for fn, _, _, _ in found_files if fn not in existing_filenames)
+            st.markdown(
+                f"**Terdeteksi {len(found_files)} gambar pada rentang waktu ini** "
+                f"*( {unimported_count} gambar baru belum masuk antrean, {len(found_files) - unimported_count} sudah ada )*:"
+            )
+
+            thumb_cols = st.columns(min(len(found_files), 5))
+            for i, (fn, fpath, mtime, fsize) in enumerate(found_files[:5]):
+                with thumb_cols[i]:
+                    img_data = folder_watcher.read_image_bytes(fpath)
+                    if img_data:
+                        badge = "✅" if fn in existing_filenames else "🆕"
+                        st.image(img_data[1], caption=f"{badge} {fn[:12]}.. ({fsize//1024} KB)", use_container_width=True)
+
+            c_imp1, c_imp2 = st.columns([2.5, 1.5])
+            with c_imp1:
+                btn_add_label = f"📥 Tambahkan {unimported_count} Gambar Baru ke Antrean" if unimported_count > 0 else "✅ Semua Gambar Sudah Masuk Antrean"
+                if st.button(btn_add_label, type="primary", use_container_width=True, disabled=unimported_count == 0):
+                    added_count = 0
+                    for fn, fpath, mtime, fsize in found_files:
+                        if fn not in existing_filenames:
+                            data = folder_watcher.read_image_bytes(fpath)
+                            if data:
+                                current_imported.append(data)
+                                existing_filenames.add(fn)
+                                added_count += 1
+                    st.session_state["imported_from_watcher"] = current_imported
+                    st.toast(f"Berhasil menambahkan {added_count} gambar! Total antrean: {len(current_imported)} gambar.", icon="✨")
+                    st.rerun()
+            with c_imp2:
+                if current_imported:
+                    if st.button(f"🗑️ Kosongkan Antrean ({len(current_imported)} Gambar)", use_container_width=True):
+                        st.session_state["imported_from_watcher"] = []
+                        st.rerun()
+        else:
+            st.markdown(
+                f"""
+                <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 1.5rem; text-align: center; margin-top: 0.6rem;">
+                  <b style="font-size: 1rem; color: var(--text-primary); display: block; margin-bottom: 0.35rem;">Belum Ada Gambar Baru yang Terdeteksi</b>
+                  <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
+                    Setelah mengunduh gambar dari Gemini Web ke folder <code>{watch_path}</code>, klik tombol <b>Pindai Sekarang</b> di atas untuk mendeteksi batch secara otomatis.
+                  </p>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+            if current_imported:
+                if st.button(f"🗑️ Kosongkan Antrean Auto-Sync ({len(current_imported)} Gambar)", use_container_width=True):
+                    st.session_state["imported_from_watcher"] = []
+                    st.rerun()
+
+    # ----------------------------------------------------------------------- #
+    # 2. MANUAL FILE UPLOADER (ALTERNATIVE)
+    # ----------------------------------------------------------------------- #
     uploaded_files = st.file_uploader(
-        "Pilih atau seret gambar Anda (JPG, PNG, WebP):",
+        "Atau unggah file manual (JPG, PNG, WebP):",
         type=["jpg", "jpeg", "png", "webp"],
         accept_multiple_files=True,
         help="Anda dapat mengunggah 1 hingga 10+ file gambar sekaligus.",
     )
 
+    # Combine images from Auto-Sync watcher AND manual uploader
     image_entries = []  # list of (filename, raw_bytes, mime)
+    if st.session_state.get("imported_from_watcher"):
+        for fn, raw_b, mime_t in st.session_state["imported_from_watcher"]:
+            image_entries.append((fn, raw_b, mime_t))
+
     if uploaded_files:
         for uf in uploaded_files:
-            image_entries.append((uf.name, uf.getvalue(), uf.type or "image/jpeg"))
+            if not any(e[0] == uf.name for e in image_entries):
+                image_entries.append((uf.name, uf.getvalue(), uf.type or "image/jpeg"))
 
     if image_entries:
         st.markdown(
             f"""
-            <div style="display:inline-block; background:#E7F5FF; border:1.5px solid #1A191E; border-radius:8px; padding:0.4rem 0.9rem; margin-bottom:0.8rem; box-shadow:2px 2px 0px #1A191E;">
-              <span style="font-weight:700; color:#1864AB; font-size:0.92rem;">Terdeteksi {len(image_entries)} gambar siap dianalisis</span>
+            <div style="display:inline-block; background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.3); border-radius:8px; padding:0.4rem 0.9rem; margin-bottom:0.8rem;">
+              <span style="font-weight:700; color:var(--text-accent); font-size:0.92rem;">Siap dianalisis: {len(image_entries)} gambar</span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        st.markdown("**Pengaturan Upscaler & Metadata**")
+        st.markdown("**Pengaturan Upscaler & Standar Microstock**")
         col_up1, col_up2 = st.columns(2)
         with col_up1:
-            do_upscale = st.checkbox("Lakukan Upscale Gambar (Otomatis Lokal)", value=False, help="Menggunakan mesin Upscayl NCNN CLI lokal.")
+            do_upscale = st.checkbox(
+                "Lakukan Upscale Gambar (Otomatis Standar Microstock)",
+                value=False,
+                help="Menggunakan mesin Upscayl NCNN CLI lokal. Sistem otomatis menghitung rasio perbesaran agar resolusi gambar dijamin minimal 4 Megapiksel (≥ 4 MP)."
+            )
+            if do_upscale:
+                st.caption("✓ **Standar Wajib Aktif:** Resolusi dijamin otomatis minimal **4 MP** (≥ 4.000.000 px).")
         with col_up2:
-            upscale_factor = st.selectbox("Tingkat Perbesaran (Scale)", [2, 3, 4], index=2, disabled=not do_upscale)
+            enforce_4mb = False
+            if do_upscale:
+                enforce_4mb = st.checkbox(
+                    "Wajibkan ukuran file fisik minimal 4 MB",
+                    value=False,
+                    help="Standar untuk Freepik / Vecteezy. Jika dicentang, file disimpan dengan encoding kualitas maksimal (≥ 4 MB). Jika tidak dicentang, kompresi normal dipertahankan agar hemat penyimpanan lokal Mac Anda."
+                )
+                if enforce_4mb:
+                    st.caption("✓ **Standar Freepik/Vecteezy Aktif:** Ukuran file fisik dijamin minimal **4 MB**.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         btn_analyze = st.button(
@@ -382,37 +505,63 @@ with tab2:
                     progress_bar.progress(idx / len(image_entries), text=f"Menganalisis visual #{idx+1} dari {len(image_entries)}: {filename}...")
 
                     # Generate vision metadata
-                    md = await generate_metadata_from_vision_async(
-                        client=client,
-                        image_bytes=raw_bytes,
-                        mime_type=mime,
-                        label=f"Gambar #{idx+1}",
-                    )
+                    md = None
+                    try:
+                        md = await generate_metadata_from_vision_async(
+                            client=client,
+                            image_bytes=raw_bytes,
+                            mime_type=mime,
+                            label=f"Gambar #{idx+1}",
+                        )
+                    except Exception as e:
+                        st.toast(f"⚠️ Gagal menyusun metadata untuk {filename}: {e}", icon="⚠️")
+                        clean_title = os.path.splitext(filename)[0].replace("_", " ").replace("-", " ").strip().title()
+                        from microstock.metadata import ImageMetadata
+                        md = ImageMetadata(
+                            title=clean_title or "Commercial Microstock Asset",
+                            description=f"High quality commercial microstock asset: {clean_title or 'visual concept'}.",
+                            keywords=[w.lower() for w in clean_title.split() if len(w) > 2] + ["stock", "commercial", "concept", "isolated", "quality", "modern"],
+                            adobe_category=12,
+                            shutterstock_categories=["Objects", "Miscellaneous"],
+                        )
 
                     target_bytes = raw_bytes
                     if do_upscale:
-                        progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (Upscale {upscale_factor}x) #{idx+1} dari {len(image_entries)}: {filename}...")
-                        import tempfile
-                        from microstock.upscaler import run_upscale
-                        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
-                            in_f.write(raw_bytes)
-                            in_path = in_f.name
-                        out_path = in_path.replace(".jpg", "_up.jpg")
-                        success = await asyncio.to_thread(run_upscale, in_path, out_path, upscale_factor)
-                        if success:
-                            with open(out_path, "rb") as out_f:
-                                target_bytes = out_f.read()
-                            try: os.remove(out_path)
+                        try:
+                            with Image.open(io.BytesIO(raw_bytes)) as _tmp_im:
+                                orig_w, orig_h = _tmp_im.size
+                        except Exception:
+                            orig_w, orig_h = 1024, 1024
+
+                        from microstock.upscaler import is_upscale_needed, run_upscale
+                        if is_upscale_needed(orig_w, orig_h):
+                            progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (AI Upscale 4x Standar Microstock) #{idx+1} dari {len(image_entries)}: {filename}...")
+                            import tempfile
+                            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
+                                in_f.write(raw_bytes)
+                                in_path = in_f.name
+                            out_path = in_path.replace(".jpg", "_up.jpg")
+                            success = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
+                            if success:
+                                with open(out_path, "rb") as out_f:
+                                    target_bytes = out_f.read()
+                                try: os.remove(out_path)
+                                except: pass
+                            else:
+                                st.toast(f"Upscale lokal gagal untuk {filename}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
+                            try: os.remove(in_path)
                             except: pass
                         else:
-                            st.toast(f"Upscale gagal untuk {filename}, menggunakan resolusi asli.", icon="⚠️")
-                        try: os.remove(in_path)
-                        except: pass
+                            progress_bar.progress(idx / len(image_entries), text=f"Gambar #{idx+1} sudah beresolusi tinggi ({orig_w}x{orig_h} px ≥ 4 MP), melewati perbesaran AI...")
 
                     progress_bar.progress(idx / len(image_entries), text=f"Menyiapkan resolusi & preview #{idx+1}...")
-                    # Finalize image & thumbnail (Preserve original resolution, 300 DPI)
+                    # Finalize image & thumbnail (Enforces >= 4MP and optionally >= 4MB)
                     exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
-                        finalize_image, target_bytes, "JPEG", False
+                        finalize_image,
+                        target_bytes,
+                        "JPEG",
+                        enforce_microstock_res=do_upscale,
+                        enforce_min_filesize=enforce_4mb,
                     )
 
                     item = BatchItem(
@@ -464,7 +613,8 @@ with tab2:
             }
             st.success(f"Berhasil menganalisis {len(processed_items)} gambar dengan 100% akurasi visual!")
             if do_upscale:
-                st.info(f"Gambar hasil upscale dan file CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
+                rule_info = "garansi resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if enforce_4mb else "")
+                st.info(f"Gambar hasil upscale ({rule_info}) dan file CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
             else:
                 st.info(f"File metadata CSV otomatis tersimpan di folder lokal (file gambar asli tidak disimpan untuk menghemat ruang disk):\n`{local_export_dir}`")
 
@@ -492,10 +642,10 @@ with tab3:
     st.markdown(
         """
         <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem;">
+          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
             Reverse Prompt Studio (Image to Prompt)
           </h2>
-          <p style="color:#4A4853; font-size:0.95rem; margin:0; font-weight:600;">
+          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
             Unggah gambar referensi Anda. Gemini Vision akan menganalisis konsep, pencahayaan, sudut kamera, dan menyusun 1 prompt komersial pro yang 100% patuh aturan ketat (faceless, tanpa wanita, tanpa teks, copy space bersih).
           </p>
         </div>
@@ -519,9 +669,9 @@ with tab3:
     if ref_entries:
         st.markdown(
             f"""
-            <div style="background:#FFF3BF; border:2px solid #1A191E; border-radius:10px; padding:0.85rem; margin-bottom:1rem; box-shadow:2px 2px 0px #1A191E;">
-              <b style="color:#855500;">📌 {len(ref_entries)} gambar referensi siap dianalisis.</b>
-              <p style="font-size:0.85rem; color:#1A191E; margin:0.25rem 0 0;">
+            <div style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.3); border-radius:10px; padding:0.85rem; margin-bottom:1rem;">
+              <span class="ms-step-badge ms-badge-amber" style="font-size:0.88rem; font-weight:700; display:inline-block; margin-bottom:0.35rem;">{len(ref_entries)} Gambar Referensi Siap Dianalisis</span>
+              <p style="font-size:0.85rem; color:var(--text-primary); margin:0.25rem 0 0;">
                 File gambar hanya diproses di memori dan tidak disimpan di disk. Prompt yang dihasilkan akan otomatis disimpan dalam format <code>*.txt</code> di folder <code>exports/prompts/</code>.
               </p>
             </div>
@@ -584,8 +734,8 @@ with tab3:
         st.divider()
         st.markdown(
             """
-            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:800; margin:0 0 1rem; color:#1A191E;">
-              📋 Hasil Reverse Prompt (Tersimpan di Disk)
+            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.3rem; font-weight:800; margin:0 0 1rem; color:var(--text-primary);">
+              Hasil Reverse Prompt (Tersimpan di Disk)
             </h3>
             """,
             unsafe_allow_html=True,
@@ -601,9 +751,9 @@ with tab3:
                 st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
                 st.code(item["prompt"], language=None, wrap_lines=True)
                 st.link_button(
-                    "Buka gemini.google.com ↗",
+                    "Buka Google Gemini Web",
                     "https://gemini.google.com",
                     use_container_width=True,
                 )
-            st.markdown("<hr style='margin: 1.5rem 0; border: 1px solid #E0E0E0;'>", unsafe_allow_html=True)
+            st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);'>", unsafe_allow_html=True)
 

@@ -1,0 +1,1113 @@
+<!DOCTYPE html>
+<html lang="en" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microstock AI Studio: Workflow Engine for Commercial Stock Contributors</title>
+  <meta name="description" content="Production-ready workflow suite for Adobe Stock, Shutterstock, and Freepik contributors. Commercial prompt generation, 50-keyword SEO inspection, and local NCNN upscaling.">
+  
+  <!-- Fonts: Space Grotesk (Display) + Plus Jakarta Sans (Body) + JetBrains Mono (Data/Code) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            heading: ['"Space Grotesk"', '-apple-system', 'sans-serif'],
+            body: ['"Plus Jakarta Sans"', 'Inter', 'system-ui', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
+          },
+          colors: {
+            studio: {
+              canvasDark: '#0B0F19',
+              surfaceDark: '#0B0F19',
+              cardDark: '#131B2E',
+              inputDark: '#1C253B',
+              borderDark: '#2A364F',
+              canvasLight: '#F8FAFC',
+              surfaceLight: '#FFFFFF',
+              cardLight: '#FFFFFF',
+              inputLight: '#F1F5F9',
+              borderLight: '#E2E8F0',
+              accent: '#2563EB',
+              accentHover: '#1D4ED8',
+              emerald: '#10B981',
+              amber: '#F59E0B',
+              rose: '#EF4444',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    /* WCAG 2.2 AAA Area Compliant Focus Rings */
+    a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+      outline: 2px solid #2563EB !important;
+      outline-offset: 2px !important;
+      box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.45) !important;
+    }
+    
+    /* Scroll padding to avoid sticky headers covering focus elements */
+    html {
+      scroll-padding-top: 5rem;
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      height: 6px;
+      width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #2A364F;
+      border-radius: 4px;
+    }
+    
+    /* Subtle tactile active states */
+    .btn-press:active {
+      transform: scale(0.985);
+    }
+
+    /* Tab active indicator */
+    .module-tab[aria-selected="true"] {
+      border-color: #2563EB;
+      background-color: rgba(37, 99, 235, 0.08);
+      color: #2563EB;
+    }
+    .dark .module-tab[aria-selected="true"] {
+      border-color: #3B82F6;
+      background-color: rgba(59, 130, 246, 0.12);
+      color: #60A5FA;
+    }
+  </style>
+</head>
+<body class="bg-studio-canvasLight dark:bg-studio-canvasDark text-slate-800 dark:text-slate-100 font-body transition-colors duration-200 antialiased selection:bg-blue-600 selection:text-white">
+
+  <!-- Top Announcement Bar -->
+  <aside aria-label="System status" class="bg-slate-900 border-b border-studio-borderDark text-xs text-slate-300 py-2 px-4">
+    <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          STUDIO ENGINE V2.4
+        </span>
+        <span class="text-xs text-slate-300">Local Vulkan NCNN auto-upscaler and Gemini 2.5 Flash Vision pipeline verified.</span>
+      </div>
+      <div class="flex items-center gap-4 text-xs font-mono text-slate-400">
+        <a href="#rules" class="hover:text-blue-400 transition-colors">7 Compliance Rules</a>
+        <span class="text-slate-700">|</span>
+        <a href="#quickstart" class="hover:text-blue-400 transition-colors">Terminal Quickstart</a>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Sticky Header / Navigation -->
+  <header class="sticky top-0 z-50 backdrop-blur-md bg-white/95 dark:bg-studio-canvasDark/95 border-b border-studio-borderLight dark:border-studio-borderDark">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-3 group focus:outline-none" aria-label="Microstock AI Studio Homepage">
+        <div class="w-9 h-9 rounded-lg bg-blue-600 flex items-center justify-center text-white font-heading font-bold text-lg shadow-sm group-hover:bg-blue-700 transition-colors">
+          M
+        </div>
+        <div>
+          <span class="font-heading font-bold text-lg tracking-tight text-slate-900 dark:text-white block leading-tight">
+            Microstock AI Studio
+          </span>
+          <span class="text-[11px] font-mono text-slate-500 dark:text-slate-400 block leading-none">
+            Commercial Stock Workflow Engine
+          </span>
+        </div>
+      </a>
+
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600 dark:text-slate-300" aria-label="Main navigation">
+        <a href="#features" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Studio Modules</a>
+        <a href="#interactive-demo" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Interactive Demo</a>
+        <a href="#specs" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Stock Standards</a>
+        <a href="#rules" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Compliance Engine</a>
+        <a href="#pricing" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing & Plans</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <!-- Theme Toggle Button -->
+        <button id="themeToggle" type="button" aria-label="Toggle visual theme" class="p-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-100 dark:bg-studio-surfaceDark text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+          <svg id="sunIcon" class="w-4 h-4 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="moonIcon" class="w-4 h-4 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+
+        <!-- Mobile Menu Toggle Button -->
+        <button id="mobileMenuBtn" type="button" aria-label="Toggle mobile menu" aria-expanded="false" class="md:hidden p-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-100 dark:bg-studio-surfaceDark text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors cursor-pointer">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+
+        <a href="#quickstart" class="hidden sm:inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-all shadow-sm btn-press">
+          <span>Launch Local Studio</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+        </a>
+      </div>
+    </div>
+
+    <!-- Mobile Navigation Drawer -->
+    <div id="mobileMenu" class="hidden md:hidden border-t border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-surfaceDark px-4 py-4 space-y-2">
+      <a href="#features" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Studio Modules</a>
+      <a href="#interactive-demo" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Interactive Demo</a>
+      <a href="#specs" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Stock Standards</a>
+      <a href="#rules" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Compliance Engine</a>
+      <a href="#pricing" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Pricing & Plans</a>
+      <div class="pt-2 border-t border-studio-borderLight dark:border-studio-borderDark">
+        <a href="#quickstart" class="block text-center w-full py-2.5 rounded-lg bg-blue-600 text-white font-medium text-xs mobile-link">Launch Local Studio</a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Hero Section -->
+    <section class="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
+      <!-- Subtle Grid Background -->
+      <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#2563EB_1px,transparent_1px)] [background-size:24px_24px]"></div>
+
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
+        <div class="max-w-3xl">
+          <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
+            Generate compliant prompts. Upscale locally. Export 50 SEO keywords.
+          </h1>
+
+          <p class="mt-5 text-base sm:text-lg text-slate-600 dark:text-slate-300 leading-relaxed">
+            Engineered specifically for Adobe Stock, Shutterstock, and Freepik contributors. Microstock AI Studio eliminates commercial marketplace rejections through dynamic trend research, automated downloads folder syncing, local Vulkan GPU upscaling, and rejection-free metadata CSV packaging.
+          </p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-4">
+            <a href="#quickstart" class="px-5 py-3 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm transition-all shadow-sm inline-flex items-center gap-2 btn-press">
+              <span>Start Studio locally</span>
+              <span class="font-mono text-xs opacity-75">streamlit run app.py</span>
+            </a>
+            <a href="#interactive-demo" class="px-5 py-3 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-surfaceDark hover:bg-slate-50 dark:hover:bg-studio-inputDark text-slate-800 dark:text-slate-200 font-medium text-sm transition-all inline-flex items-center gap-2 btn-press">
+              <span>Explore live playground</span>
+              <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+            </a>
+          </div>
+
+          <!-- Trust & Platform Compatibility Tags -->
+          <div class="mt-10 pt-8 border-t border-studio-borderLight dark:border-studio-borderDark grid grid-cols-2 sm:grid-cols-4 gap-4 text-left">
+            <div>
+              <div class="text-xs text-slate-400 font-mono">STANDARDS</div>
+              <div class="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">≥ 4 MP / 300 DPI</div>
+              <div class="text-xs text-slate-500">Adobe & Shutter ready</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400 font-mono">FILE INTEGRITY</div>
+              <div class="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">≥ 4 MB Option</div>
+              <div class="text-xs text-slate-500">Freepik & Vecteezy mode</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400 font-mono">METADATA</div>
+              <div class="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">50 SEO Keywords</div>
+              <div class="text-xs text-slate-500">Strictly brand sanitized</div>
+            </div>
+            <div>
+              <div class="text-xs text-slate-400 font-mono">HARDWARE</div>
+              <div class="text-sm font-semibold text-slate-900 dark:text-white mt-0.5">Local Vulkan NCNN</div>
+              <div class="text-xs text-slate-500">Zero cloud upscaling costs</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Studio Modules Section with Interactive Tabs & Cards -->
+    <section id="features" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row md:items-end justify-between mb-10">
+          <div>
+            <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Three Structured Modules</span>
+            <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+              Engineered around how stock contributors actually work
+            </h2>
+          </div>
+          <p class="mt-3 md:mt-0 text-sm text-slate-500 dark:text-slate-400 max-w-md">
+            Each module operates independently or in sequential harmony, preserving local disk storage and keeping metadata synchronized.
+          </p>
+        </div>
+
+        <!-- Interactive Module Switcher Tabs -->
+        <div class="flex items-center gap-2 mb-8 border-b border-studio-borderLight dark:border-studio-borderDark pb-2 overflow-x-auto" role="tablist" aria-label="Studio modules">
+          <button type="button" role="tab" id="tabModAll" aria-controls="cardMod1 cardMod2 cardMod3" aria-selected="true" class="module-tab px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold border border-transparent transition-all cursor-pointer">
+            View All Modules (3)
+          </button>
+          <button type="button" role="tab" id="tabMod1" aria-controls="cardMod1" aria-selected="false" class="module-tab px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 border border-transparent hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+            Module 01: Prompt Generator
+          </button>
+          <button type="button" role="tab" id="tabMod2" aria-controls="cardMod2" aria-selected="false" class="module-tab px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 border border-transparent hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+            Module 02: Inspection & SEO
+          </button>
+          <button type="button" role="tab" id="tabMod3" aria-controls="cardMod3" aria-selected="false" class="module-tab px-3.5 py-1.5 rounded-lg text-xs font-mono font-semibold text-slate-600 dark:text-slate-400 border border-transparent hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer">
+            Module 03: Reverse Prompt
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Module 1 Card -->
+          <article id="cardMod1" role="tabpanel" aria-labelledby="tabMod1" class="module-card rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm hover:border-blue-500/40 transition-colors">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-mono px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold border border-blue-500/20">MODULE 01</span>
+                <span class="text-xs text-slate-400 font-mono">TEXT TO PROMPT</span>
+              </div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white">
+                Prompt Generator Studio
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Transforms rough ideas into 5 commercial English prompt variants with strict microstock formatting.
+              </p>
+
+              <ul class="mt-6 space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Market Trends Engine:</strong> Real-time high-demand and low-competition market trends analysis with 1-click apply.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>5 Core Style Categories:</strong> Commercial Photography, Fine Art, 3D Render & Claymation, Animation & Mascot, Die-Cut Vector Design.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Copy-Space Control:</strong> 30%–40% isolated negative space for advertiser copy, or edge-to-edge full frame.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-studio-borderLight dark:border-studio-borderDark">
+              <span class="text-[11px] text-slate-400 font-mono block">AUTOMATIC OUTPUT:</span>
+              <span class="text-xs text-slate-700 dark:text-slate-300 font-mono mt-0.5 block">5 variations + copy button + aspect ratio preset</span>
+            </div>
+          </article>
+
+          <!-- Module 2 Card (Featured) -->
+          <article id="cardMod2" role="tabpanel" aria-labelledby="tabMod2" class="module-card rounded-xl border border-blue-500/50 bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm relative ring-1 ring-blue-500/30">
+            <div class="absolute -top-3 right-6 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white tracking-wider uppercase">
+              Core Workflow
+            </div>
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-mono px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold border border-blue-500/20">MODULE 02</span>
+                <span class="text-xs text-slate-400 font-mono">VISION & AUTO-CLEANUP</span>
+              </div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white">
+                Inspection, Upscale & SEO
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Monitors your Downloads folder, performs local Real-ESRGAN upscaling to ≥ 4 MP, and generates 50 rejection-free keywords.
+              </p>
+
+              <ul class="mt-6 space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Downloads Auto-Sync:</strong> 15m, 30m, 1h window filters with smart non-duplicating queue accumulation.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Smart Upscale Rules:</strong> Enforces ≥ 4 Megapixels automatically. Optional Freepik ≥ 4 MB target byte check.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Zero-Waste Storage:</strong> Unchecked raw files process directly in RAM without filling your SSD.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-studio-borderLight dark:border-studio-borderDark">
+              <span class="text-[11px] text-slate-400 font-mono block">EXPORT PACKAGE:</span>
+              <span class="text-xs text-slate-700 dark:text-slate-300 font-mono mt-0.5 block">metadata.csv + high-res images in timestamped batch ZIP</span>
+            </div>
+          </article>
+
+          <!-- Module 3 Card -->
+          <article id="cardMod3" role="tabpanel" aria-labelledby="tabMod3" class="module-card rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm hover:border-blue-500/40 transition-colors">
+            <div>
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-xs font-mono px-2.5 py-1 rounded bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold border border-blue-500/20">MODULE 03</span>
+                <span class="text-xs text-slate-400 font-mono">IMAGE TO PROMPT</span>
+              </div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white">
+                Reverse Prompt Studio
+              </h3>
+              <p class="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+                Upload any reference image to reverse-engineer lighting, camera optics, composition, and detected aspect ratios.
+              </p>
+
+              <ul class="mt-6 space-y-3 text-xs text-slate-600 dark:text-slate-300">
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Optical Deconstruction:</strong> Identifies focal length, aperture blur depth, and color palettes.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Auto-Preserve to TXT:</strong> Exports prompt formulas to <code>exports/prompts/</code> automatically so work is never lost.</span>
+                </li>
+                <li class="flex items-start gap-2.5">
+                  <svg class="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span><strong>Automatic Sanitization:</strong> Injects the universal 7 compliance rules into reconstructed prompts.</span>
+                </li>
+              </ul>
+            </div>
+
+            <div class="mt-8 pt-4 border-t border-studio-borderLight dark:border-studio-borderDark">
+              <span class="text-[11px] text-slate-400 font-mono block">RETENTION MODEL:</span>
+              <span class="text-xs text-slate-700 dark:text-slate-300 font-mono mt-0.5 block">Zero-clutter RAM inspect (temporary upload freed immediately)</span>
+            </div>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Interactive Demo / Live Studio Preview -->
+    <section id="interactive-demo" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-canvasDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-12">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Interactive Studio Preview</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Experience the Studio workflow controls
+          </h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Select parameters below to watch the compiler inject optical physics and commercial compliance in real time.
+          </p>
+        </div>
+
+        <!-- Studio Workstation Container -->
+        <div class="rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark overflow-hidden shadow-xl">
+          
+          <!-- Window Bar -->
+          <div class="px-4 py-3 bg-slate-100 dark:bg-studio-inputDark/70 border-b border-studio-borderLight dark:border-studio-borderDark flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+              <div class="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+              <div class="w-3 h-3 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+              <span class="ml-2 font-mono text-xs text-slate-500 dark:text-slate-400">Microstock AI Studio [Session: Commercial Batch #104]</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/10 text-emerald-500 border border-emerald-500/20">
+                Vulkan GPU Ready
+              </span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-mono bg-blue-500/10 text-blue-400 border border-blue-500/20">
+                Gemini Vision 2.5
+              </span>
+            </div>
+          </div>
+
+          <!-- Interactive Playground Grid -->
+          <div class="p-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
+            
+            <!-- Left Controls Column -->
+            <div class="lg:col-span-5 space-y-5">
+              <div>
+                <label for="nicheInput" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                  Market Topic or Asset Idea
+                </label>
+                <input type="text" id="nicheInput" value="Minimalist geometric coffee brewing station with brass dripper" class="w-full px-3.5 py-2.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-slate-900 dark:text-slate-100 text-sm focus:outline-none">
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="styleSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    Visual Category
+                  </label>
+                  <select id="styleSelect" class="w-full px-3 py-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-slate-900 dark:text-slate-100 text-xs focus:outline-none cursor-pointer">
+                    <option value="photo">Commercial Advertising Photo</option>
+                    <option value="3d">3D Isometric Studio Render</option>
+                    <option value="sticker">Die-Cut Sticker Pack (Knolling)</option>
+                    <option value="watercolor">Fine Art Textured Watercolor</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="ratioSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    Aspect Ratio
+                  </label>
+                  <select id="ratioSelect" class="w-full px-3 py-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-slate-900 dark:text-slate-100 text-xs focus:outline-none cursor-pointer">
+                    <option value="16:9">16:9 (Landscape Editorial)</option>
+                    <option value="1:1">1:1 (Square Stock Icon)</option>
+                    <option value="4:5">4:5 (Social & Mobile Print)</option>
+                    <option value="9:16">9:16 (Vertical Story)</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 gap-4">
+                <div>
+                  <label for="lightingSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    Lighting Setup
+                  </label>
+                  <select id="lightingSelect" class="w-full px-3 py-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-slate-900 dark:text-slate-100 text-xs focus:outline-none cursor-pointer">
+                    <option value="softbox">Studio Softbox with Rim Highlight</option>
+                    <option value="golden">Warm Golden Hour 3200K</option>
+                    <option value="highkey">High-Key Clean Advertising</option>
+                    <option value="moody">Moody Chiaroscuro Daylight</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label for="spaceSelect" class="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300 mb-1.5">
+                    Copy Space & Framing
+                  </label>
+                  <select id="spaceSelect" class="w-full px-3 py-2 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-slate-900 dark:text-slate-100 text-xs focus:outline-none cursor-pointer">
+                    <option value="copy">35% Clean Copy Space (Ad Ready)</option>
+                    <option value="full">Edge-to-Edge Full Composition</option>
+                    <option value="knolling">Balanced Flat-Lay Grid</option>
+                  </select>
+                </div>
+              </div>
+
+              <!-- Toggles -->
+              <div class="pt-2 space-y-2.5">
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input type="checkbox" id="freepikToggle" checked class="w-4 h-4 rounded text-blue-600 focus:ring-0 border-studio-borderDark bg-studio-inputDark cursor-pointer">
+                  <span class="text-xs text-slate-700 dark:text-slate-300">Enforce Freepik physical file size threshold (≥ 4.0 MB target)</span>
+                </label>
+                <label class="flex items-center gap-2.5 cursor-pointer">
+                  <input type="checkbox" id="facelessToggle" checked class="w-4 h-4 rounded text-blue-600 focus:ring-0 border-studio-borderDark bg-studio-inputDark cursor-pointer">
+                  <span class="text-xs text-slate-700 dark:text-slate-300">Inject Universal Zero-Female and Faceless commercial clause</span>
+                </label>
+              </div>
+
+              <button id="generateBtn" type="button" class="w-full py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-medium text-xs transition-colors flex items-center justify-center gap-2 btn-press cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span>Compile Commercial Package</span>
+              </button>
+            </div>
+
+            <!-- Right Output Preview Column -->
+            <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
+              
+              <!-- Output 1: Commercial Prompt -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400">OUTPUT 1: COMPILED COMMERCIAL PROMPT</span>
+                  <button type="button" id="copyPromptBtn" class="text-[11px] font-mono text-blue-600 dark:text-blue-400 hover:underline cursor-pointer">Copy Prompt</button>
+                </div>
+                <div id="promptOutput" class="p-3.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark font-mono text-xs text-slate-800 dark:text-slate-200 leading-relaxed custom-scrollbar max-h-36 overflow-y-auto">
+                  Commercial product photograph of minimalist geometric coffee brewing station with brass dripper, matte ceramic mug, studio softbox lighting with subtle rim highlights, clean composition leaving 35% copy space on left for advertising text, 85mm prime lens, f/2.8 crisp focal depth, strictly no people, no visible logos or trademarks, 8k resolution, stock photo standard --ar 16:9
+                </div>
+              </div>
+
+              <!-- Output 2: 50 SEO Metadata Keywords Preview -->
+              <div>
+                <div class="flex items-center justify-between mb-1.5">
+                  <span class="text-xs font-mono font-semibold text-slate-600 dark:text-slate-400">OUTPUT 2: REJECTION-FREE 50 KEYWORDS</span>
+                  <span class="text-[11px] font-mono text-emerald-500 font-semibold">50/50 Verified</span>
+                </div>
+                <div id="keywordsOutput" class="p-3.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-inputDark text-xs font-mono text-slate-600 dark:text-slate-300 leading-relaxed max-h-28 overflow-y-auto custom-scrollbar flex flex-wrap gap-1.5">
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">coffee brewing</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">brass dripper</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">minimalist design</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">ceramic mug</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">copy space</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">advertising</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">barista equipment</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">commercial studio</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">warm beverage</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">artisan roast</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">morning routine</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">still life</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">kitchen interior</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">countertop</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">gourmet</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">pour over</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">contemporary</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">elegance</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">cafe banner</span>
+                  <span class="px-1.5 py-0.5 rounded bg-slate-200 dark:bg-studio-surfaceDark text-slate-800 dark:text-slate-200">+31 additional verified</span>
+                </div>
+              </div>
+
+              <!-- Output 3: Automated Specs Check Matrix -->
+              <div class="p-3 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-100 dark:bg-studio-inputDark/50 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-slate-700 dark:text-slate-300">Adobe Stock: <strong>Pass (4.2 MP output)</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-slate-700 dark:text-slate-300">Freepik Size Check: <strong>Pass (4.4 MB)</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                  <span class="text-slate-700 dark:text-slate-300">Brand Sanitization: <strong>0 flags</strong></span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Stock Standards & Technical Comparison -->
+    <section id="specs" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mb-12">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Strict Marketplace Benchmarks</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Why generic AI image generators fail marketplace review
+          </h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Mainstream tools produce low-resolution, metadata-less images filled with trade dress and copyright traps. Microstock AI Studio is purpose-built to pass inspection inspectors.
+          </p>
+        </div>
+
+        <div class="overflow-x-auto rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark shadow-sm">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-studio-borderLight dark:border-studio-borderDark font-mono text-slate-400 bg-slate-50 dark:bg-studio-surfaceDark/60">
+                <th class="py-3.5 px-4 font-semibold">REQUIREMENT / SPEC</th>
+                <th class="py-3.5 px-4 font-semibold text-rose-500">GENERIC AI GENERATOR</th>
+                <th class="py-3.5 px-4 font-semibold text-emerald-500">MICROSTOCK AI STUDIO</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-studio-borderLight dark:divide-studio-borderDark text-slate-700 dark:text-slate-300">
+              <tr>
+                <td class="py-4 px-4 font-medium text-slate-900 dark:text-white">Minimum Pixel Count</td>
+                <td class="py-4 px-4 text-slate-500">Often 1024x1024 (1 MP): <span class="text-rose-500 font-semibold">Auto-rejected</span></td>
+                <td class="py-4 px-4 font-semibold text-emerald-500">Auto-upscaled to ≥ 4 Megapixels (300 DPI) via local Vulkan Real-ESRGAN</td>
+              </tr>
+              <tr>
+                <td class="py-4 px-4 font-medium text-slate-900 dark:text-white">Physical File Size</td>
+                <td class="py-4 px-4 text-slate-500">Under 1.5 MB: <span class="text-rose-500 font-semibold">Rejected by Freepik</span></td>
+                <td class="py-4 px-4 font-semibold text-emerald-500">Optional strict ≥ 4 MB compression override to satisfy Vecteezy/Freepik</td>
+              </tr>
+              <tr>
+                <td class="py-4 px-4 font-medium text-slate-900 dark:text-white">SEO & Keywords Generation</td>
+                <td class="py-4 px-4 text-slate-500">Manual typing required: slow, prone to brand names</td>
+                <td class="py-4 px-4 font-semibold text-emerald-500">Exact 50 sorted commercial keywords, commercial title &lt; 100 chars, ready in CSV</td>
+              </tr>
+              <tr>
+                <td class="py-4 px-4 font-medium text-slate-900 dark:text-white">Batch Downloads Workflow</td>
+                <td class="py-4 px-4 text-slate-500">Tedious manual file-by-file upload</td>
+                <td class="py-4 px-4 font-semibold text-emerald-500">Auto-monitors Downloads folder with session time-windows and CRDOWNLOAD locks</td>
+              </tr>
+              <tr>
+                <td class="py-4 px-4 font-medium text-slate-900 dark:text-white">Local Storage Footprint</td>
+                <td class="py-4 px-4 text-slate-500">Saves duplicates everywhere, cluttering drive</td>
+                <td class="py-4 px-4 font-semibold text-emerald-500">Zero-waste RAM inspection; files only written to disk when upscale is explicitly approved</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 Universal Compliance Rules Section -->
+    <section id="rules" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-canvasDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mb-12">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Strict Moderation Armor</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            The 7 Universal Compliance Rules
+          </h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Every prompt compiled across Module 1 and Module 3 is automatically filtered through seven hard commercial gates to prevent marketplace policy violations.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 01</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Universal Zero-Female Protocol</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Strict automated suppression of female figures across human, cartoon, robot, and mascot formats. Focuses on commercial still life, nature, architecture, and technology.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 02</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Zero Trademark & Trade Dress</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Automatic removal of brand names, iconic phone contours, vehicle emblems, and patent-protected industrial styling to guarantee commercial clearance.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 03</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Strict Faceless Clause</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              When people are requested, the engine mandates over-the-shoulder, silhouette, or hands-only angles to eliminate the need for model releases.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 04</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Copy Space Reservation</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Ensures intentional 30%–40% isolated negative space for banner ads, book covers, and marketing headlines, which is the top preference of commercial buyers.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 05</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Knolling Contour Grid</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              For sticker sheets and icon collections, prompt parameters strictly enforce symmetrical die-cut white cutlines without cut-off borders.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 06</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Optical Physics Precision</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Enforces physically accurate camera lenses (such as 85mm prime or 100mm macro) and softbox lighting setups rather than vague decorative adjectives.
+            </p>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark md:col-span-2 lg:col-span-1">
+            <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-bold mb-2">RULE 07</div>
+            <h3 class="font-heading text-base font-bold text-slate-900 dark:text-white">Physical Micro-Textures & Depth of Field</h3>
+            <p class="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Enforces genuine surface micro-textures (wood grain, tactile linen, clean glass refraction) and optical lens apertures from f/1.8 to f/2.8 to eradicate the artificial plastic sheen of generic AI imagery.
+            </p>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing & Packaging Section with Frequency Toggle -->
+    <section id="pricing" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark/50">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center max-w-2xl mx-auto mb-10">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Contributor Licensing</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Predictable pricing without token markups
+          </h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Run the heavy visual upscaler locally on your Mac GPU with zero cloud upcharge. Use your own Gemini API key for pennies per thousand assets.
+          </p>
+
+          <!-- Billing Frequency Toggle -->
+          <div class="mt-6 inline-flex items-center p-1 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark text-xs font-medium">
+            <button id="billMonthly" type="button" class="px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer">
+              Monthly Billing
+            </button>
+            <button id="billAnnual" type="button" class="px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
+              <span>Annual</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-500 font-mono font-bold">SAVE 20%</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
+          
+          <!-- Tier 1: Local Solo -->
+          <div class="rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Community Contributor</div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Local Edition</h3>
+              <div class="mt-4 flex items-baseline gap-1">
+                <span class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$0</span>
+                <span class="text-xs text-slate-400">/ forever free</span>
+              </div>
+              <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Ideal for independent creators running the studio directly on their personal workstation.
+              </p>
+
+              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Full Streamlit workstation app</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Local Real-ESRGAN Vulkan engine</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Bring your own Gemini API key</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Downloads auto-sync and CSV export</span>
+                </li>
+              </ul>
+            </div>
+
+            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors btn-press cursor-pointer">
+              Run Setup Guide
+            </a>
+          </div>
+
+          <!-- Tier 2: Studio Pro (Featured) -->
+          <div class="rounded-xl border-2 border-blue-600 bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-md relative">
+            <div class="absolute -top-3 right-6 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white tracking-wider uppercase">
+              Most Popular
+            </div>
+            <div>
+              <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-semibold uppercase">High-Volume Pro</div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Studio Contributor</h3>
+              <div class="mt-4 flex items-baseline gap-1">
+                <span id="pricePro" class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$29</span>
+                <span id="periodPro" class="text-xs text-slate-400">/ month</span>
+              </div>
+              <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                For active contributors uploading 500+ commercial images per month across multiple stock portals.
+              </p>
+
+              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Everything in Local Edition</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Multi-stock automated CSV formatters</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Adobe Stock live trend tracker API</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Priority email and Discord setup support</span>
+                </li>
+              </ul>
+            </div>
+
+            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-sm btn-press cursor-pointer">
+              Get Started with Pro
+            </a>
+          </div>
+
+          <!-- Tier 3: Agency Team -->
+          <div class="rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm">
+            <div>
+              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Stock Agency</div>
+              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Agency Cluster</h3>
+              <div class="mt-4 flex items-baseline gap-1">
+                <span id="priceAgency" class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$89</span>
+                <span id="periodAgency" class="text-xs text-slate-400">/ month</span>
+              </div>
+              <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                Centralized asset management and multi-seat queue processing for commercial microstock agencies.
+              </p>
+
+              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>5 Contributor seats included</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Centralized shared keyword taxonomies</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Direct FTP/SFTP auto-dispatch to stock agencies</span>
+                </li>
+                <li class="flex items-center gap-2">
+                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                  <span>Custom compliance rule builder</span>
+                </li>
+              </ul>
+            </div>
+
+            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors btn-press cursor-pointer">
+              Contact Sales
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- Quickstart / Execution Guide with 1-Click Copy -->
+    <section id="quickstart" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-canvasDark">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mb-12">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Deployment & Setup</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Launch your local studio in under two minutes
+          </h2>
+          <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
+            Built with Python and Streamlit for seamless Mac (Apple Silicon and Intel) local operation with Vulkan GPU acceleration.
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-md bg-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold mb-3">1</div>
+              <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Configure Environment</h3>
+              <p class="mt-1 text-xs text-slate-500 leading-relaxed">
+                Set your Google Gemini API key in the root environment file:
+              </p>
+            </div>
+            <div class="mt-4 p-2.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-[11px] flex items-center justify-between border border-studio-borderDark">
+              <code class="overflow-x-auto whitespace-nowrap mr-2">echo "GEMINI_API_KEY=key" > .env</code>
+              <button type="button" class="copy-cmd-btn text-[10px] text-blue-400 hover:text-white shrink-0 font-mono cursor-pointer" data-cmd='echo "GEMINI_API_KEY=your_key" > .env'>Copy</button>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-md bg-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold mb-3">2</div>
+              <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Install Dependencies</h3>
+              <p class="mt-1 text-xs text-slate-500 leading-relaxed">
+                Install the verified microstock package requirements:
+              </p>
+            </div>
+            <div class="mt-4 p-2.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-[11px] flex items-center justify-between border border-studio-borderDark">
+              <code class="overflow-x-auto whitespace-nowrap mr-2">pip install -r requirements.txt</code>
+              <button type="button" class="copy-cmd-btn text-[10px] text-blue-400 hover:text-white shrink-0 font-mono cursor-pointer" data-cmd="pip install -r requirements.txt">Copy</button>
+            </div>
+          </div>
+
+          <div class="p-5 rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-cardDark flex flex-col justify-between">
+            <div>
+              <div class="w-7 h-7 rounded-md bg-blue-600 text-white font-mono text-xs flex items-center justify-center font-bold mb-3">3</div>
+              <h3 class="font-heading font-bold text-sm text-slate-900 dark:text-white">Run Application</h3>
+              <p class="mt-1 text-xs text-slate-500 leading-relaxed">
+                Execute the Streamlit server and open your browser:
+              </p>
+            </div>
+            <div class="mt-4 p-2.5 rounded-lg bg-slate-900 text-slate-200 font-mono text-[11px] flex items-center justify-between border border-studio-borderDark">
+              <code class="overflow-x-auto whitespace-nowrap mr-2">streamlit run app.py</code>
+              <button type="button" class="copy-cmd-btn text-[10px] text-blue-400 hover:text-white shrink-0 font-mono cursor-pointer" data-cmd="streamlit run app.py">Copy</button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark/50">
+      <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Frequently Asked Questions</span>
+          <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
+            Microstock contributor queries answered
+          </h2>
+        </div>
+
+        <div class="space-y-4">
+          <details class="group rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-5 cursor-pointer">
+            <summary class="flex items-center justify-between font-heading font-semibold text-sm text-slate-900 dark:text-white list-none">
+              <span>Does this require uploading my high-resolution images to third-party servers?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition-transform">&darr;</span>
+            </summary>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              No. The upscaling engine (Real-ESRGAN Vulkan NCNN) runs locally on your computer GPU without internet access. Only the lightweight visual inspection and metadata prompt queries are routed through Google Gemini Vision.
+            </p>
+          </details>
+
+          <details class="group rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-5 cursor-pointer">
+            <summary class="flex items-center justify-between font-heading font-semibold text-sm text-slate-900 dark:text-white list-none">
+              <span>Why exactly 50 keywords?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition-transform">&darr;</span>
+            </summary>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Adobe Stock and Shutterstock permit up to 50 keywords. Having exactly 50 highly relevant, sanitized keywords maximizes marketplace search indexing while avoiding algorithmic spam penalties.
+            </p>
+          </details>
+
+          <details class="group rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-5 cursor-pointer">
+            <summary class="flex items-center justify-between font-heading font-semibold text-sm text-slate-900 dark:text-white list-none">
+              <span>How does the Downloads folder auto-sync handle active browser downloads?</span>
+              <span class="text-slate-400 group-open:rotate-180 transition-transform">&darr;</span>
+            </summary>
+            <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              The scanner detects incomplete <code>.crdownload</code> files and pauses processing on those specific items until Chrome or Safari completes writing the final image to disk.
+            </p>
+          </details>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-12 border-t border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-canvasDark text-xs text-slate-500">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-3">
+        <div class="w-6 h-6 rounded bg-blue-600 flex items-center justify-center text-white font-heading font-bold text-xs">
+          M
+        </div>
+        <span class="font-heading font-bold text-slate-800 dark:text-slate-200">Microstock AI Studio</span>
+        <span>&copy; 2026. All rights reserved.</span>
+      </div>
+
+      <div class="flex items-center gap-6">
+        <a href="#rules" class="hover:text-blue-500 transition-colors">Compliance Protocol</a>
+        <a href="#specs" class="hover:text-blue-500 transition-colors">Stock Resolution Guide</a>
+        <a href="#quickstart" class="hover:text-blue-500 transition-colors">Documentation</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Interactive Demo Script -->
+  <script>
+    // Theme toggle handler
+    const themeToggleBtn = document.getElementById('themeToggle');
+    themeToggleBtn.addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+    });
+
+    // Mobile menu toggle handler
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenuBtn && mobileMenu) {
+      mobileMenuBtn.addEventListener('click', () => {
+        const isHidden = mobileMenu.classList.toggle('hidden');
+        mobileMenuBtn.setAttribute('aria-expanded', !isHidden);
+      });
+
+      document.querySelectorAll('.mobile-link').forEach(link => {
+        link.addEventListener('click', () => {
+          mobileMenu.classList.add('hidden');
+          mobileMenuBtn.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+
+    // Module Switcher Filter (Tabs)
+    const tabModAll = document.getElementById('tabModAll');
+    const tabMod1 = document.getElementById('tabMod1');
+    const tabMod2 = document.getElementById('tabMod2');
+    const tabMod3 = document.getElementById('tabMod3');
+
+    const cardMod1 = document.getElementById('cardMod1');
+    const cardMod2 = document.getElementById('cardMod2');
+    const cardMod3 = document.getElementById('cardMod3');
+    const moduleTabs = [tabModAll, tabMod1, tabMod2, tabMod3];
+
+    function setModuleTab(activeTab, activeCardId) {
+      moduleTabs.forEach(t => t.setAttribute('aria-selected', 'false'));
+      activeTab.setAttribute('aria-selected', 'true');
+
+      if (activeCardId === 'all') {
+        cardMod1.classList.remove('hidden');
+        cardMod2.classList.remove('hidden');
+        cardMod3.classList.remove('hidden');
+      } else {
+        cardMod1.classList.toggle('hidden', activeCardId !== 'cardMod1');
+        cardMod2.classList.toggle('hidden', activeCardId !== 'cardMod2');
+        cardMod3.classList.toggle('hidden', activeCardId !== 'cardMod3');
+      }
+    }
+
+    tabModAll.addEventListener('click', () => setModuleTab(tabModAll, 'all'));
+    tabMod1.addEventListener('click', () => setModuleTab(tabMod1, 'cardMod1'));
+    tabMod2.addEventListener('click', () => setModuleTab(tabMod2, 'cardMod2'));
+    tabMod3.addEventListener('click', () => setModuleTab(tabMod3, 'cardMod3'));
+
+    // Billing Frequency Toggle Handler
+    const billMonthly = document.getElementById('billMonthly');
+    const billAnnual = document.getElementById('billAnnual');
+    const pricePro = document.getElementById('pricePro');
+    const periodPro = document.getElementById('periodPro');
+    const priceAgency = document.getElementById('priceAgency');
+    const periodAgency = document.getElementById('periodAgency');
+
+    billMonthly.addEventListener('click', () => {
+      billMonthly.className = 'px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer';
+      billAnnual.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
+      pricePro.textContent = '$29';
+      periodPro.textContent = '/ month';
+      priceAgency.textContent = '$89';
+      periodAgency.textContent = '/ month';
+    });
+
+    billAnnual.addEventListener('click', () => {
+      billAnnual.className = 'px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer flex items-center gap-1.5';
+      billMonthly.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
+      pricePro.textContent = '$23';
+      periodPro.textContent = '/ month (billed yearly)';
+      priceAgency.textContent = '$71';
+      periodAgency.textContent = '/ month (billed yearly)';
+    });
+
+    // 1-Click Terminal Quickstart Copy Buttons
+    document.querySelectorAll('.copy-cmd-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cmd = btn.getAttribute('data-cmd');
+        navigator.clipboard.writeText(cmd).then(() => {
+          const original = btn.textContent;
+          btn.textContent = 'Copied!';
+          btn.classList.add('text-emerald-400');
+          setTimeout(() => {
+            btn.textContent = original;
+            btn.classList.remove('text-emerald-400');
+          }, 1800);
+        });
+      });
+    });
+
+    // Interactive Demo Compiler
+    const generateBtn = document.getElementById('generateBtn');
+    const promptOutput = document.getElementById('promptOutput');
+    const copyPromptBtn = document.getElementById('copyPromptBtn');
+
+    const styleMap = {
+      photo: 'Commercial product photograph of',
+      '3d': '3D isometric commercial studio render of',
+      sticker: 'Die-cut sticker pack knolling sheet with white contour cutlines featuring',
+      watercolor: 'Textured contemporary watercolor painting of'
+    };
+
+    const lightingMap = {
+      softbox: 'studio softbox lighting with subtle rim highlights',
+      golden: 'warm golden hour directional lighting 3200k',
+      highkey: 'high-key clean advertising lighting without harsh shadows',
+      moody: 'moody chiaroscuro daylight with dramatic contrast'
+    };
+
+    const spaceMap = {
+      copy: 'clean composition leaving 35% copy space on left for advertising text',
+      full: 'balanced edge-to-edge full frame composition',
+      knolling: 'symmetrical knolling grid layout with isolated negative margins'
+    };
+
+    function compilePrompt() {
+      const niche = document.getElementById('nicheInput').value.trim() || 'Minimalist commercial object';
+      const style = document.getElementById('styleSelect').value;
+      const ratio = document.getElementById('ratioSelect').value;
+      const lighting = document.getElementById('lightingSelect').value;
+      const space = document.getElementById('spaceSelect').value;
+      const faceless = document.getElementById('facelessToggle').checked;
+
+      const stylePrefix = styleMap[style] || 'Commercial photograph of';
+      const lightingStr = lightingMap[lighting] || 'studio softbox lighting';
+      const spaceStr = spaceMap[space] || 'isolated composition';
+      const complianceClause = faceless 
+        ? 'strictly no women, no female characters, no visible facial features, completely faceless and clean' 
+        : 'strictly no logos, trademarks, or branded elements';
+
+      const compiled = `${stylePrefix} ${niche}, ${lightingStr}, ${spaceStr}, 85mm prime lens f/2.8 crisp focal depth, ${complianceClause}, 8k resolution, stock photo standard --ar ${ratio}`;
+      
+      promptOutput.textContent = compiled;
+    }
+
+    generateBtn.addEventListener('click', compilePrompt);
+
+    copyPromptBtn.addEventListener('click', () => {
+      navigator.clipboard.writeText(promptOutput.textContent).then(() => {
+        const originalText = copyPromptBtn.textContent;
+        copyPromptBtn.textContent = 'Copied to clipboard!';
+        setTimeout(() => {
+          copyPromptBtn.textContent = originalText;
+        }, 2000);
+      });
+    });
+  </script>
+</body>
+</html>

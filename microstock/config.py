@@ -19,14 +19,14 @@ from google import genai
 TEXT_MODEL = "gemini-3.1-flash-lite"
 TEXT_MODEL_FALLBACKS = [
     "gemini-3.1-flash-lite",
-    "gemini-3-flash-preview",
+    "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
 ]
 
 # Image models: Google Gemini Nano Banana & Imagen models
 IMAGE_MODELS: Dict[str, str] = {
     "Gemini 3.1 Flash Lite Image (Nano Banana 2 Lite · Hemat Kuota Free Tier)": "gemini-3.1-flash-lite-image",
-    "Gemini 3.1 Flash Image (Nano Banana 2 · Kualitas Tinggi)": "gemini-3.1-flash-image",
+    "Gemini Nano Banana 2.1 (Nano Banana 2.1 · Kualitas Tinggi)": "gemini-nano-banana-2.1",
     "Gemini 3 Pro Image (Nano Banana Pro)": "gemini-3-pro-image",
     "Imagen 4 (imagen-4.0-generate-001)": "imagen-4.0-generate-001",
     "Pollinations AI (Alternatif Bebas Kuota)": "pollinations",
@@ -47,6 +47,7 @@ DEFAULT_IMAGE_SIZE = "1K"
 MIN_IMAGE_MEGAPIXELS = 4.0
 MAX_IMAGE_MEGAPIXELS = 100.0
 TARGET_MIN_PIXELS = 4_200_000  # Safe upscale target (e.g. 2050x2050) to guarantee >= 4MP
+MIN_FILE_SIZE_BYTES = 4_194_304  # 4 MB (4 * 1024 * 1024 bytes) for sites like Freepik / Vecteezy
 
 # --------------------------------------------------------------------------- #
 # Aspect ratios -> API value + resulting pixel dimensions (per image_size)
