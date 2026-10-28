@@ -12,9 +12,7 @@ from typing import Dict, Optional
 
 from google import genai
 
-# --------------------------------------------------------------------------- #
 # Models
-# --------------------------------------------------------------------------- #
 # Text models for prompt enhancement & metadata SEO (with fallbacks if 503 high demand)
 TEXT_MODEL = "gemini-3.1-flash-lite"
 TEXT_MODEL_FALLBACKS = [
@@ -39,21 +37,17 @@ HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")
 IMAGE_SIZES = ["4K", "2K", "1K"]
 DEFAULT_IMAGE_SIZE = "1K"
 
-# --------------------------------------------------------------------------- #
 # Microstock Resolution Standards (Adobe Stock & Shutterstock Requirements)
 # Minimum: 4 Megapixels (MP)
 # Maximum: 100 Megapixels (MP)
-# --------------------------------------------------------------------------- #
 MIN_IMAGE_MEGAPIXELS = 4.0
 MAX_IMAGE_MEGAPIXELS = 100.0
 TARGET_MIN_PIXELS = 4_200_000  # Safe upscale target (e.g. 2050x2050) to guarantee >= 4MP
 SMART_MICROSTOCK_TARGET_PIXELS = 8_294_400  # ~8.3 MP (ideal balance: 4K sharpness, 3-6 MB file size)
 MIN_FILE_SIZE_BYTES = 4_194_304  # 4 MB (4 * 1024 * 1024 bytes) for sites like Freepik / Vecteezy
 
-# --------------------------------------------------------------------------- #
 # Aspect ratios -> API value + resulting pixel dimensions (per image_size)
 # Source: Gemini image-generation docs (3.1 Flash Image / 3 Pro Image tables).
-# --------------------------------------------------------------------------- #
 ASPECT_RATIOS: Dict[str, Dict[str, str]] = {
     "1:1": {"1K": "1024x1024", "2K": "2048x2048", "4K": "4096x4096"},
     "9:16": {"1K": "768x1376", "2K": "1536x2752", "4K": "3072x5504"},
@@ -75,9 +69,7 @@ def dimensions_for(aspect_ratio: str, image_size: str) -> str:
     return ASPECT_RATIOS.get(aspect_ratio, {}).get(image_size, "unknown")
 
 
-# --------------------------------------------------------------------------- #
 # Aesthetic / style presets (Expanded library of 18 high-demand microstock styles)
-# --------------------------------------------------------------------------- #
 @dataclass(frozen=True)
 class StylePreset:
     name: str
@@ -500,9 +492,7 @@ COMPOSITION_OPTIONS = {
 }
 DEFAULT_COMPOSITION = "Negative Space for Copy / Headline"
 
-# --------------------------------------------------------------------------- #
 # Concurrency / rate limiting defaults
-# --------------------------------------------------------------------------- #
 DEFAULT_MAX_CONCURRENCY = 1
 MAX_RETRIES = 5
 BASE_BACKOFF_SECONDS = 2.0
@@ -512,9 +502,7 @@ TITLE_MAX_CHARS = 100
 KEYWORD_COUNT = 50
 
 
-# --------------------------------------------------------------------------- #
 # Client factory
-# --------------------------------------------------------------------------- #
 def get_env_file_path() -> str:
     """Return absolute path to .env file in the project root."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

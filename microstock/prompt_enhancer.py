@@ -78,8 +78,8 @@ def build_enhancer_input(
 
     parts = [
         f"Base concept/subject: {base_idea.strip()}",
-        f"Aesthetic/Style: {style.name} — {style.directive}",
-        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}) — MANDATORY: explicitly include '{aspect_ratio}' in the composition description and append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt",
+        f"Aesthetic/Style: {style.name}: {style.directive}",
+        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), MANDATORY: explicitly include '{aspect_ratio}' in the composition description and append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt",
     ]
     if light_desc:
         parts.append(f"Lighting condition: {light_desc}")

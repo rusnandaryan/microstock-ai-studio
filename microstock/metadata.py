@@ -110,9 +110,7 @@ class ImageMetadata:
         return asdict(self)
 
 
-# --------------------------------------------------------------------------- #
 # Normalisation / validation helpers
-# --------------------------------------------------------------------------- #
 _BANNED = {"ai", "ai generated", "ai-generated", "generated", "gemini", "prompt", "generative ai"}
 
 
@@ -166,9 +164,7 @@ def _parse_json(text: str) -> dict:
     return data
 
 
-# --------------------------------------------------------------------------- #
 # Gemini calls
-# --------------------------------------------------------------------------- #
 def build_metadata_input(enhanced_prompt: str, style_name: str, variation: str) -> str:
     style = config.STYLES[style_name]
     kind = "illustration / digital artwork" if style.is_illustration else "photograph"
@@ -176,7 +172,7 @@ def build_metadata_input(enhanced_prompt: str, style_name: str, variation: str) 
         "Create microstock metadata for the following image.\n\n"
         f"IMAGE PROMPT (what the image depicts):\n{enhanced_prompt}\n\n"
         f"VARIATION / COMPOSITION: {variation}\n"
-        f"AESTHETIC STYLE: {style.name} ({kind}) — {style.directive}\n"
+        f"AESTHETIC STYLE: {style.name} ({kind}): {style.directive}\n"
     )
 
 

@@ -92,8 +92,8 @@ def retry_sync(fn: Callable[[], T], *, label: str = "request",
                 break
             delay = backoff_delay(attempt, exc)
             if on_retry:
-                on_retry(f"{label}: {_short(exc)} — retrying in {delay:.1f}s "
-                         f"(attempt {attempt + 2}/{config.MAX_RETRIES + 1})")
+                on_retry(f"{label}: {_short(exc)} (retrying in {delay:.1f}s, "
+                         f"attempt {attempt + 2}/{config.MAX_RETRIES + 1})")
             time.sleep(delay)
     raise GenerationError(f"{label} failed: {_short(last)}") from last
 
@@ -111,8 +111,8 @@ async def retry_async(fn: Callable[[], Awaitable[T]], *, label: str = "request",
                 break
             delay = backoff_delay(attempt, exc)
             if on_retry:
-                on_retry(f"{label}: {_short(exc)} — retrying in {delay:.1f}s "
-                         f"(attempt {attempt + 2}/{config.MAX_RETRIES + 1})")
+                on_retry(f"{label}: {_short(exc)} (retrying in {delay:.1f}s, "
+                         f"attempt {attempt + 2}/{config.MAX_RETRIES + 1})")
             await asyncio.sleep(delay)
     raise GenerationError(f"{label} failed: {_short(last)}") from last
 

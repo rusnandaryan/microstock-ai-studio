@@ -46,9 +46,7 @@ def get_modern_css(is_dark: bool = True) -> str:
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@600;700&display=swap');
 
-/* ========================================================================= */
-/* 1. CSS VARIABLES & BASE STYLES                                            */
-/* ========================================================================= */
+/* CSS Variables & Base Styles */
 :root {{
   color-scheme: {scheme} !important;
   --bg-page: {bg_page} !important;
@@ -94,9 +92,7 @@ html, body, .stApp {{
   border-radius: 4px;
 }}
 
-/* ========================================================================= */
-/* 2. TOP HEADER BAR                                                         */
-/* ========================================================================= */
+/* Top Header Bar */
 header[data-testid="stHeader"],
 header[data-testid="stHeader"] > div {{
   background-color: var(--bg-page) !important;
@@ -131,9 +127,7 @@ div[data-testid="stToolbar"] {{
   color: var(--text-primary) !important;
 }}
 
-/* ========================================================================= */
-/* 3. UNIVERSAL HIGH-CONTRAST TYPOGRAPHY                                     */
-/* ========================================================================= */
+/* Universal High-Contrast Typography */
 h1, h2, h3, h4, h5, h6,
 [data-testid="stHeadingWithActionElements"] h1,
 [data-testid="stHeadingWithActionElements"] h2,
@@ -183,9 +177,7 @@ p, span, li, label, b, strong {{
   font-weight: 500 !important;
 }}
 
-/* ========================================================================= */
-/* 4. MODERN STUDIO HERO BANNER                                              */
-/* ========================================================================= */
+/* Modern Studio Hero Banner */
 .ms-hero-modern {{
   background: var(--hero-bg) !important;
   border: 1.5px solid var(--hero-border) !important;
@@ -290,9 +282,7 @@ p, span, li, label, b, strong {{
   border-color: rgba(245, 158, 11, 0.35) !important;
 }}
 
-/* ========================================================================= */
-/* 5. MODERN TABS STYLING                                                    */
-/* ========================================================================= */
+/* Modern Tabs Styling */
 div[data-testid="stTabs"] {{
   margin-top: 0.6rem;
   margin-bottom: 1.5rem;
@@ -374,9 +364,7 @@ div[data-testid="stTabs"] div[data-baseweb="tab-border"] {{
   display: none !important;
 }}
 
-/* ========================================================================= */
-/* 6. SIDEBAR STYLING                                                        */
-/* ========================================================================= */
+/* Sidebar Styling */
 section[data-testid="stSidebar"],
 section[data-testid="stSidebar"] > div {{
   background-color: var(--bg-sidebar) !important;
@@ -396,9 +384,7 @@ section[data-testid="stSidebar"] label {{
   -webkit-text-fill-color: var(--text-primary) !important;
 }}
 
-/* ========================================================================= */
-/* 7. INPUTS & TEXTAREAS                                                     */
-/* ========================================================================= */
+/* Inputs & Textareas */
 div[data-baseweb="input"],
 div[data-baseweb="base-input"],
 div[data-baseweb="textarea"],
@@ -452,9 +438,7 @@ div[data-baseweb="input"] svg {{
   stroke: var(--text-secondary) !important;
 }}
 
-/* ========================================================================= */
-/* 8. FILE UPLOADER (DROPZONE)                                               */
-/* ========================================================================= */
+/* File Uploader (Dropzone) */
 div[data-testid="stFileUploader"] {{
   background-color: var(--bg-card) !important;
   background: var(--bg-card) !important;
@@ -513,9 +497,7 @@ div[data-testid="stFileUploaderFileData"] {{
   border-radius: 8px !important;
 }}
 
-/* ========================================================================= */
-/* 9. BUTTONS (PRIMARY, SECONDARY, LINK, DOWNLOAD) & TOUCH TARGETS           */
-/* ========================================================================= */
+/* Buttons (Primary, Secondary, Link, Download) & Touch Targets */
 div.stButton > button,
 div[data-testid="stDownloadButton"] > button,
 div[data-testid="stLinkButton"] > a {{
@@ -630,9 +612,7 @@ div[data-testid="stDownloadButton"] > button[kind="primary"] span {{
   font-weight: 700 !important;
 }}
 
-/* ========================================================================= */
-/* 10. SELECTBOXES & DROPDOWNS (CRISP CONTRAST, NO HIDDEN TEXT)              */
-/* ========================================================================= */
+/* Selectboxes & Dropdowns (Crisp Contrast, No Hidden Text) */
 div[data-baseweb="select"] > div {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 10px !important;
@@ -676,9 +656,7 @@ li[role="option"][aria-selected="true"] {{
   font-weight: 700 !important;
 }}
 
-/* ========================================================================= */
-/* 11. CODE BLOCKS & COPY BUTTON                                             */
-/* ========================================================================= */
+/* Code Blocks & Copy Button */
 div[data-testid="stCode"] {{
   position: relative !important;
   border: 1.5px solid var(--border-color) !important;
@@ -745,9 +723,7 @@ li code {{
   font-weight: 600 !important;
 }}
 
-/* ========================================================================= */
-/* 12. EXPANDERS & CONTAINERS                                                */
-/* ========================================================================= */
+/* Expanders & Containers */
 div[data-testid="stVerticalBlockBorderWrapper"] > div {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 14px !important;
@@ -784,9 +760,7 @@ div[data-testid="stExpander"] details summary svg {{
   color: var(--text-secondary) !important;
 }}
 
-/* ========================================================================= */
-/* 13. ALERTS & NOTIFICATIONS                                                */
-/* ========================================================================= */
+/* Alerts & Notifications */
 div[data-testid="stAlert"] {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 10px !important;
@@ -880,9 +854,7 @@ hr, [data-testid="stDivider"], div[data-testid="stDivider"] hr {{
   opacity: 0.6 !important;
 }}
 
-/* ========================================================================= */
-/* 14. CHECKBOXES (WCAG COMPLIANT, STUDIO ACCENT)                            */
-/* ========================================================================= */
+/* Checkboxes (WCAG Compliant, Studio Accent) */
 div[data-testid="stCheckbox"] {{
   margin: 0.45rem 0 !important;
   cursor: pointer !important;
@@ -922,9 +894,7 @@ div[data-testid="stCheckbox"] label > div[role="checkbox"]:focus-visible {{
   outline-offset: 2px !important;
 }}
 
-/* ========================================================================= */
-/* 15. PROGRESS BARS (STUDIO ACCENT GRADIENT)                                */
-/* ========================================================================= */
+/* Progress Bars (Studio Accent Gradient) */
 div[data-testid="stProgress"] {{
   margin: 0.6rem 0 !important;
 }}
@@ -950,9 +920,7 @@ div[data-testid="stProgress"] p {{
   margin-bottom: 0.35rem !important;
 }}
 
-/* ========================================================================= */
-/* 16. DATAFRAMES & TABLES                                                   */
-/* ========================================================================= */
+/* Dataframes & Tables */
 div[data-testid="stDataFrame"] {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
@@ -964,9 +932,7 @@ div[data-testid="stDataFrame"] * {{
   font-family: 'Plus Jakarta Sans', sans-serif !important;
 }}
 
-/* ========================================================================= */
-/* 17. STATUS & SPINNERS                                                     */
-/* ========================================================================= */
+/* Status & Spinners */
 div[data-testid="stStatusWidget"] {{
   background-color: var(--bg-card) !important;
   border: 1.5px solid var(--border-color) !important;
@@ -977,9 +943,7 @@ div[data-testid="stSpinner"] > div {{
   border-top-color: var(--accent-blue) !important;
 }}
 
-/* ========================================================================= */
-/* 18. INTERACTIVE CURSOR AFFORDANCE                                         */
-/* ========================================================================= */
+/* Interactive Cursor Affordance */
 button,
 a,
 summary,
@@ -992,9 +956,7 @@ summary,
   cursor: pointer !important;
 }}
 
-/* ========================================================================= */
-/* 19. RESPONSIVE BREAKPOINTS & ACCESSIBILITY                                */
-/* ========================================================================= */
+/* Responsive Breakpoints & Accessibility */
 @media (prefers-reduced-motion: reduce) {{
   *, ::before, ::after {{
     animation-duration: 0.01ms !important;
@@ -1098,9 +1060,7 @@ def render_header() -> None:
     )
 
 
-# --------------------------------------------------------------------------- #
 # Sidebar
-# --------------------------------------------------------------------------- #
 def render_sidebar() -> Optional[str]:
     with st.sidebar:
         st.markdown(
@@ -1221,9 +1181,7 @@ def render_sidebar() -> Optional[str]:
     return api_key
 
 
-# --------------------------------------------------------------------------- #
 # Progress tracker
-# --------------------------------------------------------------------------- #
 class BatchProgress:
     """Live progress bar + log for N images and N metadata sets."""
 
@@ -1280,9 +1238,7 @@ class BatchProgress:
         self.status.update(label=label, state=state, expanded=False)
 
 
-# --------------------------------------------------------------------------- #
 # Output grid & cards
-# --------------------------------------------------------------------------- #
 def _copy_block(label: str, text: str) -> None:
     st.markdown(f"**{label}**")
     st.code(text or "-", language=None, wrap_lines=True)

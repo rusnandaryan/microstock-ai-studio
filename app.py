@@ -37,9 +37,7 @@ st.set_page_config(
 )
 inject_css()
 
-# --------------------------------------------------------------------------- #
 # Session State Initialization
-# --------------------------------------------------------------------------- #
 st.session_state.setdefault("enhanced_prompt", "")
 st.session_state.setdefault("vision_items", [])
 st.session_state.setdefault("batch_package", None)
@@ -49,18 +47,14 @@ st.session_state.setdefault("watch_dir", folder_watcher.get_default_downloads_di
 api_key = render_sidebar()
 render_header()
 
-# --------------------------------------------------------------------------- #
 # Workstation Tabs
-# --------------------------------------------------------------------------- #
 tab1, tab2, tab3 = st.tabs([
     "1. Commercial Prompt Studio",
     "2. Inspeksi Gambar & Paket SEO (Gemini Vision)",
     "3. Reverse Prompt (Image to Prompt)",
 ])
 
-# =========================================================================== #
-# TAB 1: GENERATOR MAGIC PROMPT
-# =========================================================================== #
+# TAB 1: COMMERCIAL PROMPT STUDIO
 with tab1:
     st.markdown(
         """
@@ -150,7 +144,7 @@ with tab1:
                         </div>
                         """, unsafe_allow_html=True
                     )
-                    if st.button(f"⚡ Terapkan Tren #{i+1} (1-Click Apply)", key=f"use_trend_{i}", use_container_width=True):
+                    if st.button(f"Terapkan Tren #{i+1}", key=f"use_trend_{i}", use_container_width=True):
                         st.session_state.tab1_base_idea = trend.get("base_idea", "")
                         if rec_cat in config.STYLE_CATEGORIES:
                             st.session_state.tab1_style_cat = rec_cat
@@ -241,7 +235,7 @@ with tab1:
             )
 
         st.write("")
-        btn_magic = st.button(
+        btn_generate_prompt = st.button(
             "Generate Prompt Komersial",
             type="primary",
             use_container_width=True,
@@ -250,7 +244,7 @@ with tab1:
         if not api_key:
             st.info("Masukkan Google Gemini API Key gratis di sidebar kiri terlebih dahulu.")
 
-        if btn_magic:
+        if btn_generate_prompt:
             if not base_idea.strip():
                 st.warning("Mohon tuliskan konsep utama gambar Anda terlebih dahulu.")
             else:
@@ -337,9 +331,7 @@ with tab1:
             )
 
 
-# =========================================================================== #
 # TAB 2: INSPEKSI GAMBAR & METADATA (GEMINI VISION)
-# =========================================================================== #
 with tab2:
     st.markdown(
         """
@@ -363,10 +355,8 @@ with tab2:
         unsafe_allow_html=True,
     )
 
-    # ----------------------------------------------------------------------- #
     # 1. AUTO-SYNC DOWNLOAD FOLDER WATCHER
-    # ----------------------------------------------------------------------- #
-    with st.expander("⚡ Auto-Sync dari Folder Download (Deteksi Otomatis & Akumulasi)", expanded=True):
+    with st.expander("Auto-Sync dari Folder Download (Deteksi Otomatis & Akumulasi)", expanded=True):
         st.markdown(
             """
             <p style="font-size:0.9rem; color:var(--text-secondary); margin:0 0 0.6rem; font-weight:500;">
@@ -435,7 +425,7 @@ with tab2:
                                 existing_filenames.add(fn)
                                 added_count += 1
                     st.session_state["imported_from_watcher"] = current_imported
-                    st.toast(f"Berhasil menambahkan {added_count} gambar! Total antrean: {len(current_imported)} gambar.", icon="✨")
+                    st.toast(f"Berhasil menambahkan {added_count} gambar! Total antrean: {len(current_imported)} gambar.", icon="✅")
                     st.rerun()
             with c_imp2:
                 if current_imported:
@@ -459,9 +449,7 @@ with tab2:
                     st.session_state["imported_from_watcher"] = []
                     st.rerun()
 
-    # ----------------------------------------------------------------------- #
     # 2. MANUAL FILE UPLOADER (ALTERNATIVE)
-    # ----------------------------------------------------------------------- #
     uploaded_files = st.file_uploader(
         "Atau unggah file manual (JPG, PNG, WebP):",
         type=["jpg", "jpeg", "png", "webp"],
@@ -514,16 +502,16 @@ with tab2:
                     upscale_mode = st.radio(
                         "Pilihan Mode Resolusi Upscale:",
                         [
-                            "🎯 Smart Microstock (~8 MP · Ideal 4K & File Ringan 3-6 MB)",
-                            "⚡ Ultra 4x (~16-25 MP · Resolusi Penuh Tanpa Batas)",
+                            "Smart Microstock (~8 MP · Standar 4K)",
+                            "Ultra 4x (~16-25 MP · Resolusi Penuh)",
                         ],
                         index=0,
-                        help="Smart Microstock melakukan upscale AI 4x untuk detail ultra-tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
+                        help="Smart Microstock melakukan upscale AI 4x untuk detail tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
                     )
                     if "Smart" in upscale_mode:
-                        st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3–6 MB).")
+                        st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3-6 MB).")
                     else:
-                        st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16–25 MP), ukuran file berkisar 10–25 MB.")
+                        st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16-25 MP), ukuran file berkisar 10-25 MB.")
                 else:
                     upscale_mode = "Off"
 
@@ -693,9 +681,7 @@ with tab2:
         render_results_grid(package["items"], package["id"])
 
 
-# =========================================================================== #
 # TAB 3: REVERSE PROMPT (IMAGE TO PROMPT)
-# =========================================================================== #
 with tab3:
     st.markdown(
         """
@@ -793,7 +779,7 @@ with tab3:
                 rev_progress.progress(1.0, text=f"Selesai! {len(results)} prompt berhasil dibuat.")
 
             st.session_state.reverse_results = results
-            st.toast("Reverse Prompt berhasil dibuat dan disimpan!", icon="✨")
+            st.toast("Reverse Prompt berhasil dibuat dan disimpan!", icon="✅")
 
     # Display results
     if "reverse_results" in st.session_state and st.session_state.reverse_results:
@@ -826,6 +812,6 @@ with tab3:
                 with c_act2:
                     if st.button(f"📥 Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
                         st.session_state.tab1_base_idea = item["prompt"]
-                        st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✨")
+                        st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✅")
             st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);'>", unsafe_allow_html=True)
 

@@ -23,9 +23,7 @@ from .rate_limit import GenerationError, TransientError, retry_async
 PREVIEW_MAX_SIDE = 900  # px – lightweight thumbnails for the UI grid
 
 
-# --------------------------------------------------------------------------- #
 # Data model
-# --------------------------------------------------------------------------- #
 @dataclass
 class BatchItem:
     index: int
@@ -62,9 +60,7 @@ class BatchSettings:
     extra: dict = field(default_factory=dict)
 
 
-# --------------------------------------------------------------------------- #
 # Prompt assembly
-# --------------------------------------------------------------------------- #
 def build_image_prompt(enhanced_prompt: str, style_name: str, variation: str) -> str:
     style = config.STYLES[style_name]
     return (
@@ -81,9 +77,7 @@ def slugify(text: str, max_len: int = 40) -> str:
     return slug[:max_len].rstrip("-") or "image"
 
 
-# --------------------------------------------------------------------------- #
 # Single image call
-# --------------------------------------------------------------------------- #
 def _extract_image(response_obj) -> Tuple[bytes, str]:
     """Return (raw_bytes, mime_type) from response (generate_images, generate_content, or interactions)."""
     # 1. From client.models.generate_images (types.GenerateImagesResponse)
@@ -272,9 +266,7 @@ def finalize_image(
     return export_bytes, pbuf.getvalue(), mime, width, height
 
 
-# --------------------------------------------------------------------------- #
 # Batch orchestration
-# --------------------------------------------------------------------------- #
 ProgressCb = Callable[[str, BatchItem], None]   # event, item
 LogCb = Callable[[str], None]
 
