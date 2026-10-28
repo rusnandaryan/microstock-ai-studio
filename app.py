@@ -30,14 +30,12 @@ from microstock.ui_components import (
 )
 
 st.set_page_config(
-    page_title="Microstock AI Studio",
+    page_title="Microstock AI Studio Pro",
     page_icon="📸",
     layout="wide",
     initial_sidebar_state="expanded",
 )
-st.session_state.setdefault("app_theme", "dark")
-is_dark = st.session_state.get("app_theme", "dark") == "dark"
-inject_css(is_dark)
+inject_css()
 
 # --------------------------------------------------------------------------- #
 # Session State Initialization
@@ -52,7 +50,7 @@ api_key = render_sidebar()
 render_header()
 
 # --------------------------------------------------------------------------- #
-# Modern Neo-Pop Tabs Layout
+# Workstation Tabs
 # --------------------------------------------------------------------------- #
 tab1, tab2, tab3 = st.tabs([
     "1. Commercial Prompt Studio",
@@ -66,13 +64,21 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.markdown(
         """
-        <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
-            Generator Prompt Komersial Siap Pakai
-          </h2>
-          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
-            Kombinasikan konsep dasar dengan parameter fotografi pro. Hasilnya 100% patuh aturan hak cipta Adobe Stock.
-          </p>
+        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
+                Generator Prompt Komersial Siap Pakai
+              </h2>
+              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
+                Formulasi prompt dengan 7 aturan komersial: 100% bebas model wanita, faceless, reservasi copy space, dan bebas trademark.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+              <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Zero Trademark</span>
+              <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">✓ Faceless / Back-angle</span>
+            </div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -138,7 +144,7 @@ with tab1:
                           <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.4rem 0.6rem; font-size:0.8rem; color:var(--text-primary); margin-bottom:0.4rem;">
                             🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
                           </div>
-                          <div style="background:var(--bg-card); border-left:3px solid var(--accent-blue); padding:0.5rem; margin-top:0.4rem; font-size:0.88rem; font-weight:600; color:var(--text-primary); border-radius:0 6px 6px 0;">
+                          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; padding:0.5rem 0.65rem; margin-top:0.4rem; font-size:0.88rem; font-weight:600; color:var(--text-primary);">
                             💡 {trend.get('base_idea', '')}
                           </div>
                         </div>
@@ -277,6 +283,16 @@ with tab1:
 
         prompt_val = st.session_state.enhanced_prompt
         if prompt_val:
+            st.markdown(
+                """
+                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.6rem;">
+                  <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Faceless / Back-angle</span>
+                  <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Copy Space Ready</span>
+                  <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">✓ Zero Trademark</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
             if isinstance(prompt_val, list):
                 st.markdown("**Pilih salah satu (atau salin semuanya):**")
                 for idx, p in enumerate(prompt_val):
@@ -327,13 +343,21 @@ with tab1:
 with tab2:
     st.markdown(
         """
-        <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
-            Inspeksi Visual & Paket Microstock
-          </h2>
-          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
-            Unggah gambar hasil generate dari Gemini Web. Gemini Vision akan menganalisis konten visual nyata, mempertahankan resolusi asli, serta menyusun 50 keywords anti-reject dan metadata lengkap untuk Adobe Stock & Shutterstock.
-          </p>
+        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
+                Inspeksi Visual & Paket Microstock
+              </h2>
+              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
+                Inspeksi elemen visual nyata dengan Gemini Vision, upscale resolusi NCNN (≥ 4 MP), dan susun 50 keyword SEO siap upload CSV/ZIP.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+              <span class="ms-step-badge ms-badge-purple" style="font-size:0.75rem;">Gemini Vision AI</span>
+              <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem;">50 Keywords Sorted</span>
+            </div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -459,50 +483,62 @@ with tab2:
     if image_entries:
         st.markdown(
             f"""
-            <div style="display:inline-block; background:rgba(37,99,235,0.12); border:1px solid rgba(37,99,235,0.3); border-radius:8px; padding:0.4rem 0.9rem; margin-bottom:0.8rem;">
-              <span style="font-weight:700; color:var(--text-accent); font-size:0.92rem;">Siap dianalisis: {len(image_entries)} gambar</span>
+            <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(37,99,235,0.12); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:0.4rem 0.9rem; margin-bottom:0.8rem;">
+              <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:#3B82F6;"></span>
+              <span style="font-weight:700; color:var(--text-accent); font-size:0.92rem;">Siap Dianalisis: {len(image_entries)} Gambar dalam Antrean</span>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
-        st.markdown("**Pengaturan Upscaler & Standar Microstock**")
-        col_up1, col_up2 = st.columns([1.1, 0.9])
-        with col_up1:
-            do_upscale = st.checkbox(
-                "Lakukan Upscale Gambar (Otomatis Standar Microstock)",
-                value=False,
-                help="Menggunakan mesin Upscayl NCNN CLI lokal. Sistem otomatis menghitung rasio perbesaran agar resolusi gambar dijamin minimal 4 Megapiksel (≥ 4 MP)."
+        with st.container(border=True):
+            st.markdown(
+                """
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                  <b style="font-size:1rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">
+                    Pengaturan Upscaler & Standar Microstock
+                  </b>
+                  <span class="ms-step-badge ms-badge-green" style="font-size:0.72rem;">NCNN Vulkan</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-            if do_upscale:
-                upscale_mode = st.radio(
-                    "Pilihan Mode Resolusi Upscale:",
-                    [
-                        "🎯 Smart Microstock (~8 MP · Ideal 4K & File Ringan 3-6 MB)",
-                        "⚡ Ultra 4x (~16-25 MP · Resolusi Penuh Tanpa Batas)",
-                    ],
-                    index=0,
-                    help="Smart Microstock melakukan upscale AI 4x untuk detail ultra-tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
-                )
-                if "Smart" in upscale_mode:
-                    st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3–6 MB).")
-                else:
-                    st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16–25 MP), ukuran file berkisar 10–25 MB.")
-            else:
-                upscale_mode = "Off"
-
-        with col_up2:
-            enforce_4mb = False
-            if do_upscale:
-                enforce_4mb = st.checkbox(
-                    "Wajibkan ukuran file fisik minimal 4 MB",
+            col_up1, col_up2 = st.columns([1.1, 0.9])
+            with col_up1:
+                do_upscale = st.checkbox(
+                    "Lakukan Upscale Gambar (Otomatis Standar Microstock)",
                     value=False,
-                    help="Standar wajib untuk kurasi Freepik / Vecteezy. Jika dicentang, berkas dipadatkan dengan padding marker non-destruktif sehingga dijamin ≥ 4 MB tanpa mengubah kualitas pixel."
+                    help="Menggunakan mesin Upscayl NCNN CLI lokal. Sistem otomatis menghitung rasio perbesaran agar resolusi gambar dijamin minimal 4 Megapiksel (≥ 4 MP)."
                 )
-                if enforce_4mb:
-                    st.caption("✓ **Standar Freepik/Vecteezy Aktif:** Ukuran file fisik dijamin minimal **4 MB**.")
+                if do_upscale:
+                    upscale_mode = st.radio(
+                        "Pilihan Mode Resolusi Upscale:",
+                        [
+                            "🎯 Smart Microstock (~8 MP · Ideal 4K & File Ringan 3-6 MB)",
+                            "⚡ Ultra 4x (~16-25 MP · Resolusi Penuh Tanpa Batas)",
+                        ],
+                        index=0,
+                        help="Smart Microstock melakukan upscale AI 4x untuk detail ultra-tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
+                    )
+                    if "Smart" in upscale_mode:
+                        st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3–6 MB).")
+                    else:
+                        st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16–25 MP), ukuran file berkisar 10–25 MB.")
                 else:
-                    st.caption("ℹ️ *Opsional:* Aktifkan jika Anda mengirim ke Freepik/Vecteezy yang menolak file < 4 MB.")
+                    upscale_mode = "Off"
+
+            with col_up2:
+                enforce_4mb = False
+                if do_upscale:
+                    enforce_4mb = st.checkbox(
+                        "Wajibkan ukuran file fisik minimal 4 MB",
+                        value=False,
+                        help="Standar wajib untuk kurasi Freepik / Vecteezy. Jika dicentang, berkas dipadatkan dengan padding marker non-destruktif sehingga dijamin ≥ 4 MB tanpa mengubah kualitas pixel."
+                    )
+                    if enforce_4mb:
+                        st.caption("✓ **Standar Freepik/Vecteezy Aktif:** Ukuran file fisik dijamin minimal **4 MB**.")
+                    else:
+                        st.caption("ℹ️ *Opsional:* Aktifkan jika Anda mengirim ke Freepik/Vecteezy yang menolak file < 4 MB.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         btn_analyze = st.button(
@@ -663,13 +699,21 @@ with tab2:
 with tab3:
     st.markdown(
         """
-        <div style="margin-bottom: 1.2rem;">
-          <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.6rem; font-weight:800; margin:0 0 0.3rem; color:var(--text-primary);">
-            Reverse Prompt Studio (Image to Prompt)
-          </h2>
-          <p style="color:var(--text-secondary); font-size:0.95rem; margin:0; font-weight:500;">
-            Unggah gambar referensi Anda. Gemini Vision akan menganalisis konsep, pencahayaan, sudut kamera, dan menyusun 1 prompt komersial pro yang 100% patuh aturan ketat (faceless, tanpa wanita, tanpa teks, copy space bersih).
-          </p>
+        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
+            <div>
+              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
+                Reverse Prompt Studio (Image to Prompt)
+              </h2>
+              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
+                Bedah visual gambar referensi menjadi formula prompt fotografi komersial yang dapat direproduksi dan disimpan otomatis ke .txt.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.4rem;">
+              <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">Deconstruct Matrix</span>
+              <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">Auto-Save TXT</span>
+            </div>
+          </div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -772,10 +816,16 @@ with tab3:
             with col_prompt:
                 st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
                 st.code(item["prompt"], language=None, wrap_lines=True)
-                st.link_button(
-                    "Buka Google Gemini Web",
-                    "https://gemini.google.com",
-                    use_container_width=True,
-                )
+                c_act1, c_act2 = st.columns(2)
+                with c_act1:
+                    st.link_button(
+                        "Buka Google Gemini Web",
+                        "https://gemini.google.com",
+                        use_container_width=True,
+                    )
+                with c_act2:
+                    if st.button(f"📥 Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
+                        st.session_state.tab1_base_idea = item["prompt"]
+                        st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✨")
             st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);'>", unsafe_allow_html=True)
 

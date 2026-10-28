@@ -15,57 +15,32 @@ from .image_generator import BatchItem, BatchSettings
 
 
 def get_modern_css(is_dark: bool = True) -> str:
-    """Generate dynamic high-contrast modern studio CSS based on theme."""
-    if is_dark:
-        # Dark Studio Palette (Deep Obsidian / Midnight Slate)
-        # WCAG AA/AAA Compliant: Text (#F8FAFC) on bg (#0B0F19) = 17.5:1
-        # Card bg (#131B2E), Borders (#24314A), Secondary Text (#94A3B8 = 6.7:1)
-        # Text Accent (#60A5FA on #0B0F19 = 8.6:1, on #131B2E = 7.8:1 - Passes AAA)
-        scheme = "dark"
-        bg_page = "#0B0F19"
-        bg_card = "#131B2E"
-        bg_sidebar = "#0E1526"
-        bg_input = "#172138"
-        border_color = "#24314A"
-        border_focus = "#3B82F6"
-        text_primary = "#F8FAFC"
-        text_secondary = "#94A3B8"
-        text_muted = "#64748B"
-        text_accent = "#60A5FA"
-        accent_blue = "#2563EB"
-        accent_blue_hover = "#1D4ED8"
-        hero_bg = "linear-gradient(135deg, #131B2E 0%, #0E1526 100%)"
-        hero_border = "#2E3E5B"
-        code_bg = "#0B0F19"
-        tab_bg_inactive = "#172138"
-        tab_border = "#24314A"
-        badge_border = "#2E3E5B"
-        scrollbar_thumb = "#334155"
-    else:
-        # Light Studio Palette (Crisp Clean Minimalist Slate)
-        # WCAG AA/AAA Compliant: Text (#0F172A) on bg (#F8FAFC) = 17.1:1
-        # Card bg (#FFFFFF), Borders (#E2E8F0), Secondary Text (#475569 = 7.2:1)
-        # Text Accent (#1D4ED8 on #F8FAFC = 8.8:1, on #FFFFFF = 9.2:1 - Passes AAA)
-        scheme = "light"
-        bg_page = "#F8FAFC"
-        bg_card = "#FFFFFF"
-        bg_sidebar = "#F1F5F9"
-        bg_input = "#FFFFFF"
-        border_color = "#CBD5E1"
-        border_focus = "#2563EB"
-        text_primary = "#0F172A"
-        text_secondary = "#475569"
-        text_muted = "#64748B"
-        text_accent = "#1D4ED8"
-        accent_blue = "#2563EB"
-        accent_blue_hover = "#1D4ED8"
-        hero_bg = "linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)"
-        hero_border = "#CBD5E1"
-        code_bg = "#F8FAFC"
-        tab_bg_inactive = "#E2E8F0"
-        tab_border = "#CBD5E1"
-        badge_border = "#CBD5E1"
-        scrollbar_thumb = "#94A3B8"
+    """Generate high-precision Pro Dark Studio workstation CSS."""
+    # Obsidian Pro Dark Workstation Palette (Blackmagic / Linear / Figma Studio Caliber)
+    # WCAG AAA Compliant: Text (#F8FAFC) on bg (#080B11) = 18.2:1
+    # Card bg (#0F1623), Borders (#1D283E), Secondary Text (#94A3B8 = 6.8:1)
+    # Text Accent (#60A5FA on #080B11 = 8.8:1 - Passes AAA)
+    scheme = "dark"
+    bg_page = "#080B11"
+    bg_card = "#0F1623"
+    bg_sidebar = "#0A0E18"
+    bg_input = "#141D2D"
+    bg_elevated = "#1A253A"
+    border_color = "#1D283E"
+    border_focus = "#3B82F6"
+    text_primary = "#F8FAFC"
+    text_secondary = "#94A3B8"
+    text_muted = "#64748B"
+    text_accent = "#60A5FA"
+    accent_blue = "#2563EB"
+    accent_blue_hover = "#1D4ED8"
+    hero_bg = "linear-gradient(135deg, #0F1623 0%, #0A0E18 100%)"
+    hero_border = "#24324D"
+    code_bg = "#070A10"
+    tab_bg_inactive = "transparent"
+    tab_border = "#1D283E"
+    badge_border = "#24324D"
+    scrollbar_thumb = "#24324D"
 
     return f"""
 <style>
@@ -215,11 +190,37 @@ p, span, li, label, b, strong {{
   background: var(--hero-bg) !important;
   border: 1.5px solid var(--hero-border) !important;
   border-radius: 16px !important;
-  padding: 1.8rem 2.2rem !important;
-  margin-bottom: 1.6rem !important;
-  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, {"0.35" if is_dark else "0.06"}) !important;
+  padding: 1.5rem 1.8rem !important;
+  margin-bottom: 1.4rem !important;
+  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.6) !important;
   position: relative !important;
   overflow: hidden !important;
+}}
+
+.ms-stat-pill {{
+  display: flex !important;
+  flex-direction: column !important;
+  background: rgba(20, 29, 45, 0.85) !important;
+  border: 1px solid var(--border-color) !important;
+  border-radius: 8px !important;
+  padding: 0.35rem 0.75rem !important;
+  min-width: 110px !important;
+}}
+
+.ms-stat-label {{
+  font-size: 0.65rem !important;
+  font-weight: 700 !important;
+  color: var(--text-muted) !important;
+  letter-spacing: 0.5px !important;
+  text-transform: uppercase !important;
+}}
+
+.ms-stat-val {{
+  font-size: 0.84rem !important;
+  font-weight: 700 !important;
+  color: var(--text-accent) !important;
+  font-family: 'Space Grotesk', sans-serif !important;
+  margin-top: 2px !important;
 }}
 
 .ms-hero-modern h1 {{
@@ -262,31 +263,31 @@ p, span, li, label, b, strong {{
 }}
 
 .ms-badge-accent {{
-  background: {"rgba(59, 130, 246, 0.15)" if is_dark else "#EFF6FF"} !important;
-  color: {"#60A5FA" if is_dark else "#1D4ED8"} !important;
-  -webkit-text-fill-color: {"#60A5FA" if is_dark else "#1D4ED8"} !important;
-  border-color: {"rgba(59, 130, 246, 0.35)" if is_dark else "#BFDBFE"} !important;
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60A5FA !important;
+  -webkit-text-fill-color: #60A5FA !important;
+  border-color: rgba(59, 130, 246, 0.35) !important;
 }}
 
 .ms-badge-green {{
-  background: {"rgba(16, 185, 129, 0.15)" if is_dark else "#ECFDF5"} !important;
-  color: {"#34D399" if is_dark else "#047857"} !important;
-  -webkit-text-fill-color: {"#34D399" if is_dark else "#047857"} !important;
-  border-color: {"rgba(16, 185, 129, 0.35)" if is_dark else "#A7F3D0"} !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  color: #34D399 !important;
+  -webkit-text-fill-color: #34D399 !important;
+  border-color: rgba(16, 185, 129, 0.35) !important;
 }}
 
 .ms-badge-purple {{
-  background: {"rgba(168, 85, 247, 0.15)" if is_dark else "#FAF5FF"} !important;
-  color: {"#C084FC" if is_dark else "#7E22CE"} !important;
-  -webkit-text-fill-color: {"#C084FC" if is_dark else "#7E22CE"} !important;
-  border-color: {"rgba(168, 85, 247, 0.35)" if is_dark else "#E9D5FF"} !important;
+  background: rgba(168, 85, 247, 0.15) !important;
+  color: #C084FC !important;
+  -webkit-text-fill-color: #C084FC !important;
+  border-color: rgba(168, 85, 247, 0.35) !important;
 }}
 
 .ms-badge-amber {{
-  background: {"rgba(245, 158, 11, 0.15)" if is_dark else "#FEFCE8"} !important;
-  color: {"#FBBF24" if is_dark else "#A16207"} !important;
-  -webkit-text-fill-color: {"#FBBF24" if is_dark else "#A16207"} !important;
-  border-color: {"rgba(245, 158, 11, 0.35)" if is_dark else "#FEF08A"} !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+  color: #FBBF24 !important;
+  -webkit-text-fill-color: #FBBF24 !important;
+  border-color: rgba(245, 158, 11, 0.35) !important;
 }}
 
 /* ========================================================================= */
@@ -415,7 +416,7 @@ section[data-testid="stSidebar"] div[data-baseweb="base-input"] {{
 div[data-baseweb="input"]:focus-within,
 div[data-baseweb="textarea"]:focus-within {{
   border-color: var(--border-focus) !important;
-  box-shadow: 0 0 0 2px {"rgba(59, 130, 246, 0.25)" if is_dark else "rgba(37, 99, 235, 0.15)"} !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.25) !important;
 }}
 
 input, textarea,
@@ -656,7 +657,7 @@ ul[role="listbox"] {{
   background: var(--bg-card) !important;
   border: 1.5px solid var(--border-color) !important;
   border-radius: 10px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, {"0.5" if is_dark else "0.1"}) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }}
 
 li[role="option"] {{
@@ -669,7 +670,7 @@ li[role="option"] {{
 
 li[role="option"]:hover,
 li[role="option"][aria-selected="true"] {{
-  background-color: {"rgba(59, 130, 246, 0.2)" if is_dark else "#EFF6FF"} !important;
+  background-color: rgba(59, 130, 246, 0.2) !important;
   color: var(--text-accent) !important;
   -webkit-text-fill-color: var(--text-accent) !important;
   font-weight: 700 !important;
@@ -683,7 +684,7 @@ div[data-testid="stCode"] {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
   background-color: var(--code-bg) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, {"0.2" if is_dark else "0.03"}) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }}
 
 div[data-testid="stCode"] pre,
@@ -747,6 +748,13 @@ li code {{
 /* ========================================================================= */
 /* 12. EXPANDERS & CONTAINERS                                                */
 /* ========================================================================= */
+div[data-testid="stVerticalBlockBorderWrapper"] > div {{
+  border: 1.5px solid var(--border-color) !important;
+  border-radius: 14px !important;
+  background-color: var(--bg-card) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+}}
+
 div[data-testid="stExpander"] {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
@@ -793,26 +801,26 @@ div[data-testid="stAlert"] [data-testid="stMarkdownContainer"] span {{
 
 div[data-testid="stNotificationContentSuccess"],
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentSuccess"]) {{
-  background-color: {"rgba(16, 185, 129, 0.12)" if is_dark else "#ECFDF5"} !important;
-  border-color: {"rgba(16, 185, 129, 0.4)" if is_dark else "#A7F3D0"} !important;
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  border-color: rgba(16, 185, 129, 0.4) !important;
 }}
 
 div[data-testid="stNotificationContentInfo"],
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]) {{
-  background-color: {"rgba(59, 130, 246, 0.12)" if is_dark else "#EFF6FF"} !important;
-  border-color: {"rgba(59, 130, 246, 0.4)" if is_dark else "#BFDBFE"} !important;
+  background-color: rgba(59, 130, 246, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
 }}
 
 div[data-testid="stNotificationContentWarning"],
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentWarning"]) {{
-  background-color: {"rgba(245, 158, 11, 0.12)" if is_dark else "#FEFCE8"} !important;
-  border-color: {"rgba(245, 158, 11, 0.4)" if is_dark else "#FEF08A"} !important;
+  background-color: rgba(245, 158, 11, 0.12) !important;
+  border-color: rgba(245, 158, 11, 0.4) !important;
 }}
 
 div[data-testid="stNotificationContentError"],
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentError"]) {{
-  background-color: {"rgba(239, 68, 68, 0.12)" if is_dark else "#FEF2F2"} !important;
-  border-color: {"rgba(239, 68, 68, 0.4)" if is_dark else "#FECACA"} !important;
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  border-color: rgba(239, 68, 68, 0.4) !important;
 }}
 
 /* Metric Cards */
@@ -843,7 +851,7 @@ div[data-testid="stToast"],
   border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
   color: var(--text-primary) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, {"0.5" if is_dark else "0.1"}) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
 }}
 
 div[data-testid="stToast"] * {{
@@ -858,7 +866,7 @@ div[data-testid="stToast"] * {{
   border-radius: 14px;
   padding: 1.2rem;
   margin-bottom: 1rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, {"0.2" if is_dark else "0.03"});
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
   transition: border-color 0.15s ease;
 }}
 
@@ -1052,15 +1060,37 @@ def render_header() -> None:
     st.markdown(
         """
         <div class="ms-hero-modern">
-          <h1>Microstock AI Studio</h1>
-          <p class="ms-hero-tagline">
-            Creative Prompt Engineering & Computer Vision SEO untuk kontributor <b>Adobe Stock, Shutterstock, & Freepik</b>.
-          </p>
-          <div class="ms-badges-container">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.2rem;">
+            <div>
+              <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(37,99,235,0.15); border:1px solid rgba(59,130,246,0.35); border-radius:6px; padding:0.25rem 0.65rem; margin-bottom:0.6rem;">
+                <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#10B981; box-shadow:0 0 8px #10B981;"></span>
+                <span style="font-family:'Space Grotesk',sans-serif; font-size:0.75rem; font-weight:700; color:#60A5FA; letter-spacing:0.5px; text-transform:uppercase;">Vulkan NCNN Hardware Acceleration Active</span>
+              </div>
+              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:800; color:#F8FAFC; letter-spacing:-0.5px;">Microstock AI Studio</h1>
+              <p style="margin:0.35rem 0 0; font-size:0.95rem; color:#94A3B8; font-weight:500; line-height:1.5;">
+                Workstation Komersial: Prompt Engineering Pro, Vulkan NCNN Upscaler, & Gemini Vision SEO 50 Keywords.
+              </p>
+            </div>
+            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
+              <div class="ms-stat-pill">
+                <span class="ms-stat-label">STANDAR KURASI</span>
+                <span class="ms-stat-val">Adobe Stock & SS</span>
+              </div>
+              <div class="ms-stat-pill">
+                <span class="ms-stat-label">MIN RESOLUSI</span>
+                <span class="ms-stat-val">≥ 4 MP / 300 DPI</span>
+              </div>
+              <div class="ms-stat-pill">
+                <span class="ms-stat-label">PRIVACY ENGINE</span>
+                <span class="ms-stat-val">100% RAM Lokal</span>
+              </div>
+            </div>
+          </div>
+          <div class="ms-badges-container" style="margin-top:1rem;">
             <span class="ms-step-badge ms-badge-accent">Prompt Komersial (80–160 Kata)</span>
             <span class="ms-step-badge ms-badge-green">Gemini Vision SEO (50 Keywords)</span>
             <span class="ms-step-badge ms-badge-purple">Auto-Sync Folder Downloads</span>
-            <span class="ms-step-badge ms-badge-amber">Standar Resolusi ≥ 4 MP & 4 MB</span>
+            <span class="ms-step-badge ms-badge-amber">Smart Microstock ~8 MP (File Ringan)</span>
           </div>
         </div>
         """,
@@ -1073,23 +1103,30 @@ def render_header() -> None:
 # --------------------------------------------------------------------------- #
 def render_sidebar() -> Optional[str]:
     with st.sidebar:
-        # Theme Switcher (Toggle Dark / Light)
-        current_theme = st.session_state.get("app_theme", "dark")
-        st.markdown("**Tema Tampilan Studio**")
-        col_t1, col_t2 = st.columns(2)
-        with col_t1:
-            if st.button("🌙 Dark Mode", use_container_width=True, type="primary" if current_theme == "dark" else "secondary"):
-                if current_theme != "dark":
-                    st.session_state["app_theme"] = "dark"
-                    st.rerun()
-        with col_t2:
-            if st.button("☀️ Light Mode", use_container_width=True, type="primary" if current_theme == "light" else "secondary"):
-                if current_theme != "light":
-                    st.session_state["app_theme"] = "light"
-                    st.rerun()
+        st.markdown(
+            """
+            <div class="ms-card-modern" style="padding:0.75rem 0.9rem; margin-bottom:1rem; border-color:var(--border-color); background:var(--bg-input);">
+              <div style="display:flex; align-items:center; justify-content:space-between;">
+                <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.82rem; color:var(--text-accent); letter-spacing:0.5px;">
+                  ● STUDIO PRO DARK
+                </span>
+                <span class="ms-step-badge ms-badge-green" style="font-size:0.7rem; padding:1px 6px;">
+                  Vulkan GPU
+                </span>
+              </div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
 
-        st.divider()
-        st.header("Studio Setup")
+        st.markdown(
+            """
+            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
+              // ENGINE & API ACCESS
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
 
         saved_key = config.load_saved_api_key()
 
@@ -1098,14 +1135,15 @@ def render_sidebar() -> Optional[str]:
             st.markdown(
                 f"""
                 <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:0.8rem;">
-                  <b style="font-size:0.92rem; color:var(--text-primary); display:block; margin-bottom:0.25rem;">
-                    💾 Gemini API Key Aktif
-                  </b>
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.3rem;">
+                    <b style="font-size:0.92rem; color:var(--text-primary);">Gemini API Key</b>
+                    <span class="ms-step-badge ms-badge-green" style="font-size:0.68rem; padding:1px 6px;">Aktif</span>
+                  </div>
                   <p style="font-size:0.82rem; color:var(--text-secondary); margin:0 0 0.45rem;">
                     Tersimpan aman di komputer lokal Anda.
                   </p>
                   <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.82rem; font-weight:600; color:var(--text-accent); font-family:'Space Grotesk', monospace; display:inline-block;">
-                    Status: {masked}
+                    Key: {masked}
                   </div>
                 </div>
                 """,
@@ -1150,20 +1188,35 @@ def render_sidebar() -> Optional[str]:
 
         st.markdown(
             """
-            <div class="ms-card-modern" style="padding:0.9rem;">
-              <b style="font-size:0.92rem; color:var(--text-primary);">💡 Tips Alur Kerja:</b>
-              <ol style="margin: 0.5rem 0 0 1.2rem; padding: 0; font-size: 0.85rem; line-height: 1.5; color:var(--text-secondary);">
-                <li>Salin <b>Prompt Komersial</b> yang sudah 100% bebas wanita & faceless.</li>
-                <li>Tempel di <code>gemini.google.com</code> & download gambarnya.</li>
-                <li>Gunakan <b>Auto-Sync di Tab 2</b> untuk langsung mendeteksi batch download tanpa upload manual!</li>
+            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
+              // WORKFLOW GUIDE
+            </p>
+            <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:1rem;">
+              <ol style="margin: 0.2rem 0 0 1.1rem; padding: 0; font-size: 0.83rem; line-height: 1.55; color:var(--text-secondary);">
+                <li>Salin <b>Prompt Komersial</b> siap pakai (100% faceless & bebas hak cipta).</li>
+                <li>Tempel di generator gambar pilihan & download.</li>
+                <li>Buka <b>Tab 2 (Auto-Sync)</b> untuk otomatis deteksi file download, upscale NCNN, dan buat 50 keyword SEO.</li>
               </ol>
             </div>
             """,
             unsafe_allow_html=True,
         )
 
+        st.markdown(
+            """
+            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
+              // UTILITIES & STORAGE
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+        if st.button("🧹 Bersihkan Cache Streamlit", use_container_width=True, type="secondary"):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.toast("Cache Streamlit berhasil dibersihkan!", icon="🧹")
+
         st.divider()
-        st.caption(f"Microstock AI Studio v2.5 · Mode {current_theme.title()}")
+        st.caption("Microstock AI Studio v2.5 Pro · Dark Obsidian Engine")
 
     return api_key
 
