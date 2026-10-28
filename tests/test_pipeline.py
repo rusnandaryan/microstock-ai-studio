@@ -1,0 +1,115 @@
+"""Smoke and regression tests for Microstock AI Studio core pipeline.
+
+Tests image padding, resolution enforcement, vision preparation, and upscaler logic.
+Uses standard Python unittest (no external test runner dependencies needed).
+"""
+import io
+import unittest
+from PIL import Image
+
+from microstock import config
+from microstock.image_generator import _pad_jpeg_to_min_size, finalize_image
+from microstock.metadata import _prepare_vision_bytes, normalize_keywords
+from microstock.upscaler import is_upscale_needed
+
+
+def _create_sample_jpeg(width: int = 200, height: int = 200, color: str = "red") -> bytes:
+    """Helper to generate a valid in-memory JPEG byte string."""
+    im = Image.new("RGB", (width, height), color=color)
+    buf = io.BytesIO()
+    im.save(buf, format="JPEG", quality=85)
+    return buf.getvalue()
+
+
+class TestJpegPadding(unittest.TestCase):
+    def test_pad_jpeg_increases_file_size_without_corrupting(self):
+        original_jpeg = _create_sample_jpeg(100, 100)
+        orig_len = len(original_jpeg)
+        target_size = orig_len + 50_000
+
+        padded = _pad_jpeg_to_min_size(original_jpeg, target_size)
+
+        self.assertGreaterEqual(len(padded), target_size)
+        self.assertTrue(padded.startswith(b"\xff\xd8"), "JPEG must start with SOI marker")
+        self.assertTrue(padded.endswith(b"\xff\xd9"), "JPEG must end with EOI marker")
+
+        # Verify that PIL can open and verify the padded JPEG without error
+        with Image.open(io.BytesIO(padded)) as im:
+            im.verify()
+
+    def test_pad_jpeg_noop_when_already_large_enough(self):
+        original_jpeg = _create_sample_jpeg(100, 100)
+        padded = _pad_jpeg_to_min_size(original_jpeg, 100)
+        self.assertEqual(original_jpeg, padded)
+
+
+class TestFinalizeImage(unittest.TestCase):
+    def test_enforce_microstock_min_resolution(self):
+        # 400x400 = 0.16 MP (far below 4.0 MP microstock requirement)
+        small_jpeg = _create_sample_jpeg(400, 400)
+        exp_bytes, prev_bytes, mime, w, h = finalize_image(
+            small_jpeg,
+            export_format="JPEG",
+            enforce_microstock_res=True,
+        )
+
+        total_pixels = w * h
+        self.assertGreaterEqual(total_pixels, config.TARGET_MIN_PIXELS)
+        self.assertEqual(mime, "image/jpeg")
+
+    def test_smart_microstock_max_target_pixels(self):
+        # 4000x3000 = 12.0 MP (exceeds Smart Microstock target ~8.3 MP)
+        large_jpeg = _create_sample_jpeg(4000, 3000)
+        exp_bytes, prev_bytes, mime, w, h = finalize_image(
+            large_jpeg,
+            export_format="JPEG",
+            enforce_microstock_res=False,
+            max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS,
+        )
+
+        total_pixels = w * h
+        self.assertLessEqual(total_pixels, config.SMART_MICROSTOCK_TARGET_PIXELS + 1000)
+
+    def test_enforce_min_filesize_padding(self):
+        sample = _create_sample_jpeg(200, 200)
+        exp_bytes, prev_bytes, mime, w, h = finalize_image(
+            sample,
+            export_format="JPEG",
+            enforce_min_filesize=True,
+        )
+        self.assertGreaterEqual(len(exp_bytes), config.MIN_FILE_SIZE_BYTES)
+
+
+class TestVisionPreparation(unittest.TestCase):
+    def test_downscales_large_image_and_converts_to_rgb(self):
+        # Create 3000x1500 RGBA image
+        im = Image.new("RGBA", (3000, 1500), color=(255, 0, 0, 128))
+        buf = io.BytesIO()
+        im.save(buf, format="PNG")
+        raw_rgba = buf.getvalue()
+
+        safe_bytes, safe_mime = _prepare_vision_bytes(raw_rgba, "image/png")
+
+        self.assertEqual(safe_mime, "image/jpeg")
+        with Image.open(io.BytesIO(safe_bytes)) as out_im:
+            self.assertEqual(out_im.mode, "RGB")
+            self.assertLessEqual(max(out_im.size), 2048)
+
+
+class TestUpscalerLogic(unittest.TestCase):
+    def test_is_upscale_needed(self):
+        # 1000x1000 = 1 MP -> Needed (< 4.2 MP)
+        self.assertTrue(is_upscale_needed(1000, 1000))
+        # 3000x2000 = 6 MP -> Not needed (>= 4.2 MP)
+        self.assertFalse(is_upscale_needed(3000, 2000))
+
+
+class TestKeywordSanitization(unittest.TestCase):
+    def test_normalize_keywords_removes_duplicates_and_strips(self):
+        raw = [" Nature", "nature", "LANDSCAPE", "outdoor", "nature", "tree "]
+        cleaned = normalize_keywords(raw)
+        self.assertEqual(cleaned, ["nature", "landscape", "outdoor", "tree"])
+
+
+if __name__ == "__main__":
+    unittest.main()

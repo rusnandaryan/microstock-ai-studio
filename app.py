@@ -467,7 +467,7 @@ with tab2:
         )
 
         st.markdown("**Pengaturan Upscaler & Standar Microstock**")
-        col_up1, col_up2 = st.columns(2)
+        col_up1, col_up2 = st.columns([1.1, 0.9])
         with col_up1:
             do_upscale = st.checkbox(
                 "Lakukan Upscale Gambar (Otomatis Standar Microstock)",
@@ -475,17 +475,34 @@ with tab2:
                 help="Menggunakan mesin Upscayl NCNN CLI lokal. Sistem otomatis menghitung rasio perbesaran agar resolusi gambar dijamin minimal 4 Megapiksel (≥ 4 MP)."
             )
             if do_upscale:
-                st.caption("✓ **Standar Wajib Aktif:** Resolusi dijamin otomatis minimal **4 MP** (≥ 4.000.000 px).")
+                upscale_mode = st.radio(
+                    "Pilihan Mode Resolusi Upscale:",
+                    [
+                        "🎯 Smart Microstock (~8 MP · Ideal 4K & File Ringan 3-6 MB)",
+                        "⚡ Ultra 4x (~16-25 MP · Resolusi Penuh Tanpa Batas)",
+                    ],
+                    index=0,
+                    help="Smart Microstock melakukan upscale AI 4x untuk detail ultra-tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
+                )
+                if "Smart" in upscale_mode:
+                    st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3–6 MB).")
+                else:
+                    st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16–25 MP), ukuran file berkisar 10–25 MB.")
+            else:
+                upscale_mode = "Off"
+
         with col_up2:
             enforce_4mb = False
             if do_upscale:
                 enforce_4mb = st.checkbox(
                     "Wajibkan ukuran file fisik minimal 4 MB",
                     value=False,
-                    help="Standar untuk Freepik / Vecteezy. Jika dicentang, file disimpan dengan encoding kualitas maksimal (≥ 4 MB). Jika tidak dicentang, kompresi normal dipertahankan agar hemat penyimpanan lokal Mac Anda."
+                    help="Standar wajib untuk kurasi Freepik / Vecteezy. Jika dicentang, berkas dipadatkan dengan padding marker non-destruktif sehingga dijamin ≥ 4 MB tanpa mengubah kualitas pixel."
                 )
                 if enforce_4mb:
                     st.caption("✓ **Standar Freepik/Vecteezy Aktif:** Ukuran file fisik dijamin minimal **4 MB**.")
+                else:
+                    st.caption("ℹ️ *Opsional:* Aktifkan jika Anda mengirim ke Freepik/Vecteezy yang menolak file < 4 MB.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         btn_analyze = st.button(
@@ -541,27 +558,31 @@ with tab2:
                                 in_f.write(raw_bytes)
                                 in_path = in_f.name
                             out_path = in_path.replace(".jpg", "_up.jpg")
-                            success = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
+                            success, err_msg = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
                             if success:
                                 with open(out_path, "rb") as out_f:
                                     target_bytes = out_f.read()
                                 try: os.remove(out_path)
                                 except: pass
                             else:
-                                st.toast(f"Upscale lokal gagal untuk {filename}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
+                                err_detail = f" ({err_msg})" if err_msg else ""
+                                st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
                             try: os.remove(in_path)
                             except: pass
                         else:
                             progress_bar.progress(idx / len(image_entries), text=f"Gambar #{idx+1} sudah beresolusi tinggi ({orig_w}x{orig_h} px ≥ 4 MP), melewati perbesaran AI...")
 
                     progress_bar.progress(idx / len(image_entries), text=f"Menyiapkan resolusi & preview #{idx+1}...")
-                    # Finalize image & thumbnail (Enforces >= 4MP and optionally >= 4MB)
+                    # Finalize image & thumbnail (Enforces >= 4MP and optionally >= 4MB, Smart Microstock cap)
+                    is_smart = "Smart" in upscale_mode if do_upscale else False
                     exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
                         finalize_image,
                         target_bytes,
                         "JPEG",
                         enforce_microstock_res=do_upscale,
                         enforce_min_filesize=enforce_4mb,
+                        max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS if (do_upscale and is_smart) else None,
+                        jpeg_quality=95,
                     )
 
                     item = BatchItem(
@@ -613,7 +634,8 @@ with tab2:
             }
             st.success(f"Berhasil menganalisis {len(processed_items)} gambar dengan 100% akurasi visual!")
             if do_upscale:
-                rule_info = "garansi resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if enforce_4mb else "")
+                mode_label = "Smart Microstock ~8 MP" if "Smart" in upscale_mode else "Ultra 4x Penuh"
+                rule_info = f"mode {mode_label}, resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if enforce_4mb else "")
                 st.info(f"Gambar hasil upscale ({rule_info}) dan file CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
             else:
                 st.info(f"File metadata CSV otomatis tersimpan di folder lokal (file gambar asli tidak disimpan untuk menghemat ruang disk):\n`{local_export_dir}`")

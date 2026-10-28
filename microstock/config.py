@@ -47,6 +47,7 @@ DEFAULT_IMAGE_SIZE = "1K"
 MIN_IMAGE_MEGAPIXELS = 4.0
 MAX_IMAGE_MEGAPIXELS = 100.0
 TARGET_MIN_PIXELS = 4_200_000  # Safe upscale target (e.g. 2050x2050) to guarantee >= 4MP
+SMART_MICROSTOCK_TARGET_PIXELS = 8_294_400  # ~8.3 MP (ideal balance: 4K sharpness, 3-6 MB file size)
 MIN_FILE_SIZE_BYTES = 4_194_304  # 4 MB (4 * 1024 * 1024 bytes) for sites like Freepik / Vecteezy
 
 # --------------------------------------------------------------------------- #
@@ -72,16 +73,6 @@ ASPECT_RATIO_LABELS: Dict[str, str] = {
 def dimensions_for(aspect_ratio: str, image_size: str) -> str:
     """Return expected output dimensions, e.g. '5504x3072'."""
     return ASPECT_RATIOS.get(aspect_ratio, {}).get(image_size, "unknown")
-
-
-# --------------------------------------------------------------------------- #
-# Aesthetic / style presets
-# --------------------------------------------------------------------------- #
-@dataclass(frozen=True)
-class StylePreset:
-    name: str
-    directive: str          # injected into the image prompt
-    is_illustration: bool
 
 
 # --------------------------------------------------------------------------- #
@@ -568,6 +559,10 @@ def save_api_key(api_key: str) -> None:
 
     with open(env_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
+    try:
+        os.chmod(env_path, 0o600)
+    except Exception:
+        pass
     os.environ["GEMINI_API_KEY"] = api_key
 
 

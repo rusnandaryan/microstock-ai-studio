@@ -197,11 +197,15 @@ def finalize_image(
     export_format: str,
     enforce_microstock_res: bool = False,
     enforce_min_filesize: bool = False,
+    max_target_pixels: Optional[int] = None,
+    jpeg_quality: int = 95,
 ) -> Tuple[bytes, bytes, str, int, int]:
-    """Convert to export format (max quality) and build preview.
+    """Convert to export format and build preview.
 
     - enforce_microstock_res: Guarantees >= 4MP (Adobe Stock / Shutterstock minimum).
     - enforce_min_filesize: Guarantees >= 4MB JPEG file size (Freepik / Vecteezy minimum).
+    - max_target_pixels: Optional pixel cap (e.g. config.SMART_MICROSTOCK_TARGET_PIXELS for Smart Microstock).
+    - jpeg_quality: JPEG compression quality (default 95: optimal size-to-fidelity ratio).
     Returns (export_bytes, preview_bytes, mime_type, width, height).
     """
     import math
@@ -224,7 +228,17 @@ def finalize_image(
         total_pixels = width * height
         mp = total_pixels / 1_000_000
 
-    # Downscale only if image exceeds the extreme 100MP microstock cap
+    # 2. Smart Microstock cap: Downsample if exceeding target (e.g. ~8.3 MP)
+    if max_target_pixels and total_pixels > max_target_pixels:
+        scale_down = math.sqrt(max_target_pixels / total_pixels)
+        new_w = max(1, int(round(width * scale_down)))
+        new_h = max(1, int(round(height * scale_down)))
+        rgb = rgb.resize((new_w, new_h), Image.Resampling.LANCZOS)
+        width, height = rgb.size
+        total_pixels = width * height
+        mp = total_pixels / 1_000_000
+
+    # 3. Downscale only if image exceeds the extreme 100MP microstock cap
     if total_pixels > 0 and mp > config.MAX_IMAGE_MEGAPIXELS:
         scale = math.sqrt(98_000_000 / total_pixels)
         new_w = max(1, int(round(width * scale)))
@@ -239,13 +253,15 @@ def finalize_image(
         mime = "image/png"
     else:
         # Standard high-quality JPEG
-        # subsampling=0 ensures full 4:4:4 color resolution without blur
         buf = io.BytesIO()
-        rgb.save(buf, format="JPEG", quality=98, subsampling=0, optimize=True, dpi=(300, 300))
+        save_kwargs = {"quality": jpeg_quality, "optimize": True, "dpi": (300, 300)}
+        if jpeg_quality >= 98:
+            save_kwargs["subsampling"] = 0
+        rgb.save(buf, format="JPEG", **save_kwargs)
         export_bytes = buf.getvalue()
         mime = "image/jpeg"
 
-        # 2. Enforce minimum file size >= 4 MB (OPTIONAL checkbox)
+        # 4. Enforce minimum file size >= 4 MB (OPTIONAL checkbox)
         if enforce_min_filesize and len(export_bytes) < config.MIN_FILE_SIZE_BYTES:
             export_bytes = _pad_jpeg_to_min_size(export_bytes, config.MIN_FILE_SIZE_BYTES)
 

@@ -1,7 +1,7 @@
 """Upscaler module wrapping Real-ESRGAN NCNN Vulkan CLI."""
 import os
 import subprocess
-from typing import Optional
+from typing import Optional, Tuple
 
 def get_upscaler_binary_path() -> Optional[str]:
     """Return the absolute path to the upscaler binary if it exists."""
@@ -31,14 +31,14 @@ def run_upscale(
     scale: int = 4,
     model: str = "realesrgan-x4plus",
     tile_size: int = 400,
-) -> bool:
+) -> Tuple[bool, Optional[str]]:
     """Run the upscaler on the input file and save to output_path.
     
-    Returns True if successful, False otherwise.
+    Returns (success: bool, error_message: Optional[str]).
     """
     bin_path = get_upscaler_binary_path()
     if not bin_path:
-        raise FileNotFoundError("Mesin upscaler NCNN CLI tidak ditemukan di folder upscayl_bin.")
+        return False, "Mesin upscaler NCNN CLI tidak ditemukan di folder upscayl_bin."
 
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     models_dir = os.path.join(base_dir, "upscayl_bin", "models")
@@ -60,17 +60,18 @@ def run_upscale(
     ]
     
     try:
-        result = subprocess.run(
+        subprocess.run(
             cmd,
             check=True,
             capture_output=True,
             text=True,
             cwd=os.path.join(base_dir, "upscayl_bin")
         )
-        return os.path.exists(output_path) and os.path.getsize(output_path) > 0
+        if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
+            return True, None
+        return False, "Berkas output kosong atau gagal dibuat oleh NCNN."
     except subprocess.CalledProcessError as e:
-        print(f"Upscaler error: {e.stderr}")
-        return False
+        err_msg = e.stderr.strip() if e.stderr else str(e)
+        return False, err_msg
     except Exception as e:
-        print(f"Failed to execute upscaler: {e}")
-        return False
+        return False, str(e)

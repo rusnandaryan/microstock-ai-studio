@@ -513,15 +513,27 @@ div[data-testid="stFileUploaderFileData"] {{
 }}
 
 /* ========================================================================= */
-/* 9. BUTTONS (PRIMARY, SECONDARY, LINK, DOWNLOAD)                           */
+/* 9. BUTTONS (PRIMARY, SECONDARY, LINK, DOWNLOAD) & TOUCH TARGETS           */
 /* ========================================================================= */
-div.stButton > button {{
+div.stButton > button,
+div[data-testid="stDownloadButton"] > button,
+div[data-testid="stLinkButton"] > a {{
   font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 600 !important;
   border-radius: 10px !important;
   padding: 0.55rem 1.3rem !important;
   transition: all 0.15s ease !important;
   font-size: 0.95rem !important;
+  min-height: 44px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}}
+
+div[data-testid="stExpander"] details summary {{
+  min-height: 44px !important;
+  display: flex !important;
+  align-items: center !important;
 }}
 
 /* Keyboard Navigation: Focus-Visible Rings (WCAG AA Compliance) */
