@@ -1,8 +1,7 @@
-"""Unit tests for prompt enhancer parsing and archetype diversification."""
+"""Unit tests for prompt enhancer parsing."""
 import unittest
 
 from microstock.prompt_enhancer import (
-    PROMPT_ARCHETYPES,
     parse_enhancer_response,
     _format_with_aspect_ratio,
 )
@@ -21,54 +20,43 @@ class TestPromptEnhancerParsing(unittest.TestCase):
         self.assertTrue(formatted.endswith("[Aspect Ratio: 9:16]"))
         self.assertNotIn("1:1", formatted)
 
-    def test_parse_structured_json_with_archetypes(self):
+    def test_parse_string_array(self):
         json_str = """
         [
-            {"archetype": "Shot 1: Wide Context & Environment", "prompt": "Wide view of modern cafe."},
-            {"archetype": "Shot 2: Macro & Material Craftsmanship", "prompt": "Close-up macro of ceramic cup grain."},
-            {"archetype": "Shot 3: Dynamic Interaction / In-Use Action", "prompt": "Barista pouring latte art into cup."},
-            {"archetype": "Shot 4: Clean Copy Space / Ad Layout", "prompt": "Espresso cup with clean negative space on right."},
-            {"archetype": "Shot 5: Flat Lay Knolling / Geometric Angle", "prompt": "Overhead flat lay knolling of coffee beans and cup."}
-        ]
-        """
-        results = parse_enhancer_response(json_str, "16:9")
-        self.assertEqual(len(results), 5)
-        self.assertEqual(results[0]["archetype"], "Shot 1: Wide Context & Environment")
-        self.assertTrue(results[0]["prompt"].endswith("[Aspect Ratio: 16:9]"))
-        self.assertEqual(results[1]["badge"], "🔍 Macro Detail")
-        self.assertEqual(results[4]["badge"], "🧩 Flat Lay / Knolling")
-
-    def test_parse_fallback_string_array(self):
-        # When Gemini returns a simple array of 5 strings, archetypes should be assigned automatically
-        json_str = """
-        [
-            "Prompt one for wide scene.",
-            "Prompt two for macro details.",
-            "Prompt three for action.",
-            "Prompt four for copy space.",
-            "Prompt five for top down."
+            "Prompt one for scene.",
+            "Prompt two for scene.",
+            "Prompt three for scene.",
+            "Prompt four for scene.",
+            "Prompt five for scene."
         ]
         """
         results = parse_enhancer_response(json_str, "1:1")
         self.assertEqual(len(results), 5)
-        # Should map 0..4 to the 5 archetypes
         for idx in range(5):
-            self.assertEqual(results[idx]["archetype"], PROMPT_ARCHETYPES[idx]["title"])
-            self.assertEqual(results[idx]["badge"], PROMPT_ARCHETYPES[idx]["badge"])
-            self.assertTrue(results[idx]["prompt"].endswith("[Aspect Ratio: 1:1]"))
+            self.assertTrue(results[idx].endswith("[Aspect Ratio: 1:1]"))
+
+    def test_parse_object_array_fallback(self):
+        json_str = """
+        [
+            {"prompt": "A modern eco cup with negative space on right."},
+            {"prompt": "A ceramic cup in natural window sunlight."}
+        ]
+        """
+        results = parse_enhancer_response(json_str, "16:9")
+        self.assertEqual(len(results), 2)
+        self.assertTrue(results[0].endswith("[Aspect Ratio: 16:9]"))
+        self.assertIn("negative space", results[0])
 
     def test_parse_markdown_wrapped_json(self):
         json_str = """```json
         [
-            {"archetype": "Shot 1: Wide Context & Environment", "prompt": "Modern office desk in natural sunlight."}
+            "Modern office desk in natural sunlight."
         ]
         ```"""
         results = parse_enhancer_response(json_str, "4:3")
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]["archetype"], "Shot 1: Wide Context & Environment")
-        self.assertTrue(results[0]["prompt"].endswith("[Aspect Ratio: 4:3]"))
+        self.assertTrue(results[0].endswith("[Aspect Ratio: 4:3]"))
 
 
 if __name__ == "__main__":
     unittest.main()
-

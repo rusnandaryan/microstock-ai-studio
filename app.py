@@ -288,25 +288,16 @@ with tab1:
                 unsafe_allow_html=True,
             )
             if isinstance(prompt_val, list):
-                st.markdown("**5 Variasi Visual Microstock (Bebas Duplikasi):**")
+                st.markdown("**5 Alternatif Prompt Komersial Siap Pakai:**")
                 for idx, item in enumerate(prompt_val):
-                    if isinstance(item, dict):
-                        arch_title = item.get("archetype", f"Shot #{idx + 1}")
-                        badge_label = item.get("badge", f"Shot #{idx + 1}")
-                        badge_class = item.get("badge_class", "ms-badge-accent")
-                        prompt_text = item.get("prompt", "")
-                    else:
-                        arch_title = f"Alternatif #{idx + 1}"
-                        badge_label = f"Shot #{idx + 1}"
-                        badge_class = "ms-badge-accent"
-                        prompt_text = str(item)
+                    prompt_text = item.get("prompt", "") if isinstance(item, dict) else str(item)
 
                     st.markdown(
                         f"""
                         <div class="ms-card-modern" style="padding:0.9rem 1.1rem; margin-top:0.85rem; margin-bottom:0.85rem;">
                           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
-                            <b style="font-size:0.95rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">{arch_title}</b>
-                            <span class="ms-step-badge {badge_class}" style="font-size:0.72rem; padding:0.18rem 0.55rem;">{badge_label}</span>
+                            <b style="font-size:0.95rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">Alternatif #{idx + 1}</b>
+                            <span class="ms-step-badge ms-badge-accent" style="font-size:0.72rem; padding:0.18rem 0.55rem;">Siap Pakai</span>
                           </div>
                         """,
                         unsafe_allow_html=True,
