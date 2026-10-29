@@ -58,7 +58,7 @@ tab1, tab2, tab3 = st.tabs([
 with tab1:
     st.markdown(
         """
-        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <div>
               <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
@@ -303,14 +303,16 @@ with tab1:
 
                     st.markdown(
                         f"""
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; margin-bottom:0.35rem;">
-                          <b style="font-size:0.92rem; color:var(--text-primary);">{arch_title}</b>
-                          <span class="ms-step-badge {badge_class}" style="font-size:0.72rem; padding:0.15rem 0.5rem;">{badge_label}</span>
-                        </div>
+                        <div class="ms-card-modern" style="padding:0.9rem 1.1rem; margin-top:0.85rem; margin-bottom:0.85rem;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
+                            <b style="font-size:0.95rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">{arch_title}</b>
+                            <span class="ms-step-badge {badge_class}" style="font-size:0.72rem; padding:0.18rem 0.55rem;">{badge_label}</span>
+                          </div>
                         """,
                         unsafe_allow_html=True,
                     )
                     st.code(prompt_text, language=None, wrap_lines=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
             else:
                 st.code(prompt_val, language=None, wrap_lines=True)
 
@@ -354,7 +356,7 @@ with tab1:
 with tab2:
     st.markdown(
         """
-        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <div>
               <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
@@ -704,7 +706,7 @@ with tab2:
 with tab3:
     st.markdown(
         """
-        <div class="ms-card-modern" style="padding:1rem 1.25rem; margin-bottom:1.2rem; background:rgba(15,22,35,0.7);">
+        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
             <div>
               <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
@@ -813,24 +815,24 @@ with tab3:
         )
 
         for i, item in enumerate(st.session_state.reverse_results):
-            col_img, col_prompt = st.columns([1, 2.5], gap="medium")
-            with col_img:
-                st.image(item["raw_bytes"], caption=item["filename"], use_container_width=True)
-                rel_path = os.path.relpath(item["saved_path"], os.path.dirname(os.path.abspath(__file__)))
-                st.caption(f"💾 File: `{rel_path}`")
-            with col_prompt:
-                st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
-                st.code(item["prompt"], language=None, wrap_lines=True)
-                c_act1, c_act2 = st.columns(2)
-                with c_act1:
-                    st.link_button(
-                        "Buka Google Gemini Web",
-                        "https://gemini.google.com",
-                        use_container_width=True,
-                    )
-                with c_act2:
-                    if st.button(f"📥 Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
-                        st.session_state.tab1_base_idea = item["prompt"]
-                        st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✅")
-            st.markdown("<hr style='margin: 1.5rem 0; border: none; border-top: 1px solid var(--border-color);'>", unsafe_allow_html=True)
+            with st.container(border=True):
+                col_img, col_prompt = st.columns([1, 2.5], gap="medium")
+                with col_img:
+                    st.image(item["raw_bytes"], caption=item["filename"], use_container_width=True)
+                    rel_path = os.path.relpath(item["saved_path"], os.path.dirname(os.path.abspath(__file__)))
+                    st.caption(f"💾 File: `{rel_path}`")
+                with col_prompt:
+                    st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
+                    st.code(item["prompt"], language=None, wrap_lines=True)
+                    c_act1, c_act2 = st.columns(2)
+                    with c_act1:
+                        st.link_button(
+                            "Buka Google Gemini Web",
+                            "https://gemini.google.com",
+                            use_container_width=True,
+                        )
+                    with c_act2:
+                        if st.button(f"📥 Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
+                            st.session_state.tab1_base_idea = item["prompt"]
+                            st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✅")
 

@@ -21,12 +21,12 @@ def get_modern_css(is_dark: bool = True) -> str:
     # Card bg (#0F1623), Borders (#1D283E), Secondary Text (#94A3B8 = 6.8:1)
     # Text Accent (#60A5FA on #080B11 = 8.8:1 - Passes AAA)
     scheme = "dark"
-    bg_page = "#080B11"
-    bg_card = "#0F1623"
-    bg_sidebar = "#0A0E18"
-    bg_input = "#141D2D"
-    bg_elevated = "#1A253A"
-    border_color = "#1D283E"
+    bg_page = "#06080D"
+    bg_card = "#0B0F19"
+    bg_sidebar = "#05070B"
+    bg_input = "#0E1424"
+    bg_elevated = "#131A2E"
+    border_color = "rgba(255, 255, 255, 0.08)"
     border_focus = "#3B82F6"
     text_primary = "#F8FAFC"
     text_secondary = "#94A3B8"
@@ -34,13 +34,13 @@ def get_modern_css(is_dark: bool = True) -> str:
     text_accent = "#60A5FA"
     accent_blue = "#2563EB"
     accent_blue_hover = "#1D4ED8"
-    hero_bg = "linear-gradient(135deg, #0F1623 0%, #0A0E18 100%)"
-    hero_border = "#24324D"
-    code_bg = "#070A10"
+    hero_bg = "linear-gradient(135deg, #0B0F19 0%, #06080D 100%)"
+    hero_border = "rgba(255, 255, 255, 0.08)"
+    code_bg = "#05070B"
     tab_bg_inactive = "transparent"
-    tab_border = "#1D283E"
-    badge_border = "#24324D"
-    scrollbar_thumb = "#24324D"
+    tab_border = "rgba(255, 255, 255, 0.08)"
+    badge_border = "rgba(255, 255, 255, 0.1)"
+    scrollbar_thumb = "#1E293B"
 
     return f"""
 <style>
@@ -1050,7 +1050,7 @@ def render_header() -> None:
             </div>
           </div>
           <div class="ms-badges-container" style="margin-top:1rem;">
-            <span class="ms-step-badge ms-badge-accent">Prompt Komersial (80–160 Kata)</span>
+            <span class="ms-step-badge ms-badge-accent">Prompt Komersial (80-160 Kata)</span>
             <span class="ms-step-badge ms-badge-green">Gemini Vision SEO (50 Keywords)</span>
             <span class="ms-step-badge ms-badge-purple">Auto-Sync Folder Downloads</span>
             <span class="ms-step-badge ms-badge-amber">Smart Microstock ~8 MP (File Ringan)</span>
@@ -1273,9 +1273,21 @@ def render_card(item: BatchItem, batch_id: str) -> None:
             if md:
                 _copy_block(f"Title ({len(md.title)}/{config.TITLE_MAX_CHARS})", md.title)
                 _copy_block(f"Description ({len(md.description)} karakter)", md.description)
-                _copy_block(f"Keywords ({len(md.keywords)}/{config.KEYWORD_COUNT})", md.keywords_csv)
+                _copy_block(f"Keywords CSV ({len(md.keywords)}/{config.KEYWORD_COUNT})", md.keywords_csv)
+                
+                # Visual tag chip cluster
+                chips_html = "".join(
+                    f'<span class="ms-step-badge ms-badge-accent" style="font-size:0.68rem; padding:1px 5px; margin:2px 2px; display:inline-block;">#{k}</span>'
+                    for k in md.keywords
+                )
                 st.markdown(
                     f"""
+                    <div style="margin: 0.5rem 0 0.4rem;">
+                      <b style="font-size:0.78rem; color:var(--text-secondary); display:block; margin-bottom:0.25rem;">Preview Tag Interaktif:</b>
+                      <div style="display:flex; flex-wrap:wrap; max-height:120px; overflow-y:auto; padding:0.4rem; background:var(--bg-input); border-radius:6px; border:1px solid var(--border-color);">
+                        {chips_html}
+                      </div>
+                    </div>
                     <div style="margin-top:0.4rem;">
                       <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem; margin-right:0.3rem;">
                         Adobe: {md.adobe_category_name}

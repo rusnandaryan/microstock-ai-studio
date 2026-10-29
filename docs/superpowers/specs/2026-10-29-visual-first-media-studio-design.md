@@ -137,3 +137,4 @@ Tiga pendekatan visual dipertimbangkan:
    - Formulir prompt di Tab 1 dapat menghasilkan 5 prompt dengan arketipe berbeda.
    - Tab 2 mampu membaca antrean Auto-Sync atau manual upload, menjalankan NCNN upscaler, dan menghasilkan ZIP/CSV.
    - Tab 3 mampu membaca gambar dan mengirim prompt ke Tab 1.
+
