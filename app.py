@@ -383,7 +383,7 @@ with tab2:
                 "Folder Download yang Dipantau:",
                 value=st.session_state.get("watch_dir", folder_watcher.get_default_downloads_dir()),
                 key="input_watch_dir",
-                help="Folder di Mac Anda tempat file hasil download Gemini Web mendarat (default: ~/Downloads).",
+                help="Folder di Mac Anda tempat file hasil download Gemini Web mendarat (default: ~/Documents/Gemini Generated Images).",
             )
             st.session_state["watch_dir"] = watch_path
         with col_w2:

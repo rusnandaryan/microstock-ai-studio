@@ -23,7 +23,10 @@ TIME_WINDOWS: Dict[str, Union[int, str]] = {
 
 
 def get_default_downloads_dir() -> str:
-    """Return default ~/Downloads path for the current OS."""
+    """Return default Gemini Generated Images directory (fallback to ~/Downloads)."""
+    gemini_dir = os.path.expanduser("~/Documents/Gemini Generated Images")
+    if os.path.isdir(gemini_dir):
+        return gemini_dir
     return os.path.expanduser("~/Downloads")
 
 
