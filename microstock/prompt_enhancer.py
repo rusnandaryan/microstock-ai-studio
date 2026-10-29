@@ -1,19 +1,81 @@
-"""AI Prompt Enhancer: expands a short base idea into a pro image prompt."""
+"""AI Prompt Enhancer: expands a short base idea into 5 diversified pro image prompts."""
 from __future__ import annotations
 
-from typing import Callable, Optional
+import json
+import re
+from typing import Callable, Dict, List, Optional
 
 from google import genai
 
 from . import config
 from .rate_limit import TransientError, retry_sync
 
+
+PROMPT_ARCHETYPES = [
+    {
+        "id": "wide_context",
+        "title": "Shot 1: Wide Context & Environment",
+        "badge": "🌐 Wide Context",
+        "badge_class": "ms-badge-blue",
+        "guidance": "Establishing/wide environmental composition showing the subject naturally integrated into its realistic wider architectural, landscape, or workspace ecosystem.",
+    },
+    {
+        "id": "macro_detail",
+        "title": "Shot 2: Macro & Material Craftsmanship",
+        "badge": "🔍 Macro Detail",
+        "badge_class": "ms-badge-amber",
+        "guidance": "Extreme close-up/macro detail highlighting physical micro-textures, material grain, surface reflections, tactile craftsmanship, and a shallow depth of field (f/1.8 to f/2.8).",
+    },
+    {
+        "id": "in_use_action",
+        "title": "Shot 3: Dynamic Interaction / In-Use Action",
+        "badge": "⚡ In-Use Action",
+        "badge_class": "ms-badge-green",
+        "guidance": "Dynamic action, process, or practical functional use (strictly faceless; hands, tools, or physical motion only).",
+    },
+    {
+        "id": "copy_space",
+        "title": "Shot 4: Clean Copy Space / Ad Layout",
+        "badge": "📐 Copy Space Ready",
+        "badge_class": "ms-badge-accent",
+        "guidance": "Clean commercial advertising framing with 40% to 50% uncluttered negative space (clean wall, soft studio gradient, or creamy bokeh) on one side reserved for headline copy.",
+    },
+    {
+        "id": "alternative_angle",
+        "title": "Shot 5: Flat Lay Knolling / Alternative Angle",
+        "badge": "🧩 Flat Lay / Knolling",
+        "badge_class": "ms-badge-purple",
+        "guidance": "Overhead 90-degree flat lay (knolling arrangement neatly organized with balanced complementary props) OR dramatic high/low geometric perspective completely contrasting the other 4 shots.",
+    },
+]
+
+
 ENHANCER_SYSTEM_INSTRUCTION = """\
-You are an elite art director and prompt engineer specializing in top-selling commercial microstock imagery compliant with official Adobe Stock & Shutterstock Generative AI Content Guidelines.
+You are an elite commercial art director and prompt engineer specializing in top-selling microstock imagery for Adobe Stock & Shutterstock.
 
-Rewrite the user's short idea into 5 highly detailed, production-ready, ultra-clean image generation prompts.
+To strictly prevent microstock rejections for "Similar Content / Spam Submission", you MUST transform the user's base idea into 5 completely visually distinct, non-repetitive image generation prompts representing 5 distinct commercial photography archetypes:
 
-CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT):
+1. Shot 1: Wide Context & Environment
+   - Establishing/wide environmental shot showing the subject in its realistic, wider setting or architectural ecosystem.
+   - Purpose: Editorial, hero website banners, contextual realism.
+
+2. Shot 2: Macro & Material Craftsmanship
+   - Extreme close-up/macro detail highlighting physical micro-textures, material grain, surface reflections, tactile craftsmanship, and a shallow depth of field (f/1.8 to f/2.8).
+   - Purpose: Tactile product features, packaging, material authenticity.
+
+3. Shot 3: Dynamic Interaction / In-Use Action
+   - Dynamic motion, functional interaction, practical use, process, or assembly (strictly faceless; hands, tools, or physical motion only).
+   - Purpose: How-to guides, social media marketing, functional demonstration.
+
+4. Shot 4: Clean Copy Space / Ad Layout
+   - Commercial advertising framing with 40% to 50% clean, uncluttered negative space (clean background, smooth wall, or soft bokeh) on one side reserved for headline copy.
+   - Purpose: #1 commercial stock asset for graphic designers and agencies.
+
+5. Shot 5: Flat Lay Knolling / Alternative Angle
+   - Overhead 90-degree flat lay (knolling arrangement neatly organized with balanced complementary props) OR dramatic high/low geometric perspective completely contrasting the other 4 shots.
+   - Purpose: E-commerce, catalogs, modern minimalist branding.
+
+CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT ACROSS ALL 5 SHOTS):
 
 1. ZERO FEMALE CHARACTERS (STRICT UNIVERSAL PROHIBITION):
    - ABSOLUTELY ZERO female figures, women, girls, or feminine representations in ANY form (human, cartoon, cyborg, robot, mascot, or illustration).
@@ -35,24 +97,97 @@ CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT):
    - Describe technology as "sleek minimalist unbranded matte aluminum chassis with clean blank displays".
 
 5. COMMERCIAL COMPOSITION & NEGATIVE SPACE:
-   - FOR STICKER PACKS / CLIPART / ICON SETS: ALWAYS arrange the stickers in a balanced, evenly-spaced grid (sticker sheet / knolling arrangement) neatly distributed across the canvas with equal margins on all sides, isolated on a clean solid white background. Each sticker MUST have its own distinct white die-cut contour cutline border and subtle shadow. NEVER leave a lopsided empty void on one side, and NEVER merge them into a borderless scenic full-frame picture.
-   - FOR GENERAL SCENES: If the composition framing requests "Full Frame" or "Tanpa Ruang Kosong", compose a dynamic, full-bleed edge-to-edge frame filled with rich visual detail across the entire scene without empty negative space.
-   - OTHERWISE (STANDARD COMMERCIAL STOCK): Compose the scene with 30% to 40% clean, uncluttered negative space (clean wall, soft sky, or smooth creamy bokeh background) on one side, reserved for advertising headlines and copy.
+   - FOR STICKER PACKS / CLIPART / ICON SETS: ALWAYS arrange the stickers in a balanced, evenly-spaced grid (sticker sheet / knolling arrangement) neatly distributed across the canvas with equal margins on all sides, isolated on a clean solid white background. Each sticker MUST have its own distinct white die-cut contour cutline border and subtle shadow.
+   - FOR GENERAL SCENES: Adhere strictly to the requested archetype framing for each shot.
 
 6. AUTHENTIC LIGHTING & ANTI-PLASTIC GLOW:
    - Use strictly real photographic lighting: "natural directional window sunlight", "diffused studio softbox", or "warm golden hour ambient illumination".
    - Avoid artificial neon glows, oversaturated plastic sheen, or waxy textures.
 
-7. PHYSICAL MICRO-TEXTURES & CONTROLLED DEPTH OF FIELD:
+7. PHYSICAL MICRO-TEXTURES:
    - Specify rich real-world physical textures (linen fabric weave, authentic wood grain, brushed aluminum, crisp glass reflections).
-   - Use shallow depth of field (f/1.8 to f/2.8) with creamy, smooth background blur to isolate the subject cleanly.
 
 8. MANDATORY ASPECT RATIO & ORIENTATION:
    - Explicitly describe framing matching the target aspect ratio.
    - You MUST end each prompt with the text "[Aspect Ratio: {aspect_ratio}]".
 
-Output a valid JSON array containing exactly 5 alternative prompt strings. Each string must be a highly detailed paragraph of 80-160 words in English ending with the Aspect Ratio tag. Provide completely distinct concepts/perspectives for each alternative. Do not output anything other than the JSON array.
+OUTPUT FORMAT:
+Output a valid JSON array containing exactly 5 objects:
+[
+  {
+    "archetype": "Shot 1: Wide Context & Environment",
+    "prompt": "Detailed paragraph of 80-160 words in English ending with [Aspect Ratio: {aspect_ratio}]"
+  },
+  ...
+]
+Do not output anything other than the JSON array.
 """
+
+
+def _format_with_aspect_ratio(raw_text: str, aspect_ratio: str) -> str:
+    """Ensure the prompt ends with the proper [Aspect Ratio: ...] tag."""
+    clean = (raw_text or "").strip().strip('"').strip()
+    if not clean:
+        return ""
+    if re.search(r"\[Aspect Ratio:\s*[^\]]+\]", clean, re.IGNORECASE):
+        clean = re.sub(r"\[Aspect Ratio:\s*[^\]]+\]", f"[Aspect Ratio: {aspect_ratio}]", clean, flags=re.IGNORECASE)
+    else:
+        clean = f"{clean} [Aspect Ratio: {aspect_ratio}]"
+    return clean
+
+
+def parse_enhancer_response(text: str, aspect_ratio: str) -> List[Dict[str, str]]:
+    """Parse Gemini JSON response into a list of archetype prompt dictionaries."""
+    clean_text = text.strip()
+    if clean_text.startswith("```json"):
+        clean_text = clean_text[7:]
+    if clean_text.startswith("```"):
+        clean_text = clean_text[3:]
+    if clean_text.endswith("```"):
+        clean_text = clean_text[:-3]
+    clean_text = clean_text.strip()
+
+    try:
+        data = json.loads(clean_text)
+    except Exception as e:
+        raise TransientError(f"Failed to parse JSON: {e}")
+
+    if isinstance(data, dict):
+        for k in ("prompts", "items", "results"):
+            if k in data and isinstance(data[k], list):
+                data = data[k]
+                break
+
+    if not isinstance(data, list):
+        raise TransientError("Enhancer response JSON is not an array")
+
+    parsed_items: List[Dict[str, str]] = []
+    for idx, item in enumerate(data):
+        arch_meta = PROMPT_ARCHETYPES[idx % len(PROMPT_ARCHETYPES)]
+        if isinstance(item, dict):
+            prompt_str = item.get("prompt", "") or item.get("text", "") or ""
+            arch_title = item.get("archetype") or arch_meta["title"]
+            badge = item.get("badge") or arch_meta["badge"]
+            badge_class = item.get("badge_class") or arch_meta["badge_class"]
+        else:
+            prompt_str = str(item)
+            arch_title = arch_meta["title"]
+            badge = arch_meta["badge"]
+            badge_class = arch_meta["badge_class"]
+
+        formatted_prompt = _format_with_aspect_ratio(prompt_str, aspect_ratio)
+        if formatted_prompt:
+            parsed_items.append({
+                "archetype": arch_title,
+                "badge": badge,
+                "badge_class": badge_class,
+                "prompt": formatted_prompt,
+            })
+
+    if not parsed_items:
+        raise TransientError("Empty list of prompts returned by enhancer")
+
+    return parsed_items
 
 
 def build_enhancer_input(
@@ -76,24 +211,32 @@ def build_enhancer_input(
         "3:4": "3:4 classic portrait format",
     }.get(aspect_ratio, f"{aspect_ratio} format")
 
+    archetypes_spec = "\n".join(
+        f"  - {a['title']}: {a['guidance']}" for a in PROMPT_ARCHETYPES
+    )
+
     parts = [
         f"Base concept/subject: {base_idea.strip()}",
         f"Aesthetic/Style: {style.name}: {style.directive}",
-        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), MANDATORY: explicitly include '{aspect_ratio}' in the composition description and append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt",
+        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of each prompt.",
     ]
     if light_desc:
-        parts.append(f"Lighting condition: {light_desc}")
+        parts.append(f"Primary lighting base: {light_desc}")
     if cam_desc:
-        parts.append(f"Camera/Lens perspective: {cam_desc}")
+        parts.append(f"Camera aesthetic base: {cam_desc}")
     if comp_desc:
-        parts.append(f"Composition framing: {comp_desc}")
+        parts.append(f"User composition preference: {comp_desc}")
 
+    parts.append(
+        "MANDATORY 5-SHOT DIVERSIFICATION MATRIX (You MUST produce 1 distinct prompt for each of these 5 shots to prevent microstock duplicate submission rejection):\n"
+        f"{archetypes_spec}"
+    )
     parts.append(
         "MANDATORY UNIVERSAL EXCLUSIONS: Strictly NO female characters, NO women, NO visible facial features; "
         "all living beings must be completely faceless. Prioritize inanimate objects, architecture, food, nature, tools, or faceless subjects."
     )
     parts.append(
-        "Write 5 alternative detailed, coherent, photography/art-grade prompts in English that blend all these directives naturally, in the requested JSON format."
+        f"Output exactly 5 distinct prompts in JSON format ending with [Aspect Ratio: {aspect_ratio}]."
     )
     return "\n".join(parts)
 
@@ -107,47 +250,22 @@ def enhance_prompt(
     camera: str = "",
     composition: str = "",
     on_retry: Optional[Callable[[str], None]] = None,
-) -> List[str]:
-    """Call the Gemini text model to produce detailed image prompts."""
+) -> List[Dict[str, str]]:
+    """Call the Gemini text model to produce 5 visually diversified commercial image prompts."""
     if not base_idea or not base_idea.strip():
         raise ValueError("Please enter a base idea first.")
 
-    import re
-    import json
-
-    def _format_with_aspect_ratio(raw_text: str) -> str:
-        clean = (raw_text or "").strip().strip('"').strip()
-        if not clean:
-            return ""
-        # Check if an existing [Aspect Ratio: ...] tag exists
-        if re.search(r"\[Aspect Ratio:\s+\d+:\d+\]", clean, re.IGNORECASE):
-            clean = re.sub(r"\[Aspect Ratio:\s+\d+:\d+\]", f"[Aspect Ratio: {aspect_ratio}]", clean, flags=re.IGNORECASE)
-        else:
-            clean = f"{clean} [Aspect Ratio: {aspect_ratio}]"
-        return clean
-
-    def _parse_and_format(text: str) -> List[str]:
-        if text.startswith("```json"): text = text[7:]
-        if text.startswith("```"): text = text[3:]
-        if text.endswith("```"): text = text[:-3]
-        try:
-            arr = json.loads(text.strip())
-            return [_format_with_aspect_ratio(str(item)) for item in arr if str(item).strip()]
-        except Exception as e:
-            raise TransientError(f"Failed to parse JSON: {e}")
-
-    def _call() -> List[str]:
+    def _call() -> List[Dict[str, str]]:
         prompt_input = build_enhancer_input(base_idea, style_name, aspect_ratio, lighting, camera, composition)
         last_err = None
-        # Try primary model then fallbacks if 503 UNAVAILABLE or 404 NOT_FOUND
         for model_name in config.TEXT_MODEL_FALLBACKS:
             try:
                 if hasattr(client, "models") and hasattr(client.models, "generate_content"):
                     from google.genai import types
                     config_obj = types.GenerateContentConfig(
                         system_instruction=ENHANCER_SYSTEM_INSTRUCTION,
-                        temperature=0.8,
-                        max_output_tokens=1500,
+                        temperature=0.85,
+                        max_output_tokens=2200,
                         response_mime_type="application/json",
                     )
                     response = client.models.generate_content(
@@ -157,7 +275,7 @@ def enhance_prompt(
                     )
                     text = (response.text or "").strip()
                     if text:
-                        return _parse_and_format(text)
+                        return parse_enhancer_response(text, aspect_ratio)
                 elif hasattr(client, "interactions"):
                     interaction = client.interactions.create(
                         model=model_name,
@@ -167,10 +285,9 @@ def enhance_prompt(
                     )
                     text = (interaction.output_text or "").strip()
                     if text:
-                        return _parse_and_format(text)
+                        return parse_enhancer_response(text, aspect_ratio)
             except Exception as e:
                 last_err = e
-                # If high demand (503), not found (404), or invalid argument (400), try next fallback model
                 err_str = str(e).lower()
                 if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
                     continue

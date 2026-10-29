@@ -254,7 +254,8 @@ p, span, li, label, b, strong {{
   color: var(--text-primary) !important;
 }}
 
-.ms-badge-accent {{
+.ms-badge-accent,
+.ms-badge-blue {{
   background: rgba(59, 130, 246, 0.15) !important;
   color: #60A5FA !important;
   -webkit-text-fill-color: #60A5FA !important;

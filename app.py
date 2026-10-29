@@ -288,10 +288,29 @@ with tab1:
                 unsafe_allow_html=True,
             )
             if isinstance(prompt_val, list):
-                st.markdown("**Pilih salah satu (atau salin semuanya):**")
-                for idx, p in enumerate(prompt_val):
-                    st.caption(f"Alternatif #{idx + 1}")
-                    st.code(p, language=None, wrap_lines=True)
+                st.markdown("**5 Variasi Visual Microstock (Bebas Duplikasi):**")
+                for idx, item in enumerate(prompt_val):
+                    if isinstance(item, dict):
+                        arch_title = item.get("archetype", f"Shot #{idx + 1}")
+                        badge_label = item.get("badge", f"Shot #{idx + 1}")
+                        badge_class = item.get("badge_class", "ms-badge-accent")
+                        prompt_text = item.get("prompt", "")
+                    else:
+                        arch_title = f"Alternatif #{idx + 1}"
+                        badge_label = f"Shot #{idx + 1}"
+                        badge_class = "ms-badge-accent"
+                        prompt_text = str(item)
+
+                    st.markdown(
+                        f"""
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:0.85rem; margin-bottom:0.35rem;">
+                          <b style="font-size:0.92rem; color:var(--text-primary);">{arch_title}</b>
+                          <span class="ms-step-badge {badge_class}" style="font-size:0.72rem; padding:0.15rem 0.5rem;">{badge_label}</span>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                    st.code(prompt_text, language=None, wrap_lines=True)
             else:
                 st.code(prompt_val, language=None, wrap_lines=True)
 
