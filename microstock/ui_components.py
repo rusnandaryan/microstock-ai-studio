@@ -478,18 +478,33 @@ section[data-testid="stFileUploadDropzone"] svg {{
   stroke: var(--accent-blue) !important;
 }}
 
-section[data-testid="stFileUploadDropzone"] button {{
-  background-color: var(--bg-card) !important;
-  color: var(--text-primary) !important;
-  border: 1.5px solid var(--border-color) !important;
+/* Browse files button inside uploader dropzone */
+div[data-testid="stFileUploader"] button,
+section[data-testid="stFileUploadDropzone"] button,
+button[data-testid="baseButton-secondary"] {{
+  background-color: #0E1424 !important;
+  background: #0E1424 !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 8px !important;
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
   font-weight: 600 !important;
-  padding: 0.45rem 1.1rem !important;
+  padding: 0.5rem 1.25rem !important;
+  min-height: 40px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  transition: all 0.15s ease !important;
 }}
 
-section[data-testid="stFileUploadDropzone"] button:hover {{
-  background-color: var(--bg-input) !important;
-  border-color: var(--accent-blue) !important;
+div[data-testid="stFileUploader"] button:hover,
+section[data-testid="stFileUploadDropzone"] button:hover,
+button[data-testid="baseButton-secondary"]:hover {{
+  background-color: #2563EB !important;
+  background: #2563EB !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  border-color: #3B82F6 !important;
+  transform: translateY(-1px) !important;
 }}
 
 div[data-testid="stFileUploaderFileData"] {{
@@ -660,53 +675,92 @@ li[role="option"][aria-selected="true"] {{
 /* Code Blocks & Copy Button */
 div[data-testid="stCode"] {{
   position: relative !important;
-  border: 1.5px solid var(--border-color) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 12px !important;
   background-color: var(--code-bg) !important;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
 }}
 
-div[data-testid="stCode"] pre,
-div[data-testid="stCode"] code,
-div[data-testid="stCode"] span {{
-  font-family: 'JetBrains Mono', 'Fira Code', monospace !important;
+div[data-testid="stCode"] pre {{
+  margin: 0 !important;
+  padding: 1.1rem 3.5rem 1.1rem 1.1rem !important;
+  background-color: transparent !important;
+}}
+
+div[data-testid="stCode"] code {{
+  font-family: 'JetBrains Mono', monospace !important;
   white-space: pre-wrap !important;
   word-break: break-word !important;
-  font-size: 0.92rem !important;
+  font-size: 0.9rem !important;
   line-height: 1.6 !important;
   color: var(--text-primary) !important;
   -webkit-text-fill-color: var(--text-primary) !important;
   background-color: transparent !important;
 }}
 
-/* Copy button on code blocks */
-div[data-testid="stCode"] button,
-div[data-testid="stCode"] [data-testid="stCodeCopyButton"],
-div[data-testid="stCodeCopyButton"],
-div[data-testid="stCodeCopyButton"] button,
-button[title*="copy" i],
-button[aria-label*="copy" i] {{
+/* Copy button wrapper on code blocks */
+div[data-testid="stCodeCopyButton"] {{
+  position: absolute !important;
+  top: 10px !important;
+  right: 10px !important;
+  z-index: 5 !important;
+  display: block !important;
   opacity: 1 !important;
   visibility: visible !important;
-  display: inline-flex !important;
-  position: absolute !important;
-  top: 8px !important;
-  right: 8px !important;
-  background-color: var(--bg-card) !important;
-  border: 1px solid var(--border-color) !important;
-  border-radius: 8px !important;
-  color: var(--text-primary) !important;
-  transition: all 0.12s ease !important;
 }}
 
-div[data-testid="stCode"] button:hover {{
-  border-color: var(--text-accent) !important;
-  color: var(--text-accent) !important;
+/* Copy button */
+div[data-testid="stCodeCopyButton"] button,
+div[data-testid="stCode"] button[aria-label*="copy" i],
+div[data-testid="stCode"] button[title*="copy" i] {{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 34px !important;
+  height: 34px !important;
+  min-height: 34px !important;
+  padding: 0 !important;
+  background-color: #0E1424 !important;
+  background: #0E1424 !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  border-radius: 6px !important;
+  color: #F8FAFC !important;
+  -webkit-text-fill-color: #F8FAFC !important;
+  cursor: pointer !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transition: all 0.15s ease !important;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
 }}
 
-div[data-testid="stCode"] button svg {{
-  fill: var(--text-primary) !important;
-  color: var(--text-primary) !important;
+div[data-testid="stCodeCopyButton"] button:hover,
+div[data-testid="stCode"] button[aria-label*="copy" i]:hover,
+div[data-testid="stCode"] button[title*="copy" i]:hover {{
+  background-color: #2563EB !important;
+  background: #2563EB !important;
+  border-color: #3B82F6 !important;
+  color: #FFFFFF !important;
+  -webkit-text-fill-color: #FFFFFF !important;
+  transform: scale(1.05) !important;
+}}
+
+/* Copy button SVG icon: ensure stroke-based Lucide icons render visibly */
+div[data-testid="stCodeCopyButton"] button svg,
+div[data-testid="stCode"] button[aria-label*="copy" i] svg,
+div[data-testid="stCode"] button[title*="copy" i] svg {{
+  width: 17px !important;
+  height: 17px !important;
+  color: #F8FAFC !important;
+  stroke: #F8FAFC !important;
+  fill: none !important;
+  display: block !important;
+}}
+
+div[data-testid="stCodeCopyButton"] button:hover svg,
+div[data-testid="stCode"] button[aria-label*="copy" i]:hover svg,
+div[data-testid="stCode"] button[title*="copy" i]:hover svg {{
+  color: #FFFFFF !important;
+  stroke: #FFFFFF !important;
 }}
 
 /* Inline Code tags */
