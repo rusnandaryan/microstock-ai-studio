@@ -210,5 +210,18 @@ class TestExportHub(unittest.TestCase):
             self.assertIn("README.txt", namelist)
 
 
+class TestCliInterface(unittest.TestCase):
+    def test_cli_help_runs_cleanly(self):
+        import subprocess
+        import sys
+        res = subprocess.run([sys.executable, "cli.py", "--help"], capture_output=True, text=True)
+        self.assertEqual(res.returncode, 0)
+        self.assertIn("prompt", res.stdout)
+        self.assertIn("process", res.stdout)
+        self.assertIn("reverse", res.stdout)
+        self.assertIn("trends", res.stdout)
+        self.assertIn("gui", res.stdout)
+
+
 if __name__ == "__main__":
     unittest.main()
