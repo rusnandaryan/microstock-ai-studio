@@ -8,4 +8,3 @@ font = "sans serif"
 
 [server]
 maxMessageSize = 1000   # MB – full-res 4K batches + ZIP can be large
-disconnectedSessionTTL = 1800 # 30 menit toleransi saat laptop terkunci/sleep
