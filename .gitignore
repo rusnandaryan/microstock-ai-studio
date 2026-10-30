@@ -6,3 +6,10 @@ __pycache__/
 exports/
 .DS_Store
 upscayl_bin/
+anti-slop
+design-plans
+docs/superpowers
+tests
+DESIGN.MD
+GEMINI.MD
+PRODUCT.MD
