@@ -19,7 +19,7 @@ from microstock import config, folder_watcher
 from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
 from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
-from microstock.prompt_enhancer import enhance_prompt
+from microstock.prompt_enhancer import SCENARIO_DESCRIPTIONS, enhance_prompt
 from microstock.ui_components import (
     download_image_from_url,
     inject_css,
@@ -288,15 +288,19 @@ with tab1:
                 unsafe_allow_html=True,
             )
             if isinstance(prompt_val, list):
-                st.markdown("**5 Alternatif Prompt Komersial Siap Pakai:**")
+                st.markdown("**5 Variasi Skenario Komersial (Bebas Duplikasi):**")
                 for idx, item in enumerate(prompt_val):
                     prompt_text = item.get("prompt", "") if isinstance(item, dict) else str(item)
+                    label, sub_desc = SCENARIO_DESCRIPTIONS[idx % len(SCENARIO_DESCRIPTIONS)]
 
                     st.markdown(
                         f"""
                         <div class="ms-card-modern" style="padding:0.9rem 1.1rem; margin-top:0.85rem; margin-bottom:0.85rem;">
                           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
-                            <b style="font-size:0.95rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">Alternatif #{idx + 1}</b>
+                            <div>
+                              <b style="font-size:0.95rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">Alternatif #{idx + 1}: {label}</b>
+                              <span style="font-size:0.75rem; color:var(--text-muted); margin-left:0.4rem;">({sub_desc})</span>
+                            </div>
                             <span class="ms-step-badge ms-badge-accent" style="font-size:0.72rem; padding:0.18rem 0.55rem;">Siap Pakai</span>
                           </div>
                         """,

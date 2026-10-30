@@ -2,6 +2,8 @@
 import unittest
 
 from microstock.prompt_enhancer import (
+    SCENARIO_DESCRIPTIONS,
+    build_enhancer_input,
     parse_enhancer_response,
     _format_with_aspect_ratio,
 )
@@ -56,6 +58,34 @@ class TestPromptEnhancerParsing(unittest.TestCase):
         results = parse_enhancer_response(json_str, "4:3")
         self.assertEqual(len(results), 1)
         self.assertTrue(results[0].endswith("[Aspect Ratio: 4:3]"))
+
+    def test_scenario_descriptions_length_and_structure(self):
+        self.assertEqual(len(SCENARIO_DESCRIPTIONS), 5)
+        for label, desc in SCENARIO_DESCRIPTIONS:
+            self.assertTrue(bool(label))
+            self.assertTrue(bool(desc))
+
+    def test_build_enhancer_input_preserves_parameters_and_injects_scenarios(self):
+        user_input = build_enhancer_input(
+            base_idea="artisanal ceramic cup",
+            style_name="📷 Foto Komersial Bersih (Commercial Advertising)",
+            aspect_ratio="16:9",
+            lighting="Golden Hour / Warm Sunset",
+            camera="100mm Macro (Extreme Detail)",
+            composition="Negative Space for Copy / Headline",
+        )
+        # Check parameter preservation
+        self.assertIn("MANDATORY Lighting condition", user_input)
+        self.assertIn("MANDATORY Camera/Lens perspective", user_input)
+        self.assertIn("MANDATORY Composition framing", user_input)
+        self.assertIn("Target Aspect Ratio: 16:9", user_input)
+        # Check scenario directives
+        self.assertIn("MANDATORY 5-SCENARIO DIVERSIFICATION", user_input)
+        self.assertIn("Scenario 1 (Pristine Hero)", user_input)
+        self.assertIn("Scenario 2 (In-Action Dynamic Moment)", user_input)
+        self.assertIn("Scenario 3 (Raw Materials & Origins)", user_input)
+        self.assertIn("Scenario 4 (Lifestyle Pairing Context)", user_input)
+        self.assertIn("Scenario 5 (Colorway & Mood Accent)", user_input)
 
 
 if __name__ == "__main__":
