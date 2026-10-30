@@ -951,28 +951,48 @@ div[data-testid="stCheckbox"] label > div[role="checkbox"]:focus-visible {{
 
 /* Progress Bars (Studio Accent Gradient) */
 div[data-testid="stProgress"] {{
-  margin: 0.6rem 0 !important;
+  margin: 0.75rem 0 !important;
 }}
 
-div[data-testid="stProgress"] > div {{
+/* Ensure progress bar label container has natural height and visible text */
+div[data-testid="stProgress"] > div:first-child:not(:last-child) {{
+  height: auto !important;
+  min-height: auto !important;
+  overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
+  margin-bottom: 0.4rem !important;
+  border-radius: 0 !important;
+}}
+
+div[data-testid="stProgress"] p,
+div[data-testid="stProgress"] [data-testid="stMarkdownContainer"] p,
+div[data-testid="stProgress"] [data-testid="stMarkdownContainer"] span {{
+  color: var(--text-primary) !important;
+  font-size: 0.92rem !important;
+  font-weight: 600 !important;
+  line-height: 1.4 !important;
+  margin: 0 0 0.35rem 0 !important;
+}}
+
+/* Progress track (always the last child or baseweb progress-bar element) */
+div[data-testid="stProgress"] > div:last-child,
+div[data-testid="stProgress"] div[data-baseweb="progress-bar"],
+div[data-testid="stProgress"] div[role="progressbar"] {{
   background-color: var(--bg-input) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 999px !important;
-  height: 9px !important;
+  height: 10px !important;
   overflow: hidden !important;
 }}
 
-div[data-testid="stProgress"] > div > div {{
+/* Progress fill bar */
+div[data-testid="stProgress"] > div:last-child > div > div,
+div[data-testid="stProgress"] div[data-baseweb="progress-bar"] > div > div,
+div[data-testid="stProgress"] div[role="progressbar"] > div > div {{
   background: linear-gradient(90deg, var(--accent-blue) 0%, var(--text-accent) 100%) !important;
   border-radius: 999px !important;
   transition: width 0.25s ease !important;
-}}
-
-div[data-testid="stProgress"] p {{
-  color: var(--text-secondary) !important;
-  font-size: 0.88rem !important;
-  font-weight: 600 !important;
-  margin-bottom: 0.35rem !important;
 }}
 
 /* Dataframes & Tables */
