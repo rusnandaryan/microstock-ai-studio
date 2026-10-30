@@ -21,22 +21,6 @@ TEXT_MODEL_FALLBACKS = [
     "gemini-3.8-flash",
 ]
 
-# Image models: Google Gemini Nano Banana & Imagen models
-IMAGE_MODELS: Dict[str, str] = {
-    "Gemini 3.1 Flash Lite Image (Nano Banana 2 Lite · Hemat Kuota Free Tier)": "gemini-3.1-flash-lite-image",
-    "Gemini Nano Banana 2.1 (Nano Banana 2.1 · Kualitas Tinggi)": "gemini-nano-banana-2.1",
-    "Gemini 3 Pro Image (Nano Banana Pro)": "gemini-3-pro-image",
-    "Imagen 4 (imagen-4.0-generate-001)": "imagen-4.0-generate-001",
-    "Pollinations AI (Alternatif Bebas Kuota)": "pollinations",
-}
-DEFAULT_IMAGE_MODEL_LABEL = "Gemini 3.1 Flash Lite Image (Nano Banana 2 Lite · Hemat Kuota Free Tier)"
-
-HF_API_TOKEN = os.getenv("HF_API_TOKEN", "")
-
-# Supported `image_size` values, highest first.
-IMAGE_SIZES = ["4K", "2K", "1K"]
-DEFAULT_IMAGE_SIZE = "1K"
-
 # Microstock Resolution Standards (Adobe Stock & Shutterstock Requirements)
 # Minimum: 4 Megapixels (MP)
 # Maximum: 100 Megapixels (MP)
@@ -62,11 +46,6 @@ ASPECT_RATIO_LABELS: Dict[str, str] = {
     "4:3": "4:3 · Classic Landscape",
     "3:4": "3:4 · Classic Portrait",
 }
-
-
-def dimensions_for(aspect_ratio: str, image_size: str) -> str:
-    """Return expected output dimensions, e.g. '5504x3072'."""
-    return ASPECT_RATIOS.get(aspect_ratio, {}).get(image_size, "unknown")
 
 
 # Aesthetic / style presets (Expanded library of 18 high-demand microstock styles)
@@ -590,19 +569,6 @@ def resolve_api_key(user_supplied: Optional[str] = None) -> Optional[str]:
     except Exception:
         pass
     return None
-
-
-def resolve_hf_api_key(user_supplied: Optional[str] = None) -> Optional[str]:
-    """Resolve Hugging Face API key."""
-    if user_supplied and user_supplied.strip():
-        return user_supplied.strip()
-    try:
-        import streamlit as st
-        if "HF_API_TOKEN" in st.secrets:
-            return str(st.secrets["HF_API_TOKEN"])
-    except Exception:
-        pass
-    return HF_API_TOKEN
 
 
 def get_client(api_key: str) -> genai.Client:

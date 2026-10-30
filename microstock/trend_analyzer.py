@@ -2,11 +2,9 @@
 from __future__ import annotations
 
 import json
-from typing import Any, Callable, Dict, List, Optional
-
-from google import genai
-
+import re
 from datetime import datetime
+from typing import Any, Callable, Dict, List, Optional
 
 from . import config
 from .rate_limit import TransientError, retry_sync
@@ -31,13 +29,25 @@ Untuk setiap tren, berikan:
 Keluarkan HANYA array JSON yang valid berisi 4 objek tanpa markdown formatting.
 """
 
+def _parse_trends_json(text: str, now_str: str) -> Optional[Dict[str, Any]]:
+    clean = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.MULTILINE).strip()
+    if not clean:
+        return None
+    data = json.loads(clean)
+    if isinstance(data, list) and len(data) > 0:
+        return {"period": now_str, "trends": data}
+    if isinstance(data, dict) and "trends" in data:
+        return {"period": now_str, "trends": data["trends"]}
+    return None
+
+
 def get_trending_ideas(
-    client: genai.Client,
+    client: Any,
     on_retry: Optional[Callable[[str], None]] = None,
 ) -> Dict[str, Any]:
     """Call Gemini to get trending microstock ideas with detailed market metadata."""
     now_str = datetime.now().strftime("%d %B %Y")
-    
+
     def _call() -> Dict[str, Any]:
         last_err = None
         for model_name in config.TEXT_MODEL_FALLBACKS:
@@ -55,20 +65,9 @@ def get_trending_ideas(
                         contents=prompt_query,
                         config=config_obj,
                     )
-                    text = (response.text or "").strip()
-                    if text:
-                        if text.startswith("```json"):
-                            text = text[7:]
-                        if text.startswith("```"):
-                            text = text[3:]
-                        if text.endswith("```"):
-                            text = text[:-3]
-                            
-                        data = json.loads(text.strip())
-                        if isinstance(data, list) and len(data) > 0:
-                            return {"period": now_str, "trends": data}
-                        elif isinstance(data, dict) and "trends" in data:
-                            return {"period": now_str, "trends": data["trends"]}
+                    parsed = _parse_trends_json(response.text or "", now_str)
+                    if parsed:
+                        return parsed
                 elif hasattr(client, "interactions"):
                     interaction = client.interactions.create(
                         model=model_name,
@@ -76,27 +75,17 @@ def get_trending_ideas(
                         input="Berikan 4 trend gambar microstock paling laris saat ini.",
                         store=False,
                     )
-                    text = (interaction.output_text or "").strip()
-                    if text:
-                        if text.startswith("```json"):
-                            text = text[7:]
-                        if text.startswith("```"):
-                            text = text[3:]
-                        if text.endswith("```"):
-                            text = text[:-3]
-                            
-                        data = json.loads(text.strip())
-                        if isinstance(data, list) and len(data) > 0:
-                            return {"period": now_str, "trends": data}
-                        elif isinstance(data, dict) and "trends" in data:
-                            return {"period": now_str, "trends": data["trends"]}
+                    parsed = _parse_trends_json(interaction.output_text or "", now_str)
+                    if parsed:
+                        return parsed
+            except json.JSONDecodeError as e:
+                raise TransientError(f"Failed to parse JSON: {e}") from e
             except Exception as e:
                 last_err = e
                 err_str = str(e).lower()
-                if "503" in err_str or "unavailable" in err_str or "high demand" in err_str or "404" in err_str:
+                if any(term in err_str for term in ("503", "unavailable", "high demand", "404")):
                     continue
-                # If json parsing fails, let it raise or continue? We should retry on TransientError
-                raise TransientError(f"Failed to parse JSON: {e}")
+                raise
 
         if last_err:
             raise last_err

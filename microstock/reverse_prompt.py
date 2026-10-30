@@ -121,7 +121,7 @@ async def generate_reverse_prompt_async(
                         if clean.startswith("```"):
                             clean = re.sub(r"^```[a-zA-Z]*\n?", "", clean)
                             clean = re.sub(r"\n?```$", "", clean)
-                        if not re.search(r"\[Aspect Ratio:\s+\d+:\d+\]", clean, re.IGNORECASE):
+                        if not re.search(r"\[Aspect Ratio:\s*[^\]]+\]", clean, re.IGNORECASE):
                             clean = f"{clean} [Aspect Ratio: {detected_ratio}]"
                         return clean
             except Exception as e:

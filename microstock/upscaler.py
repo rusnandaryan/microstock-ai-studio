@@ -6,11 +6,13 @@ from typing import Optional, Tuple
 def get_upscaler_binary_path() -> Optional[str]:
     """Return the absolute path to the upscaler binary if it exists."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    # For macos, the binary inside the extracted zip is 'realesrgan-ncnn-vulkan'
     bin_path = os.path.join(base_dir, "upscayl_bin", "realesrgan-ncnn-vulkan")
     if os.path.exists(bin_path):
-        # ensure it's executable
-        os.chmod(bin_path, 0o755)
+        if not os.access(bin_path, os.X_OK):
+            try:
+                os.chmod(bin_path, 0o755)
+            except OSError:
+                pass
         return bin_path
     return None
 
@@ -18,11 +20,6 @@ def is_upscale_needed(width: int, height: int) -> bool:
     """Return True if image resolution is below microstock standard (4.2 Megapixels)."""
     from . import config
     return (width * height) < config.TARGET_MIN_PIXELS
-
-
-def calculate_required_scale(width: int, height: int, user_scale: int = 4) -> int:
-    """Calculate required scale. Always returns 4 for x4 AI super-resolution models."""
-    return 4
 
 
 def run_upscale(

@@ -74,7 +74,7 @@ def dataframe_to_csv_bytes(df: pd.DataFrame) -> bytes:
     return df.to_csv(index=False).encode("utf-8-sig")
 
 
-def build_zip(items: List[BatchItem], s: BatchSettings,
+def build_zip(items: List[BatchItem], s: Optional[BatchSettings] = None,
               master: Optional[pd.DataFrame] = None) -> bytes:
     """Package full-res images + metadata.csv + platform-specific CSVs."""
     master = master if master is not None else build_metadata_dataframe(items, s)
@@ -93,10 +93,6 @@ def build_zip(items: List[BatchItem], s: BatchSettings,
                     compress_type=zipfile.ZIP_DEFLATED)
         zf.writestr("README.txt", _readme(s, master), compress_type=zipfile.ZIP_DEFLATED)
     return buf.getvalue()
-
-
-def zip_filename(s: BatchSettings) -> str:
-    return f"{s.file_prefix}-batch-{time.strftime('%Y%m%d-%H%M%S')}.zip"
 
 
 def _readme(s: Optional[BatchSettings], master: pd.DataFrame) -> str:

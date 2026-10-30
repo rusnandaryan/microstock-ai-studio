@@ -7,9 +7,17 @@ import io
 import unittest
 from PIL import Image
 
-from microstock import config
-from microstock.image_generator import _pad_jpeg_to_min_size, finalize_image
-from microstock.metadata import _prepare_vision_bytes, normalize_keywords
+from microstock import config, folder_watcher
+from microstock.export import (
+    build_metadata_dataframe,
+    build_zip,
+    to_adobe_stock_df,
+    to_shutterstock_df,
+)
+from microstock.image_generator import BatchItem, _pad_jpeg_to_min_size, finalize_image
+from microstock.metadata import ImageMetadata, _prepare_vision_bytes, normalize_keywords
+from microstock.reverse_prompt import _detect_ratio
+from microstock.trend_analyzer import _parse_trends_json
 from microstock.upscaler import is_upscale_needed
 
 
@@ -109,6 +117,97 @@ class TestKeywordSanitization(unittest.TestCase):
         raw = [" Nature", "nature", "LANDSCAPE", "outdoor", "nature", "tree "]
         cleaned = normalize_keywords(raw)
         self.assertEqual(cleaned, ["nature", "landscape", "outdoor", "tree"])
+
+
+class TestFolderWatcher(unittest.TestCase):
+    def test_get_cutoff_timestamp(self):
+        cutoff_15m = folder_watcher.get_cutoff_timestamp("15 Menit Terakhir (Sesi Sekarang)")
+        self.assertIsNotNone(cutoff_15m)
+        cutoff_all = folder_watcher.get_cutoff_timestamp("Semua File Gambar Terbaru")
+        self.assertIsNone(cutoff_all)
+
+    def test_check_pending_downloads_nonexistent_dir(self):
+        count = folder_watcher.check_pending_downloads("/nonexistent_folder_path_xyz")
+        self.assertEqual(count, 0)
+
+
+class TestReversePromptHelpers(unittest.TestCase):
+    def test_detect_ratio(self):
+        self.assertEqual(_detect_ratio(1920, 1080), "16:9")
+        self.assertEqual(_detect_ratio(1080, 1920), "9:16")
+        self.assertEqual(_detect_ratio(1000, 1000), "1:1")
+        self.assertEqual(_detect_ratio(1600, 1200), "4:3")
+        self.assertEqual(_detect_ratio(1200, 1600), "3:4")
+
+
+class TestTrendAnalyzerParser(unittest.TestCase):
+    def test_parse_trends_json_markdown_wrapped(self):
+        markdown_str = """```json
+        [
+            {"category": "Green Tech", "reason": "High demand", "base_idea": "Solar farm"}
+        ]
+        ```"""
+        parsed = _parse_trends_json(markdown_str, "30 October 2026")
+        self.assertIsNotNone(parsed)
+        self.assertEqual(parsed["period"], "30 October 2026")
+        self.assertEqual(len(parsed["trends"]), 1)
+
+
+class TestExportHub(unittest.TestCase):
+    def setUp(self):
+        self.meta = ImageMetadata(
+            title="Modern Office Desk",
+            description="Minimalist workstation with laptop and coffee cup.",
+            keywords=["office", "desk", "laptop", "coffee", "minimalist"],
+            adobe_category=3,
+            shutterstock_categories=["Business/Finance", "Technology"],
+        )
+        self.sample_bytes = _create_sample_jpeg(400, 300)
+        self.item = BatchItem(
+            index=0,
+            variation="desk",
+            final_prompt="A clean desk",
+            filename="desk.jpg",
+            image_bytes=self.sample_bytes,
+            preview_bytes=self.sample_bytes,
+            mime_type="image/jpeg",
+            width=400,
+            height=300,
+            metadata=self.meta,
+        )
+
+    def test_build_metadata_dataframe(self):
+        df = build_metadata_dataframe([self.item])
+        self.assertEqual(len(df), 1)
+        self.assertEqual(df.iloc[0]["Filename"], "desk.jpg")
+        self.assertEqual(df.iloc[0]["Title"], "Modern Office Desk")
+        self.assertEqual(df.iloc[0]["Adobe Category"], 3)
+
+    def test_to_adobe_stock_df(self):
+        master_df = build_metadata_dataframe([self.item])
+        adobe_df = to_adobe_stock_df(master_df)
+        expected_cols = ["Filename", "Title", "Keywords", "Category", "Releases"]
+        self.assertEqual(list(adobe_df.columns), expected_cols)
+        self.assertEqual(adobe_df.iloc[0]["Filename"], "desk.jpg")
+
+    def test_to_shutterstock_df(self):
+        master_df = build_metadata_dataframe([self.item])
+        ss_df = to_shutterstock_df(master_df, [self.item])
+        expected_cols = ["Filename", "Description", "Keywords", "Categories", "Editorial", "Mature content", "illustration"]
+        self.assertEqual(list(ss_df.columns), expected_cols)
+        self.assertEqual(ss_df.iloc[0]["Filename"], "desk.jpg")
+        self.assertEqual(ss_df.iloc[0]["illustration"], "no")
+
+    def test_build_zip_packages_files(self):
+        import zipfile
+        zip_bytes = build_zip([self.item], None)
+        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
+            namelist = zf.namelist()
+            self.assertIn("desk.jpg", namelist)
+            self.assertIn("metadata.csv", namelist)
+            self.assertIn("adobe_stock.csv", namelist)
+            self.assertIn("shutterstock.csv", namelist)
+            self.assertIn("README.txt", namelist)
 
 
 if __name__ == "__main__":

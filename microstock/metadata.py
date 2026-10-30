@@ -165,17 +165,6 @@ def _parse_json(text: str) -> dict:
 
 
 # Gemini calls
-def build_metadata_input(enhanced_prompt: str, style_name: str, variation: str) -> str:
-    style = config.STYLES[style_name]
-    kind = "illustration / digital artwork" if style.is_illustration else "photograph"
-    return (
-        "Create microstock metadata for the following image.\n\n"
-        f"IMAGE PROMPT (what the image depicts):\n{enhanced_prompt}\n\n"
-        f"VARIATION / COMPOSITION: {variation}\n"
-        f"AESTHETIC STYLE: {style.name} ({kind}): {style.directive}\n"
-    )
-
-
 def _prepare_vision_bytes(raw_bytes: bytes, orig_mime: str) -> tuple[bytes, str]:
     """Sanitize, normalize, and compress image to guaranteed RGB JPEG under 2048px.
     
@@ -307,61 +296,6 @@ async def generate_metadata_from_vision_async(
     if adobe_cat not in ADOBE_CATEGORIES:
         adobe_cat = 12
 
-    ss_cats = [c for c in data.get("shutterstock_categories", []) if c in SHUTTERSTOCK_CATEGORIES][:2]
-
-    return ImageMetadata(
-        title=clamp_title(data.get("title", "")),
-        description=clamp_description(str(data.get("description", ""))),
-        keywords=keywords[: config.KEYWORD_COUNT],
-        adobe_category=int(adobe_cat),
-        shutterstock_categories=ss_cats or ["Miscellaneous"],
-    )
-
-
-async def generate_metadata_async(
-    client: genai.Client,
-    enhanced_prompt: str,
-    style_name: str,
-    variation: str,
-    label: str = "Metadata",
-    on_retry: Optional[Callable[[str], None]] = None,
-) -> ImageMetadata:
-    """Generate + validate metadata from prompt text."""
-    prompt = build_metadata_input(enhanced_prompt, style_name, variation)
-
-    data = await retry_async(
-        lambda: asyncio.to_thread(_create_json, client, METADATA_SYSTEM_INSTRUCTION, prompt, METADATA_SCHEMA),
-        label=label, on_retry=on_retry,
-    )
-
-    keywords = normalize_keywords(data.get("keywords", []))
-
-    # Top-up pass if de-duplication left us short of 50 (max 2 attempts)
-    for _ in range(2):
-        if len(keywords) >= config.KEYWORD_COUNT:
-            break
-        missing = config.KEYWORD_COUNT - len(keywords)
-        sup_prompt = (
-            f"{prompt}\nExisting keywords (do NOT repeat any of these): {', '.join(keywords)}\n"
-            f"Return {missing + 8} NEW, unique, relevant, lowercase keywords, most relevant first."
-        )
-        try:
-            extra = await retry_async(
-                lambda: asyncio.to_thread(
-                    _create_json, client, METADATA_SYSTEM_INSTRUCTION, sup_prompt, SUPPLEMENT_SCHEMA),
-                label=f"{label} (keyword top-up)", on_retry=on_retry,
-            )
-            keywords = normalize_keywords(keywords + list(extra.get("keywords", [])))
-        except Exception:  # noqa: BLE001 - best effort
-            break
-
-    try:
-        adobe_cat = int(data.get("adobe_category", 0))
-    except (ValueError, TypeError):
-        adobe_cat = 0
-
-    if adobe_cat not in ADOBE_CATEGORIES:
-        adobe_cat = 8 if config.STYLES[style_name].is_illustration else 12
     ss_cats = [c for c in data.get("shutterstock_categories", []) if c in SHUTTERSTOCK_CATEGORIES][:2]
 
     return ImageMetadata(

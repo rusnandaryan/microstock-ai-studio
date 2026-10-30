@@ -1236,63 +1236,6 @@ def render_sidebar() -> Optional[str]:
     return api_key
 
 
-# Progress tracker
-class BatchProgress:
-    """Live progress bar + log for N images and N metadata sets."""
-
-    def __init__(self, n_items: int, image_jobs: Optional[int] = None,
-                 meta_jobs: Optional[int] = None):
-        self.n_img = n_items if image_jobs is None else image_jobs
-        self.n_meta = n_items if meta_jobs is None else meta_jobs
-        self.total = max(1, self.n_img + self.n_meta)
-        self.img_done = self.meta_done = self.failures = 0
-        self.t0 = time.perf_counter()
-        self.status = st.status(f"Memproses {n_items} gambar...", expanded=True)
-        with self.status:
-            self.bar = st.progress(0.0, text="Menyiapkan...")
-            self.log_area = st.container()
-
-    def _refresh(self) -> None:
-        done = self.img_done + self.meta_done
-        elapsed = time.perf_counter() - self.t0
-        self.bar.progress(
-            min(done / self.total, 1.0),
-            text=(f"Gambar {self.img_done}/{self.n_img} · "
-                  f"Metadata {self.meta_done}/{self.n_meta} · {elapsed:.0f}s"),
-        )
-
-    def on_progress(self, event: str, item: BatchItem) -> None:
-        n = item.index + 1
-        with self.log_area:
-            if event == "image":
-                self.img_done += 1
-                if item.ok:
-                    st.write(f"Gambar #{n} siap: {item.width}×{item.height}px")
-                else:
-                    self.failures += 1
-                    st.write(f"Gambar #{n} gagal: {item.image_error}")
-            else:
-                self.meta_done += 1
-                if item.metadata:
-                    st.write(f"Metadata #{n} siap: {len(item.metadata.keywords)} keywords")
-                else:
-                    self.failures += 1
-                    st.write(f"Metadata #{n} gagal: {item.metadata_error}")
-        self._refresh()
-
-    def on_log(self, message: str) -> None:
-        with self.log_area:
-            st.caption(f"{message}")
-
-    def finish(self) -> None:
-        elapsed = time.perf_counter() - self.t0
-        state = "complete" if self.failures == 0 else "error"
-        label = (f"Selesai dalam {elapsed:.0f}s" if self.failures == 0
-                 else f"Selesai dalam {elapsed:.0f}s dengan {self.failures} kendala")
-        self.bar.progress(1.0, text=label)
-        self.status.update(label=label, state=state, expanded=False)
-
-
 # Output grid & cards
 def _copy_block(label: str, text: str) -> None:
     st.markdown(f"**{label}**")
@@ -1410,25 +1353,3 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
         )
     with st.expander("Lihat Tabel Metadata Lengkap", expanded=False):
         st.dataframe(df.drop(columns=["Prompt"], errors="ignore"), hide_index=True)
-
-
-def download_image_from_url(url: str) -> Tuple[bytes, str]:
-    """Download image bytes from direct URL with full browser headers."""
-    import urllib.request
-    clean_url = url.strip()
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
-        "Accept": "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8",
-        "Referer": "https://gemini.google.com/",
-        "Sec-Ch-Ua": '"Google Chrome";v="126", "Chromium";v="126", "Not.A/Brand";v="24"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"macOS"',
-        "Sec-Fetch-Dest": "image",
-        "Sec-Fetch-Mode": "no-cors",
-        "Sec-Fetch-Site": "cross-site",
-    }
-    req = urllib.request.Request(clean_url, headers=headers)
-    with urllib.request.urlopen(req, timeout=30) as resp:
-        data = resp.read()
-        mime = resp.headers.get_content_type() or "image/jpeg"
-        return data, mime

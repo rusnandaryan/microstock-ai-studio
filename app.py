@@ -21,7 +21,6 @@ from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
 from microstock.prompt_enhancer import SCENARIO_DESCRIPTIONS, enhance_prompt
 from microstock.ui_components import (
-    download_image_from_url,
     inject_css,
     render_export_hub,
     render_header,
@@ -473,16 +472,28 @@ with tab2:
         help="Anda dapat mengunggah 1 hingga 10+ file gambar sekaligus.",
     )
 
-    # Combine images from Auto-Sync watcher AND manual uploader
+    # Combine images from Auto-Sync watcher AND manual uploader with duplicate disambiguation
     image_entries = []  # list of (filename, raw_bytes, mime)
+    seen_filenames = set()
+
+    def _add_entry(raw_name: str, raw_bytes: bytes, mime_type: str) -> None:
+        name = os.path.basename(raw_name).strip()
+        stem, ext = os.path.splitext(name)
+        candidate = name
+        counter = 1
+        while candidate.lower() in seen_filenames:
+            candidate = f"{stem}_{counter}{ext}"
+            counter += 1
+        seen_filenames.add(candidate.lower())
+        image_entries.append((candidate, raw_bytes, mime_type or "image/jpeg"))
+
     if st.session_state.get("imported_from_watcher"):
         for fn, raw_b, mime_t in st.session_state["imported_from_watcher"]:
-            image_entries.append((fn, raw_b, mime_t))
+            _add_entry(fn, raw_b, mime_t)
 
     if uploaded_files:
         for uf in uploaded_files:
-            if not any(e[0] == uf.name for e in image_entries):
-                image_entries.append((uf.name, uf.getvalue(), uf.type or "image/jpeg"))
+            _add_entry(uf.name, uf.getvalue(), uf.type or "image/jpeg")
 
     if image_entries:
         st.markdown(
@@ -594,21 +605,27 @@ with tab2:
                         if is_upscale_needed(orig_w, orig_h):
                             progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (AI Upscale 4x Standar Microstock) #{idx+1} dari {len(image_entries)}: {filename}...")
                             import tempfile
-                            with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
-                                in_f.write(raw_bytes)
-                                in_path = in_f.name
-                            out_path = in_path.replace(".jpg", "_up.jpg")
-                            success, err_msg = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
-                            if success:
-                                with open(out_path, "rb") as out_f:
-                                    target_bytes = out_f.read()
-                                try: os.remove(out_path)
-                                except: pass
-                            else:
-                                err_detail = f" ({err_msg})" if err_msg else ""
-                                st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
-                            try: os.remove(in_path)
-                            except: pass
+                            in_path = None
+                            out_path = None
+                            try:
+                                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
+                                    in_f.write(raw_bytes)
+                                    in_path = in_f.name
+                                out_path = in_path.replace(".jpg", "_up.jpg")
+                                success, err_msg = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
+                                if success:
+                                    with open(out_path, "rb") as out_f:
+                                        target_bytes = out_f.read()
+                                else:
+                                    err_detail = f" ({err_msg})" if err_msg else ""
+                                    st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
+                            finally:
+                                for p in (in_path, out_path):
+                                    if p and os.path.exists(p):
+                                        try:
+                                            os.remove(p)
+                                        except OSError:
+                                            pass
                         else:
                             progress_bar.progress(idx / len(image_entries), text=f"Gambar #{idx+1} sudah beresolusi tinggi ({orig_w}x{orig_h} px ≥ 4 MP), melewati perbesaran AI...")
 
@@ -757,7 +774,7 @@ with tab3:
 
         if btn_reverse:
             client = config.get_client(api_key)
-            from microstock.reverse_prompt import generate_reverse_prompt_async, save_prompt_to_file
+            from microstock.reverse_prompt import _detect_ratio, generate_reverse_prompt_async, save_prompt_to_file
 
             results = []
             rev_progress = st.progress(0.0, text="Memulai analisis reverse prompt...")
@@ -773,16 +790,22 @@ with tab3:
                     except Exception:
                         w, h = 1920, 1080
 
-                    prompt_str = await generate_reverse_prompt_async(
-                        client=client,
-                        image_bytes=raw_bytes,
-                        mime_type=mime,
-                        label=f"Reverse #{idx+1}",
-                        width=w,
-                        height=h,
-                    )
+                    try:
+                        prompt_str = await generate_reverse_prompt_async(
+                            client=client,
+                            image_bytes=raw_bytes,
+                            mime_type=mime,
+                            label=f"Reverse #{idx+1}",
+                            width=w,
+                            height=h,
+                        )
+                        saved_path = save_prompt_to_file(prompt_str, filename)
+                    except Exception as e:
+                        st.toast(f"⚠️ Gagal menganalisis {filename}: {e}", icon="⚠️")
+                        ratio = _detect_ratio(w, h)
+                        prompt_str = f"Commercial microstock asset [Aspect Ratio: {ratio}]"
+                        saved_path = ""
 
-                    saved_path = save_prompt_to_file(prompt_str, filename)
                     results.append({
                         "filename": filename,
                         "raw_bytes": raw_bytes,
