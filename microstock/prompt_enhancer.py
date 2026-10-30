@@ -1,9 +1,9 @@
-"""AI Prompt Enhancer: expands a short base idea into 5 diversified pro image prompts."""
+"""AI Prompt Enhancer: expands a short base idea into 1 pro image prompt."""
 from __future__ import annotations
 
 import json
 import re
-from typing import Callable, List, Optional, Tuple
+from typing import Callable, Optional
 
 from google import genai
 
@@ -11,37 +11,21 @@ from . import config
 from .rate_limit import TransientError, retry_sync
 
 
-SCENARIO_DESCRIPTIONS: List[Tuple[str, str]] = [
-    ("Pristine Hero", "Fokus subjek murni & kesempurnaan material"),
-    ("In-Action Moment", "Momen proses & interaksi dinamis (faceless)"),
-    ("Raw Materials", "Bahan baku & komponen asal subjek"),
-    ("Lifestyle Pairing", "Konteks cerita & benda pelengkap"),
-    ("Colorway & Mood", "Variasi palet warna & tekstur aksen"),
-]
-
-
 ENHANCER_SYSTEM_INSTRUCTION = """\
 You are an elite commercial art director and prompt engineer specializing in top-selling microstock imagery for Adobe Stock & Shutterstock.
 
-Rewrite the user's base concept into 5 highly detailed, production-ready, ultra-clean image generation prompts.
+Rewrite the user's base concept into ONE highly detailed, production-ready, ultra-clean image generation prompt.
 
 CRITICAL PARAMETER FIDELITY (STRICT ENFORCEMENT):
-Every single prompt must STRICTLY adhere to the user's selected camera perspective, composition framing, lighting condition, aesthetic style, and aspect ratio. Do NOT alter the chosen camera lens, framing, or lighting across the 5 prompts.
+The prompt must STRICTLY adhere to the user's selected camera perspective, composition framing, lighting condition, aesthetic style, and aspect ratio.
 
-To strictly prevent microstock rejections for "Similar Content / Duplicate Submission" while respecting the user's camera and framing choices, you MUST vary the 5 prompts across 5 distinct commercial storytelling scenarios:
-1. Scenario 1 (Pristine Hero): The main subject in its purest, isolated, iconic form, focusing deeply on its physical materials, fine finish, and standalone beauty within the chosen framing.
-2. Scenario 2 (In-Action Dynamic Moment): The subject in an active moment of practical use, process, or motion (strictly faceless, hands/tools only, showing dynamic function).
-3. Scenario 3 (Raw Materials & Origins): The subject naturally paired with its authentic raw ingredients, component parts, organic elements, or crafting tools.
-4. Scenario 4 (Lifestyle Pairing Context): The subject contextualized alongside complementary everyday objects that tell a realistic lifestyle or professional story.
-5. Scenario 5 (Alternative Colorway & Mood Accent): The subject explored with an alternative complementary color palette, distinct material texture, or subtle accent contrast while maintaining the overall atmosphere.
-
-CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT ACROSS ALL 5 PROMPTS):
+CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES:
 
 1. ZERO FEMALE CHARACTERS (STRICT UNIVERSAL PROHIBITION):
    - ABSOLUTELY ZERO female figures, women, girls, or feminine representations in ANY form (human, cartoon, cyborg, robot, mascot, or illustration).
    - When people are not explicitly requested by the user, focus strictly on inanimate objects, architecture, food, nature, tools, and scenery.
    - If people are requested, depict ONLY male figures that are completely faceless.
-   - In EVERY prompt, you MUST explicitly include: "strictly no women, no female characters, no visible facial features, completely faceless and clean".
+   - You MUST explicitly include: "strictly no women, no female characters, no visible facial features, completely faceless and clean".
 
 2. ZERO TEXT & ZERO TYPOGRAPHY (STRICT CLEANLINESS):
    - Absolutely NO text, letters, words, numbers, typography, calligraphy, inscriptions, watermarks, signatures, logos, or UI labels anywhere in the image.
@@ -69,18 +53,11 @@ CRITICAL ADOBE STOCK COMPLIANCE & COMMERCIAL RULES (STRICT ENFORCEMENT ACROSS AL
 
 8. MANDATORY ASPECT RATIO & ORIENTATION:
    - Explicitly describe framing matching the target aspect ratio.
-   - You MUST end each prompt with the text "[Aspect Ratio: {aspect_ratio}]".
+   - You MUST end the prompt with the text "[Aspect Ratio: {aspect_ratio}]".
 
 OUTPUT FORMAT:
-Output a valid JSON array containing exactly 5 prompt strings corresponding to the 5 scenarios:
-[
-  "Detailed prompt paragraph 1 (Pristine Hero) of 80-160 words ending with [Aspect Ratio: {aspect_ratio}]",
-  "Detailed prompt paragraph 2 (In-Action Moment) of 80-160 words ending with [Aspect Ratio: {aspect_ratio}]",
-  "Detailed prompt paragraph 3 (Raw Materials) of 80-160 words ending with [Aspect Ratio: {aspect_ratio}]",
-  "Detailed prompt paragraph 4 (Lifestyle Pairing) of 80-160 words ending with [Aspect Ratio: {aspect_ratio}]",
-  "Detailed prompt paragraph 5 (Colorway & Mood) of 80-160 words ending with [Aspect Ratio: {aspect_ratio}]"
-]
-Do not output anything other than the JSON array.
+Output ONLY the final single-paragraph prompt of 90-180 words in English ending with the Aspect Ratio tag.
+No preamble, no JSON, no markdown codeblocks, no bullet points, no commentary.
 """
 
 
@@ -96,46 +73,37 @@ def _format_with_aspect_ratio(raw_text: str, aspect_ratio: str) -> str:
     return clean
 
 
-def parse_enhancer_response(text: str, aspect_ratio: str) -> List[str]:
-    """Parse Gemini JSON response into a list of 5 prompt strings."""
+def parse_enhancer_response(text: str, aspect_ratio: str) -> str:
+    """Parse Gemini response into a clean single prompt string."""
     clean_text = text.strip()
-    if clean_text.startswith("```json"):
-        clean_text = clean_text[7:]
     if clean_text.startswith("```"):
-        clean_text = clean_text[3:]
-    if clean_text.endswith("```"):
-        clean_text = clean_text[:-3]
-    clean_text = clean_text.strip()
+        clean_text = re.sub(r"^```(?:json)?\n?", "", clean_text)
+        clean_text = re.sub(r"\n?```$", "", clean_text).strip()
 
+    # Try parsing if the model returned JSON
     try:
         data = json.loads(clean_text)
-    except Exception as e:
-        raise TransientError(f"Failed to parse JSON: {e}")
+        if isinstance(data, list) and data:
+            item = data[0]
+            clean_text = item.get("prompt", "") if isinstance(item, dict) else str(item)
+        elif isinstance(data, dict):
+            for k in ("prompt", "text", "result"):
+                if k in data and isinstance(data[k], str):
+                    clean_text = data[k]
+                    break
+            else:
+                for k in ("prompts", "items", "results"):
+                    if k in data and isinstance(data[k], list) and data[k]:
+                        item = data[k][0]
+                        clean_text = item.get("prompt", "") if isinstance(item, dict) else str(item)
+                        break
+    except Exception:
+        pass
 
-    if isinstance(data, dict):
-        for k in ("prompts", "items", "results"):
-            if k in data and isinstance(data[k], list):
-                data = data[k]
-                break
-
-    if not isinstance(data, list):
-        raise TransientError("Enhancer response JSON is not an array")
-
-    prompts: List[str] = []
-    for item in data:
-        if isinstance(item, dict):
-            p_str = item.get("prompt", "") or item.get("text", "") or ""
-        else:
-            p_str = str(item)
-
-        formatted = _format_with_aspect_ratio(p_str, aspect_ratio)
-        if formatted:
-            prompts.append(formatted)
-
-    if not prompts:
-        raise TransientError("Empty list of prompts returned by enhancer")
-
-    return prompts
+    formatted = _format_with_aspect_ratio(clean_text, aspect_ratio)
+    if not formatted:
+        raise TransientError("Empty prompt returned by enhancer")
+    return formatted
 
 
 def build_enhancer_input(
@@ -162,29 +130,21 @@ def build_enhancer_input(
     parts = [
         f"Base concept/subject: {base_idea.strip()}",
         f"Aesthetic/Style: {style.name}: {style.directive}",
-        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of each prompt.",
+        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt.",
     ]
     if light_desc:
-        parts.append(f"MANDATORY Lighting condition (Apply to ALL 5 prompts): {light_desc}")
+        parts.append(f"MANDATORY Lighting condition: {light_desc}")
     if cam_desc:
-        parts.append(f"MANDATORY Camera/Lens perspective (Apply to ALL 5 prompts): {cam_desc}")
+        parts.append(f"MANDATORY Camera/Lens perspective: {cam_desc}")
     if comp_desc:
-        parts.append(f"MANDATORY Composition framing (Apply to ALL 5 prompts): {comp_desc}")
+        parts.append(f"MANDATORY Composition framing: {comp_desc}")
 
-    parts.append(
-        "MANDATORY 5-SCENARIO DIVERSIFICATION (Generate 1 distinct prompt for each scenario while strictly preserving the above camera, lighting, and composition):\n"
-        "  - Scenario 1 (Pristine Hero): Pure standalone subject, immaculate material perfection.\n"
-        "  - Scenario 2 (In-Action Dynamic Moment): Active process or dynamic use interaction (faceless, hands/tools only).\n"
-        "  - Scenario 3 (Raw Materials & Origins): Paired authentically with raw ingredients, components, or crafting tools.\n"
-        "  - Scenario 4 (Lifestyle Pairing Context): Paired with complementary everyday objects telling a rich narrative.\n"
-        "  - Scenario 5 (Colorway & Mood Accent): Explored with an alternative complementary color palette or accent contrast."
-    )
     parts.append(
         "MANDATORY UNIVERSAL EXCLUSIONS: Strictly NO female characters, NO women, NO visible facial features; "
         "all living beings must be completely faceless. Prioritize inanimate objects, architecture, food, nature, tools, or faceless subjects."
     )
     parts.append(
-        f"Generate 5 distinct high-quality commercial prompts in JSON format ending with [Aspect Ratio: {aspect_ratio}]."
+        f"Generate 1 high-quality commercial prompt blending all the above parameters naturally, ending with [Aspect Ratio: {aspect_ratio}]."
     )
     return "\n".join(parts)
 
@@ -198,12 +158,12 @@ def enhance_prompt(
     camera: str = "",
     composition: str = "",
     on_retry: Optional[Callable[[str], None]] = None,
-) -> List[str]:
-    """Call the Gemini text model to produce 5 alternative commercial image prompts."""
+) -> str:
+    """Call the Gemini text model to produce 1 commercial image prompt matching all selected parameters."""
     if not base_idea or not base_idea.strip():
         raise ValueError("Please enter a base idea first.")
 
-    def _call() -> List[str]:
+    def _call() -> str:
         prompt_input = build_enhancer_input(base_idea, style_name, aspect_ratio, lighting, camera, composition)
         last_err = None
         for model_name in config.TEXT_MODEL_FALLBACKS:
@@ -212,9 +172,8 @@ def enhance_prompt(
                     from google.genai import types
                     config_obj = types.GenerateContentConfig(
                         system_instruction=ENHANCER_SYSTEM_INSTRUCTION,
-                        temperature=0.85,
-                        max_output_tokens=2200,
-                        response_mime_type="application/json",
+                        temperature=0.75,
+                        max_output_tokens=600,
                     )
                     response = client.models.generate_content(
                         model=model_name,
