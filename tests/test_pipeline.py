@@ -176,7 +176,17 @@ class TestTrendAnalyzerParser(unittest.TestCase):
         self.assertIsNotNone(parsed)
         self.assertEqual(len(parsed["trends"]), 1)
         self.assertEqual(parsed["trends"][0]["event_name"], "Earth Day")
-        self.assertEqual(parsed["trends"][0]["ideas"], ["Tree planting"])
+        # Synthesizes at least 3-4 commercial angles automatically when input has only 1 base_idea
+        self.assertGreaterEqual(len(parsed["trends"][0]["ideas"]), 3)
+        self.assertTrue(parsed["trends"][0]["base_idea"].startswith("Tree planting"))
+
+    def test_ensure_trend_variations_synthesizes_multiple_angles(self):
+        from microstock.trend_analyzer import ensure_trend_variations
+        raw_trend = {"event_name": "World Water Day", "base_idea": "Clean drop of water"}
+        variations = ensure_trend_variations(raw_trend)
+        self.assertGreaterEqual(len(variations), 4)
+        self.assertTrue(any("close-up" in v.lower() for v in variations))
+        self.assertTrue(any("flat lay" in v.lower() for v in variations))
 
 
 class TestExportHub(unittest.TestCase):

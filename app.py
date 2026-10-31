@@ -105,36 +105,46 @@ with tab1:
             raw_data = st.session_state.market_trends
             trends_list = raw_data.get("trends", []) if isinstance(raw_data, dict) else raw_data
             if trends_list:
+                from microstock.trend_analyzer import ensure_trend_variations
+
                 if "selected_trend_idx" not in st.session_state:
                     st.session_state.selected_trend_idx = 0
                 if "trend_var_indices" not in st.session_state:
                     st.session_state.trend_var_indices = {}
 
                 pill_options = list(range(len(trends_list)))
+                if "trend_pills_selector" not in st.session_state or st.session_state.trend_pills_selector is None:
+                    st.session_state.trend_pills_selector = st.session_state.selected_trend_idx
+
                 selected_idx = st.pills(
                     "Pilih Momen:",
                     options=pill_options,
                     format_func=lambda i: f"#{i+1} {trends_list[i].get('event_name', '')[:20]}",
-                    default=st.session_state.selected_trend_idx if st.session_state.selected_trend_idx < len(trends_list) else 0,
                     label_visibility="collapsed",
                     key="trend_pills_selector",
                 )
-                if selected_idx is not None and selected_idx != st.session_state.selected_trend_idx:
+                if selected_idx is None:
+                    selected_idx = st.session_state.selected_trend_idx
+                    st.session_state.trend_pills_selector = selected_idx
+                elif selected_idx != st.session_state.selected_trend_idx:
                     st.session_state.selected_trend_idx = selected_idx
                     cur_trend = trends_list[selected_idx]
-                    cur_vars = cur_trend.get("ideas", [cur_trend.get("base_idea", "")])
+                    cur_vars = ensure_trend_variations(cur_trend)
                     cur_v_idx = st.session_state.trend_var_indices.get(selected_idx, 0) % len(cur_vars)
                     st.session_state.tab1_base_idea = cur_vars[cur_v_idx]
-                    st.rerun()
 
                 active_idx = st.session_state.selected_trend_idx
                 if active_idx >= len(trends_list):
                     active_idx = 0
                 active_trend = trends_list[active_idx]
 
-                variations = active_trend.get("ideas", [active_trend.get("base_idea", "")])
+                # Selalu pastikan ada minimal 3-4 variasi sudut pandang
+                variations = ensure_trend_variations(active_trend)
                 var_idx = st.session_state.trend_var_indices.get(active_idx, 0) % len(variations)
                 active_concept = variations[var_idx]
+
+                if not st.session_state.get("tab1_base_idea"):
+                    st.session_state.tab1_base_idea = active_concept
 
                 status_badge = active_trend.get("market_status", "🔥 Viral")
                 event_name = active_trend.get("event_name") or active_trend.get("category", "Momen Peringatan")
@@ -177,25 +187,38 @@ with tab1:
                         unsafe_allow_html=True,
                     )
 
+                def _cycle_concept():
+                    cur = st.session_state.trend_var_indices.get(active_idx, 0)
+                    nxt = (cur + 1) % len(variations)
+                    st.session_state.trend_var_indices[active_idx] = nxt
+                    st.session_state.tab1_base_idea = variations[nxt]
+
+                def _apply_current_trend():
+                    st.session_state.tab1_base_idea = active_concept
+                    if rec_cat in config.STYLE_CATEGORIES:
+                        st.session_state.tab1_style_cat = rec_cat
+                        if rec_style in config.STYLE_CATEGORIES[rec_cat]:
+                            st.session_state.tab1_style_sub = rec_style
+                        else:
+                            st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
+                    if rec_ratio in config.ASPECT_RATIOS:
+                        st.session_state.tab1_ratio = rec_ratio
+
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
-                    if st.button(f"🎲 Ganti Variasi Konsep ({var_idx + 1}/{len(variations)})", key=f"cycle_var_{active_idx}", use_container_width=True):
-                        next_var_idx = (var_idx + 1) % len(variations)
-                        st.session_state.trend_var_indices[active_idx] = next_var_idx
-                        st.session_state.tab1_base_idea = variations[next_var_idx]
-                        st.rerun()
+                    st.button(
+                        f"🎲 Ganti Variasi Konsep ({var_idx + 1}/{len(variations)})",
+                        key=f"cycle_var_{active_idx}",
+                        on_click=_cycle_concept,
+                        use_container_width=True,
+                    )
                 with btn_col2:
-                    if st.button("✅ Terapkan Gaya & Rasio ke Form", key=f"apply_all_{active_idx}", use_container_width=True):
-                        st.session_state.tab1_base_idea = active_concept
-                        if rec_cat in config.STYLE_CATEGORIES:
-                            st.session_state.tab1_style_cat = rec_cat
-                            if rec_style in config.STYLE_CATEGORIES[rec_cat]:
-                                st.session_state.tab1_style_sub = rec_style
-                            else:
-                                st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
-                        if rec_ratio in config.ASPECT_RATIOS:
-                            st.session_state.tab1_ratio = rec_ratio
-                        st.rerun()
+                    st.button(
+                        "✅ Terapkan Gaya & Rasio ke Form",
+                        key=f"apply_all_{active_idx}",
+                        on_click=_apply_current_trend,
+                        use_container_width=True,
+                    )
 
     st.markdown("<div style='margin-bottom:0.6rem;'></div>", unsafe_allow_html=True)
 

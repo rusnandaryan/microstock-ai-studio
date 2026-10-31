@@ -32,6 +32,32 @@ Untuk setiap momen atau hari peringatan (total 10 item), berikan:
 Keluarkan HANYA array JSON yang valid berisi 10 objek tanpa markdown formatting.
 """
 
+def ensure_trend_variations(trend: Dict[str, Any]) -> List[str]:
+    """Ensure at least 3-4 distinct microstock visual angles exist for a trend."""
+    raw_ideas = trend.get("ideas")
+    if isinstance(raw_ideas, list) and len(raw_ideas) >= 2:
+        valid = [str(x).strip() for x in raw_ideas if str(x).strip()]
+        if len(valid) >= 2:
+            return valid
+
+    base = (
+        trend.get("base_idea")
+        or (raw_ideas[0] if isinstance(raw_ideas, list) and raw_ideas else "")
+        or trend.get("event_name")
+        or trend.get("category")
+        or "Objek komersial"
+    )
+    ev = trend.get("event_name") or trend.get("category", "")
+    context = f"bertema {ev}" if ev else ""
+
+    return [
+        f"{base}. Sudut pandang close-up detail faceless, fokus tajam pada interaksi objek tanpa wajah dengan pencahayaan alami bersih.",
+        f"Komposisi still-life / flat lay minimalis {context}, penataan rapi estetis di atas permukaan netral dengan copy space luas untuk teks iklan.",
+        f"Pemandangan sudut lebar dramatis (wide-angle environmental) {context}, pencahayaan sinematik dengan depth of field halus.",
+        f"Perspektif dinamis low-angle komersial {context}, pencahayaan studio modern beresolusi tinggi, bebas logo dan bebas teks.",
+    ]
+
+
 def _parse_trends_json(text: str, now_str: str) -> Optional[Dict[str, Any]]:
     clean = re.sub(r"^```(?:json)?|```$", "", text.strip(), flags=re.MULTILINE).strip()
     if not clean:
@@ -51,15 +77,8 @@ def _parse_trends_json(text: str, now_str: str) -> Optional[Dict[str, Any]]:
                 elif "event_name" not in t and "category" in t:
                     t["event_name"] = t["category"]
 
-                raw_ideas = t.get("ideas")
-                if isinstance(raw_ideas, list) and len(raw_ideas) > 0:
-                    t["ideas"] = [str(x) for x in raw_ideas]
-                    t["base_idea"] = t["ideas"][0]
-                elif "base_idea" in t and t["base_idea"]:
-                    t["ideas"] = [t["base_idea"]]
-                else:
-                    t["ideas"] = [t.get("event_name", "Konsep Visual")]
-                    t["base_idea"] = t["ideas"][0]
+                t["ideas"] = ensure_trend_variations(t)
+                t["base_idea"] = t["ideas"][0]
 
         return {"period": now_str, "trends": trends}
     return None
