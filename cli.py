@@ -6,12 +6,20 @@ Gunakan 'python cli.py --help' untuk melihat panduan lengkap.
 """
 from __future__ import annotations
 
+import os
+import sys
+
+# Auto-bootstrap: jika dijalankan dengan python sistem, otomatis re-exec menggunakan .venv lokal
+_script_dir = os.path.dirname(os.path.abspath(__file__))
+_venv_dir = os.path.join(_script_dir, ".venv")
+_venv_python = os.path.join(_venv_dir, "bin", "python3")
+if os.path.exists(_venv_python) and os.path.abspath(sys.prefix) != os.path.abspath(_venv_dir):
+    os.execv(_venv_python, [_venv_python] + sys.argv)
+
 import argparse
 import asyncio
 import io
-import os
 import subprocess
-import sys
 import time
 from typing import List
 
