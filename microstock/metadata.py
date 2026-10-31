@@ -73,7 +73,7 @@ METADATA_SCHEMA = {
             "maxItems": config.KEYWORD_COUNT,
             "description": "Exactly 50 keywords, broad to specific.",
         },
-        "adobe_category": {"type": "string", "enum": [str(k) for k in ADOBE_CATEGORIES.keys()]},
+        "adobe_category": {"type": "integer", "enum": list(ADOBE_CATEGORIES.keys())},
         "shutterstock_categories": {
             "type": "array",
             "items": {"type": "string", "enum": SHUTTERSTOCK_CATEGORIES},
@@ -90,13 +90,17 @@ SUPPLEMENT_SCHEMA = {
     "required": ["keywords"],
 }
 
+TOPUP_SYSTEM_INSTRUCTION = """\
+You are a senior microstock SEO specialist. Return ONLY a JSON object containing additional unique, relevant, lowercase keywords based on the image and existing keywords list.
+"""
+
 
 @dataclass
 class ImageMetadata:
     title: str
     description: str
     keywords: List[str] = field(default_factory=list)
-    adobe_category: int = 8
+    adobe_category: int = config.DEFAULT_ADOBE_CATEGORY
     shutterstock_categories: List[str] = field(default_factory=list)
 
     @property
@@ -120,15 +124,27 @@ def _clean_keyword(kw: str) -> str:
     return re.sub(r"\s+", " ", kw)
 
 
+def _get_stem(k: str) -> str:
+    if len(k) <= 3:
+        return k
+    if k.endswith(("sses", "shes", "ches", "xes")):
+        return k[:-2]
+    if k.endswith("ies") and len(k) > 4:
+        return k[:-3] + "y"
+    if k.endswith("s") and not k.endswith(("ss", "us", "is")):
+        return k[:-1]
+    return k
+
+
 def normalize_keywords(raw: List[str]) -> List[str]:
-    """Lowercase, strip, de-duplicate (incl. naive plural duplicates), keep order."""
+    """Lowercase, strip, de-duplicate (incl. singular/plural duplicates), keep order."""
     seen: set = set()
     out: List[str] = []
     for kw in raw:
         k = _clean_keyword(kw)
         if not k or k in _BANNED:
             continue
-        stem = k[:-1] if k.endswith("s") and len(k) > 3 else k
+        stem = _get_stem(k)
         if k in seen or stem in seen:
             continue
         seen.update({k, stem})
@@ -163,7 +179,7 @@ def create_fallback_metadata(filename: str) -> ImageMetadata:
         title=title,
         description=f"High quality commercial microstock asset: {title}.",
         keywords=normalize_keywords(keywords),
-        adobe_category=12,
+        adobe_category=config.DEFAULT_ADOBE_CATEGORY,
         shutterstock_categories=["Objects", "Miscellaneous"],
     )
 
@@ -234,18 +250,6 @@ def _create_json(client: genai.Client, system_instruction: str, contents: Any, s
                 parsed = _parse_json(response.text or "")
                 if parsed:
                     return parsed
-            elif hasattr(client, "interactions"):
-                prompt_text = contents if isinstance(contents, str) else str(contents)
-                interaction = client.interactions.create(
-                    model=model_name,
-                    system_instruction=system_instruction,
-                    input=prompt_text,
-                    response_format={"type": "text", "mime_type": "application/json", "schema": schema},
-                    store=False,
-                )
-                parsed = _parse_json(interaction.output_text or "")
-                if parsed:
-                    return parsed
         except Exception as e:
             last_err = e
             err_str = str(e).lower()
@@ -298,7 +302,7 @@ async def generate_metadata_from_vision_async(
         try:
             extra = await retry_async(
                 lambda: asyncio.to_thread(
-                    _create_json, client, METADATA_SYSTEM_INSTRUCTION, [image_part, sup_prompt], SUPPLEMENT_SCHEMA),
+                    _create_json, client, TOPUP_SYSTEM_INSTRUCTION, [image_part, sup_prompt], SUPPLEMENT_SCHEMA),
                 label=f"{label} (top-up)", on_retry=on_retry,
             )
             keywords = normalize_keywords(keywords + list(extra.get("keywords", [])))
@@ -306,12 +310,12 @@ async def generate_metadata_from_vision_async(
             break
 
     try:
-        adobe_cat = int(data.get("adobe_category", 12))
+        adobe_cat = int(data.get("adobe_category", config.DEFAULT_ADOBE_CATEGORY))
     except (ValueError, TypeError):
-        adobe_cat = 12
+        adobe_cat = config.DEFAULT_ADOBE_CATEGORY
 
     if adobe_cat not in ADOBE_CATEGORIES:
-        adobe_cat = 12
+        adobe_cat = config.DEFAULT_ADOBE_CATEGORY
 
     ss_cats = [c for c in data.get("shutterstock_categories", []) if c in SHUTTERSTOCK_CATEGORIES][:2]
 

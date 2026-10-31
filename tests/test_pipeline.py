@@ -146,6 +146,43 @@ class TestKeywordSanitization(unittest.TestCase):
         cleaned = normalize_keywords(raw)
         self.assertEqual(cleaned, ["nature", "landscape", "outdoor", "tree"])
 
+    def test_normalize_keywords_preserves_ss_and_handles_plurals(self):
+        raw = ["glass", "glasses", "business", "trees", "tree", "boxes", "box"]
+        cleaned = normalize_keywords(raw)
+        self.assertIn("glass", cleaned)
+        self.assertNotIn("glasses", cleaned)
+        self.assertIn("business", cleaned)
+        self.assertIn("trees", cleaned)
+        self.assertNotIn("tree", cleaned)
+        self.assertIn("boxes", cleaned)
+        self.assertNotIn("box", cleaned)
+
+
+class TestMetadataHelpers(unittest.TestCase):
+    def test_clamp_title(self):
+        from microstock.metadata import clamp_title
+        self.assertEqual(clamp_title("  Clean Office Desk.  "), "Clean Office Desk")
+        long_title = "A " * 60  # 120 chars
+        clamped = clamp_title(long_title, limit=100)
+        self.assertLessEqual(len(clamped), 100)
+        self.assertFalse(clamped.endswith(" "))
+
+    def test_clamp_description(self):
+        from microstock.metadata import clamp_description
+        self.assertEqual(clamp_description("A serene landscape."), "A serene landscape.")
+        long_desc = "Word " * 50
+        clamped = clamp_description(long_desc, limit=200)
+        self.assertLessEqual(len(clamped), 200)
+        self.assertTrue(clamped.endswith("."))
+
+    def test_parse_json(self):
+        from microstock.metadata import _parse_json
+        from microstock.rate_limit import TransientError
+        self.assertEqual(_parse_json('{"key": "value"}'), {"key": "value"})
+        self.assertEqual(_parse_json('```json\n{"key": "value"}\n```'), {"key": "value"})
+        with self.assertRaises(TransientError):
+            _parse_json("not json")
+
 
 class TestFolderWatcher(unittest.TestCase):
     def test_get_cutoff_timestamp(self):
