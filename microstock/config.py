@@ -13,15 +13,14 @@ from typing import Dict, List, Optional
 
 from google import genai
 
-# Models
-# Text models for prompt enhancement & metadata SEO (with fallbacks if 503 high demand)
+# Text models with fallback list for 503 or high demand errors
 TEXT_MODEL_FALLBACKS = [
     "gemini-3.1-flash-lite",
     "gemini-3.5-flash-lite",
     "gemini-3.8-flash",
 ]
 
-# Microstock Resolution Standards (Adobe Stock & Shutterstock Requirements)
+# Microstock resolution requirements (Adobe Stock and Shutterstock)
 MAX_IMAGE_MEGAPIXELS = 100.0
 TARGET_MIN_PIXELS = 4_200_000  # Safe upscale target (e.g. 2050x2050) to guarantee >= 4MP
 SMART_MICROSTOCK_TARGET_PIXELS = 8_294_400  # ~8.3 MP (ideal balance: 4K sharpness, 3-6 MB file size)
@@ -44,7 +43,7 @@ ASPECT_RATIO_LABELS: Dict[str, str] = {
 }
 
 
-# Aesthetic / style presets (Expanded library of 18 high-demand microstock styles)
+# Style presets and prompt directives
 @dataclass(frozen=True)
 class StylePreset:
     name: str
@@ -54,60 +53,60 @@ class StylePreset:
 
 STYLE_CATEGORIES: Dict[str, List[str]] = {
     "Fotografi (Photorealism)": [
-        "📷 Foto Komersial Bersih (Commercial Advertising)",
-        "📰 Foto Dokumenter & Human Interest",
-        "🔍 Macro Photography (Extreme Detail)",
-        "👤 Portrait Studio Faceless",
-        "🚶 Street Photography Candid",
-        "🎞️ Sinematik Film 35mm Retro",
-        "🍽️ Food & Culinary Editorial",
-        "🏛️ Arsitektur & Interior Minimalis",
+        "Foto Komersial Bersih (Commercial Advertising)",
+        "Foto Dokumenter & Human Interest",
+        "Macro Photography (Extreme Detail)",
+        "Portrait Studio Faceless",
+        "Street Photography Candid",
+        "Sinematik Film 35mm Retro",
+        "Food & Culinary Editorial",
+        "Arsitektur & Interior Minimalis",
     ],
     "Ilustrasi & Seni Lukis": [
-        "🖌️ Cat Air & Gouache (Watercolor)",
-        "🎨 Cat Minyak Klasik (Oil Painting)",
-        "✏️ Sketsa Pensil & Arang (Pencil Sketch)",
-        "🎭 Impresionisme Bertekstur (Impressionism)",
-        "🌌 Surealisme Modern (Surrealism)",
-        "🌀 Seni Abstrak Kontemporer (Abstract Art)",
-        "✂️ Ilustrasi Stiker Die-Cut (Die-Cut Sticker)",
+        "Cat Air & Gouache (Watercolor)",
+        "Cat Minyak Klasik (Oil Painting)",
+        "Sketsa Pensil & Arang (Pencil Sketch)",
+        "Impresionisme Bertekstur (Impressionism)",
+        "Surealisme Modern (Surrealism)",
+        "Seni Abstrak Kontemporer (Abstract Art)",
+        "Ilustrasi Stiker Die-Cut (Die-Cut Sticker)",
     ],
     "Animasi & Kartun": [
-        "🌸 Pastel Kawaii Mascot Design",
-        "⛩️ Anime Jepang Kontemporer",
-        "📖 Manga Tinta Hitam Putih (Ink Manga)",
-        "👶 Chibi & Karakter Imut (Cute Chibi)",
-        "📺 Kartun Klasik Retro (Classic Toon)",
-        "💥 Komik Pop Art (Comic Book & Halftone)",
-        "🍃 Whimsical Studio Anime (Ghibli-Inspired Aesthetic)",
-        "🧸 3D Animated Feature (Pixar-Inspired Stylized CGI)",
+        "Pastel Kawaii Mascot Design",
+        "Anime Jepang Kontemporer",
+        "Manga Tinta Hitam Putih (Ink Manga)",
+        "Chibi & Karakter Imut (Cute Chibi)",
+        "Kartun Klasik Retro (Classic Toon)",
+        "Komik Pop Art (Comic Book & Halftone)",
+        "Whimsical Studio Anime (Ghibli-Inspired Aesthetic)",
+        "3D Animated Feature (Pixar-Inspired Stylized CGI)",
     ],
     "3D & Render": [
-        "🏝️ 3D Miniature Diorama (Miniature World)",
-        "🧊 3D Commercial Studio Render",
-        "📐 3D Isometric Illustration (Tech & Business)",
-        "🧱 3D Claymation (Tanah Liat Taktil)",
-        "🔷 Low-Poly 3D Minimalist",
-        "✨ Octane Render Photorealistic (CGI Ultra-Detail)",
-        "🪟 3D Glassmorphism & Akrilik Transparan",
+        "3D Miniature Diorama (Miniature World)",
+        "3D Commercial Studio Render",
+        "3D Isometric Illustration (Tech & Business)",
+        "3D Claymation (Tanah Liat Taktil)",
+        "Low-Poly 3D Minimalist",
+        "Octane Render Photorealistic (CGI Ultra-Detail)",
+        "3D Glassmorphism & Akrilik Transparan",
     ],
     "Desain & Digital Art": [
-        "🏷️ Paket Stiker Die-Cut (Die-Cut Sticker Pack)",
-        "📱 Icon Desain Aplikasi & Web (App Icon Set)",
-        "📄 Flat Design Vector Minimalist",
-        "🔶 Logo Monogram & Geometris",
-        "🌃 Cyberpunk & Futuristic Neon",
-        "⚙️ Steampunk Vintage Mekanikal",
-        "📼 Synthwave & Retrowave 80s",
-        "👾 Pixel Art Klasik 16-bit",
-        "🧙 Digital Concept Art Fantasi & Sci-Fi",
+        "Paket Stiker Die-Cut (Die-Cut Sticker Pack)",
+        "Icon Desain Aplikasi & Web (App Icon Set)",
+        "Flat Design Vector Minimalist",
+        "Logo Monogram & Geometris",
+        "Cyberpunk & Futuristic Neon",
+        "Steampunk Vintage Mekanikal",
+        "Synthwave & Retrowave 80s",
+        "Pixel Art Klasik 16-bit",
+        "Digital Concept Art Fantasi & Sci-Fi",
     ],
 }
 
 STYLES: Dict[str, StylePreset] = {
-    # 1. Fotografi
-    "📷 Foto Komersial Bersih (Commercial Advertising)": StylePreset(
-        name="📷 Foto Komersial Bersih",
+    # Photography
+    "Foto Komersial Bersih (Commercial Advertising)": StylePreset(
+        name="Foto Komersial Bersih",
         directive=(
             "Commercial advertising stock photography, shot on Hasselblad H6D-100c prime lens, "
             "tack-sharp focus, professional studio multi-point balanced lighting, vibrant true-to-life colors, "
@@ -115,56 +114,56 @@ STYLES: Dict[str, StylePreset] = {
         ),
         is_illustration=False,
     ),
-    "📰 Foto Dokumenter & Human Interest": StylePreset(
-        name="📰 Foto Dokumenter & Human Interest",
+    "Foto Dokumenter & Human Interest": StylePreset(
+        name="Foto Dokumenter & Human Interest",
         directive=(
             "Authentic photojournalistic documentary style, environmental natural light, candid human moment, "
             "emotional storytelling, genuine lifelike texture, shot on 35mm f/1.8 lens, unposed real-life atmosphere."
         ),
         is_illustration=False,
     ),
-    "🔍 Macro Photography (Extreme Detail)": StylePreset(
-        name="🔍 Macro Photography (Extreme Detail)",
+    "Macro Photography (Extreme Detail)": StylePreset(
+        name="Macro Photography (Extreme Detail)",
         directive=(
             "Cinematic macro photograph, 100mm f/2.8 macro lens, extreme close-up revealing intricate microscopic textures, "
             "razor-thin depth of field with ultra creamy bokeh, directional rim lighting, pinpoint sharpness."
         ),
         is_illustration=False,
     ),
-    "👤 Portrait Studio Faceless": StylePreset(
-        name="👤 Portrait Studio Faceless",
+    "Portrait Studio Faceless": StylePreset(
+        name="Portrait Studio Faceless",
         directive=(
             "Editorial studio fashion/workplace portrait of male figure shot strictly from behind or in dramatic silhouette, "
             "faceless framing, high-end studio strobe lighting, elegant wardrobe texture, clean background."
         ),
         is_illustration=False,
     ),
-    "🚶 Street Photography Candid": StylePreset(
-        name="🚶 Street Photography Candid",
+    "Street Photography Candid": StylePreset(
+        name="Street Photography Candid",
         directive=(
             "Dynamic street photography, urban atmospheric lighting, natural shadows, authentic city life, "
             "shot on Leica M11 28mm lens, realistic grit, timeless urban composition."
         ),
         is_illustration=False,
     ),
-    "🎞️ Sinematik Film 35mm Retro": StylePreset(
-        name="🎞️ Sinematik Film 35mm Retro",
+    "Sinematik Film 35mm Retro": StylePreset(
+        name="Sinematik Film 35mm Retro",
         directive=(
             "Authentic 35mm analog film aesthetic, Kodak Portra 400 color tones, organic subtle film grain, "
             "natural gentle halation on highlights, warm nostalgic mood, cinematic depth."
         ),
         is_illustration=False,
     ),
-    "🍽️ Food & Culinary Editorial": StylePreset(
-        name="🍽️ Food & Culinary Editorial",
+    "Food & Culinary Editorial": StylePreset(
+        name="Food & Culinary Editorial",
         directive=(
             "High-end culinary editorial photography, appetizing presentation, fresh glistening textures, "
             "rustic tabletop surfaces, directional soft window light, shallow depth of field, gourmet styling."
         ),
         is_illustration=False,
     ),
-    "🏛️ Arsitektur & Interior Minimalis": StylePreset(
-        name="🏛️ Arsitektur & Interior Minimalis",
+    "Arsitektur & Interior Minimalis": StylePreset(
+        name="Arsitektur & Interior Minimalis",
         directive=(
             "Architectural Digest interior photography, wide tilt-shift perspective, perfectly straight verticals, "
             "minimalist Scandinavian design, soft natural ambient illumination, harmonious peaceful layout."
@@ -172,57 +171,57 @@ STYLES: Dict[str, StylePreset] = {
         is_illustration=False,
     ),
 
-    # 2. Ilustrasi & Seni Lukis
-    "🖌️ Cat Air & Gouache (Watercolor)": StylePreset(
-        name="🖌️ Cat Air & Gouache",
+    # Illustration and painting
+    "Cat Air & Gouache (Watercolor)": StylePreset(
+        name="Cat Air & Gouache",
         directive=(
             "Expressive loose watercolor and gouache artwork, visible wet-on-wet paint bleeds, rough cold-press paper grain, "
             "translucent gradient washes, subtle organic paint splatters, handcrafted artistic feel."
         ),
         is_illustration=True,
     ),
-    "🎨 Cat Minyak Klasik (Oil Painting)": StylePreset(
-        name="🎨 Cat Minyak Klasik",
+    "Cat Minyak Klasik (Oil Painting)": StylePreset(
+        name="Cat Minyak Klasik",
         directive=(
             "Masterpiece fine art oil painting, rich visible impasto brushstrokes, textured canvas substrate, "
             "luminous glazed layers, classical chiaroscuro lighting, museum-grade fine art depth."
         ),
         is_illustration=True,
     ),
-    "✏️ Sketsa Pensil & Arang (Pencil Sketch)": StylePreset(
-        name="✏️ Sketsa Pensil & Arang",
+    "Sketsa Pensil & Arang (Pencil Sketch)": StylePreset(
+        name="Sketsa Pensil & Arang",
         directive=(
             "Detailed graphite pencil and charcoal drawing, delicate cross-hatching, smudged shadows, "
             "textured heavy sketch paper, monochrome artistic elegance, expressive hand-drawn linework."
         ),
         is_illustration=True,
     ),
-    "🎭 Impresionisme Bertekstur (Impressionism)": StylePreset(
-        name="🎭 Impresionisme Bertekstur",
+    "Impresionisme Bertekstur (Impressionism)": StylePreset(
+        name="Impresionisme Bertekstur",
         directive=(
             "Impressionist artistic painting, rapid dabs of pure vibrant pigment, thick textured oil paint, "
             "emphasis on changing natural light and atmosphere, evocative poetic visual rhythm."
         ),
         is_illustration=True,
     ),
-    "🌌 Surealisme Modern (Surrealism)": StylePreset(
-        name="🌌 Surealisme Modern",
+    "Surealisme Modern (Surrealism)": StylePreset(
+        name="Surealisme Modern",
         directive=(
             "Dreamlike modern surrealism art, poetic juxtaposition of unexpected symbolic elements, "
             "hyper-detailed realism blended with metaphysical imagination, ethereal soft lighting, evocative fine art."
         ),
         is_illustration=True,
     ),
-    "🌀 Seni Abstrak Kontemporer (Abstract Art)": StylePreset(
-        name="🌀 Seni Abstrak Kontemporer",
+    "Seni Abstrak Kontemporer (Abstract Art)": StylePreset(
+        name="Seni Abstrak Kontemporer",
         directive=(
             "Contemporary non-representational abstract art, dynamic geometric and organic shapes, "
             "rich mixed-media textured surfaces, harmonious curated color palette, modern gallery wall-art aesthetic."
         ),
         is_illustration=True,
     ),
-    "✂️ Ilustrasi Stiker Die-Cut (Die-Cut Sticker)": StylePreset(
-        name="✂️ Ilustrasi Stiker Die-Cut",
+    "Ilustrasi Stiker Die-Cut (Die-Cut Sticker)": StylePreset(
+        name="Ilustrasi Stiker Die-Cut",
         directive=(
             "Die-cut sticker illustration, crisp clean white contour outline border, isolated on plain solid background, "
             "vibrant smooth color fills, bold playful graphic design, commercial clipart aesthetic."
@@ -230,65 +229,65 @@ STYLES: Dict[str, StylePreset] = {
         is_illustration=True,
     ),
 
-    # 3. Animasi & Kartun
-    "⛩️ Anime Jepang Kontemporer": StylePreset(
-        name="⛩️ Anime Jepang Kontemporer",
+    # Animation and cartoons
+    "Anime Jepang Kontemporer": StylePreset(
+        name="Anime Jepang Kontemporer",
         directive=(
             "High-end contemporary Japanese anime style, crisp cel-shaded lines, cinematic lighting with sun rays, "
             "lush painted background scenery, rich vibrant color grading, high production anime movie aesthetic."
         ),
         is_illustration=True,
     ),
-    "📖 Manga Tinta Hitam Putih (Ink Manga)": StylePreset(
-        name="📖 Manga Tinta Hitam Putih",
+    "Manga Tinta Hitam Putih (Ink Manga)": StylePreset(
+        name="Manga Tinta Hitam Putih",
         directive=(
             "Authentic Japanese black and white manga page art, sharp G-pen ink lines, screentone dot shading, "
             "high contrast monochrome values, dynamic comic panel composition, dramatic storytelling."
         ),
         is_illustration=True,
     ),
-    "👶 Chibi & Karakter Imut (Cute Chibi)": StylePreset(
-        name="👶 Chibi & Karakter Imut",
+    "Chibi & Karakter Imut (Cute Chibi)": StylePreset(
+        name="Chibi & Karakter Imut",
         directive=(
             "Adorable chibi character styling, oversized expressive head, tiny body, pastel color scheme, "
             "playful cute rounded contours, delightful kawaii mascot aesthetic, isolated clean background."
         ),
         is_illustration=True,
     ),
-    "📺 Kartun Klasik Retro (Classic Toon)": StylePreset(
-        name="📺 Kartun Klasik Retro",
+    "Kartun Klasik Retro (Classic Toon)": StylePreset(
+        name="Kartun Klasik Retro",
         directive=(
             "Vintage mid-century classic cartoon animation style, rubber hose limbs, hand-inked line work, "
             "technicolor warm palette, charming retro nostalgic charm."
         ),
         is_illustration=True,
     ),
-    "💥 Komik Pop Art (Comic Book & Halftone)": StylePreset(
-        name="💥 Komik Pop Art",
+    "Komik Pop Art (Comic Book & Halftone)": StylePreset(
+        name="Komik Pop Art",
         directive=(
             "Vintage comic book pop art illustration, bold heavy black outlines, Ben-Day halftone dots, "
             "high-saturation primary colors, dynamic graphic impact, Roy Lichtenstein inspired aesthetic."
         ),
         is_illustration=True,
     ),
-    "🍃 Whimsical Studio Anime (Ghibli-Inspired Aesthetic)": StylePreset(
-        name="🍃 Whimsical Studio Anime",
+    "Whimsical Studio Anime (Ghibli-Inspired Aesthetic)": StylePreset(
+        name="Whimsical Studio Anime",
         directive=(
             "Enchanting hand-painted whimsical anime background art, lush watercolor painted clouds and nature, "
             "nostalgic warm sunlight, tranquil peaceful countryside atmosphere, soft hand-drawn aesthetic."
         ),
         is_illustration=True,
     ),
-    "🌸 Pastel Kawaii Mascot Design": StylePreset(
-        name="🌸 Pastel Kawaii Mascot Design",
+    "Pastel Kawaii Mascot Design": StylePreset(
+        name="Pastel Kawaii Mascot Design",
         directive=(
             "Adorable kawaii character mascot design, soft pastel color palette (mint, lavender, butter yellow, soft pink), "
             "chubby rounded forms, cheerful friendly expression, clean cute stickers style, isolated plain background."
         ),
         is_illustration=True,
     ),
-    "🧸 3D Animated Feature (Pixar-Inspired Stylized CGI)": StylePreset(
-        name="🧸 3D Animated Feature",
+    "3D Animated Feature (Pixar-Inspired Stylized CGI)": StylePreset(
+        name="3D Animated Feature",
         directive=(
             "Premium stylized 3D animation feature CGI, subsurface scattering skin/materials, expressive appealing shapes, "
             "rich volumetric lighting, cinematic color grading, studio animated blockbuster quality."
@@ -296,9 +295,9 @@ STYLES: Dict[str, StylePreset] = {
         is_illustration=True,
     ),
 
-    # 4. 3D & Render
-    "🏝️ 3D Miniature Diorama (Miniature World)": StylePreset(
-        name="🏝️ 3D Miniature Diorama",
+    # 3D and renders
+    "3D Miniature Diorama (Miniature World)": StylePreset(
+        name="3D Miniature Diorama",
         directive=(
             "Intricate 3D miniature diorama, floating miniature island or cutaway isometric room, "
             "tilt-shift photography perspective, charming tiny detailed props, realistic miniature textures, "
@@ -306,48 +305,48 @@ STYLES: Dict[str, StylePreset] = {
         ),
         is_illustration=True,
     ),
-    "🧊 3D Commercial Studio Render": StylePreset(
-        name="🧊 3D Commercial Studio Render",
+    "3D Commercial Studio Render": StylePreset(
+        name="3D Commercial Studio Render",
         directive=(
             "Sleek commercial 3D render, minimalist studio podium setting, soft diffused lighting, "
             "matte ceramic and brushed metal materials, perfect smooth geometry, elegant product advertising look."
         ),
         is_illustration=True,
     ),
-    "📐 3D Isometric Illustration (Tech & Business)": StylePreset(
-        name="📐 3D Isometric Illustration",
+    "3D Isometric Illustration (Tech & Business)": StylePreset(
+        name="3D Isometric Illustration",
         directive=(
             "Orthographic 3D isometric illustration, precise geometric alignment, clean modular components, "
             "modern tech and business aesthetic, soft ambient occlusion shadows, vibrant gradient palette."
         ),
         is_illustration=True,
     ),
-    "🧱 3D Claymation (Tanah Liat Taktil)": StylePreset(
-        name="🧱 3D Claymation",
+    "3D Claymation (Tanah Liat Taktil)": StylePreset(
+        name="3D Claymation",
         directive=(
             "Charming tactile stop-motion claymation, handmade polymer clay texture with subtle fingerprints, "
             "soft physical studio lighting, miniature world feel, whimsical handcrafted warmth."
         ),
         is_illustration=True,
     ),
-    "🔷 Low-Poly 3D Minimalist": StylePreset(
-        name="🔷 Low-Poly 3D Minimalist",
+    "Low-Poly 3D Minimalist": StylePreset(
+        name="Low-Poly 3D Minimalist",
         directive=(
             "Stylized low-poly 3D art, visible clean polygon facets, vibrant flat shading, "
             "playful geometric simplicity, game asset aesthetic, crisp directional lighting."
         ),
         is_illustration=True,
     ),
-    "✨ Octane Render Photorealistic (CGI Ultra-Detail)": StylePreset(
-        name="✨ Octane Render Photorealistic",
+    "Octane Render Photorealistic (CGI Ultra-Detail)": StylePreset(
+        name="Octane Render Photorealistic",
         directive=(
             "Hyper-detailed Octane Render CGI, photorealistic raytraced caustic reflections, complex physical shaders, "
             "cinematic depth of field, dramatic illumination, 8K ultra-realistic digital sculpture."
         ),
         is_illustration=True,
     ),
-    "🪟 3D Glassmorphism & Akrilik Transparan": StylePreset(
-        name="🪟 3D Glassmorphism & Akrilik",
+    "3D Glassmorphism & Akrilik Transparan": StylePreset(
+        name="3D Glassmorphism & Akrilik",
         directive=(
             "Modern 3D glassmorphism aesthetic, frosted translucent glass, iridescent acrylic reflections, "
             "soft pastel refraction gradients, floating geometric elements, ultra-clean futuristic design."
@@ -355,9 +354,9 @@ STYLES: Dict[str, StylePreset] = {
         is_illustration=True,
     ),
 
-    # 5. Desain & Digital Art
-    "🏷️ Paket Stiker Die-Cut (Die-Cut Sticker Pack)": StylePreset(
-        name="🏷️ Paket Stiker Die-Cut",
+    # Digital design and vector
+    "Paket Stiker Die-Cut (Die-Cut Sticker Pack)": StylePreset(
+        name="Paket Stiker Die-Cut",
         directive=(
             "Commercial die-cut sticker sheet collection, multiple individual graphic stickers arranged in a neat balanced grid across the entire canvas, "
             "each sticker surrounded by a crisp clean white die-cut cutline border with subtle soft drop shadow, "
@@ -365,64 +364,64 @@ STYLES: Dict[str, StylePreset] = {
         ),
         is_illustration=True,
     ),
-    "📱 Icon Desain Aplikasi & Web (App Icon Set)": StylePreset(
-        name="📱 Icon Desain Aplikasi & Web",
+    "Icon Desain Aplikasi & Web (App Icon Set)": StylePreset(
+        name="Icon Desain Aplikasi & Web",
         directive=(
             "Modern vector app icon design, clean glyph geometry, squircle silhouette, balanced minimalist symbol, "
             "crisp pixel-perfect contours, professional UI/UX graphic resource."
         ),
         is_illustration=True,
     ),
-    "📄 Flat Design Vector Minimalist": StylePreset(
-        name="📄 Flat Design Vector Minimalist",
+    "Flat Design Vector Minimalist": StylePreset(
+        name="Flat Design Vector Minimalist",
         directive=(
             "Clean modern flat design vector illustration, bold geometric shapes, no gradients, curated limited color palette, "
             "minimalist negative space, corporate Memphis tech editorial aesthetic."
         ),
         is_illustration=True,
     ),
-    "🔶 Logo Monogram & Geometris": StylePreset(
-        name="🔶 Logo Monogram & Geometris",
+    "Logo Monogram & Geometris": StylePreset(
+        name="Logo Monogram & Geometris",
         directive=(
             "High-end corporate logo and monogram design, golden ratio geometry, elegant minimalist line art, "
             "isolated on solid plain background, luxury branding graphic asset."
         ),
         is_illustration=True,
     ),
-    "🌃 Cyberpunk & Futuristic Neon": StylePreset(
-        name="🌃 Cyberpunk & Futuristic Neon",
+    "Cyberpunk & Futuristic Neon": StylePreset(
+        name="Cyberpunk & Futuristic Neon",
         directive=(
             "High-tech cyberpunk digital art, glowing cyan and magenta neon rim lighting, dark rainy asphalt reflections, "
             "futuristic architectural backdrop, cinematic sci-fi contrast, atmospheric volumetric fog."
         ),
         is_illustration=True,
     ),
-    "⚙️ Steampunk Vintage Mekanikal": StylePreset(
-        name="⚙️ Steampunk Vintage Mekanikal",
+    "Steampunk Vintage Mekanikal": StylePreset(
+        name="Steampunk Vintage Mekanikal",
         directive=(
             "Intricate Victorian steampunk digital art, ornate brass gears, copper pipes, glowing amber vacuum tubes, "
             "rich leather textures, industrial steam atmosphere, retro-futuristic craftsmanship."
         ),
         is_illustration=True,
     ),
-    "📼 Synthwave & Retrowave 80s": StylePreset(
-        name="📼 Synthwave & Retrowave 80s",
+    "Synthwave & Retrowave 80s": StylePreset(
+        name="Synthwave & Retrowave 80s",
         directive=(
             "Vibrant 1980s synthwave retrowave aesthetic, glowing perspective wireframe grid, purple-pink sunset gradient, "
             "neon wireframes, chrome reflections, vintage CRT glow, nostalgic arcade vibe."
         ),
         is_illustration=True,
     ),
-    "👾 Pixel Art Klasik 16-bit": StylePreset(
-        name="👾 Pixel Art Klasik 16-bit",
+    "Pixel Art Klasik 16-bit": StylePreset(
+        name="Pixel Art Klasik 16-bit",
         directive=(
             "Masterful 16-bit pixel art, crisp pixel grid with no anti-aliasing blur, nostalgic retro video game aesthetic, "
             "expertly dithered shading, vibrant curated color palette."
         ),
         is_illustration=True,
     ),
-    "🧙 Digital Concept Art Fantasi & Sci-Fi": StylePreset(
-        name="🧙 Digital Concept Art Fantasi & Sci-Fi",
+    "Digital Concept Art Fantasi & Sci-Fi": StylePreset(
+        name="Digital Concept Art Fantasi & Sci-Fi",
         directive=(
             "Epic digital concept art, cinematic sweeping landscape, textured digital brushwork, dramatic atmospheric haze, "
             "masterful storytelling scale, industry production concept piece."
@@ -432,9 +431,9 @@ STYLES: Dict[str, StylePreset] = {
 }
 
 DEFAULT_STYLE_CATEGORY = "Fotografi (Photorealism)"
-DEFAULT_STYLE = "📷 Foto Komersial Bersih (Commercial Advertising)"
+DEFAULT_STYLE = "Foto Komersial Bersih (Commercial Advertising)"
 
-# Lighting Conditions
+# Lighting options
 LIGHTING_OPTIONS = {
     "Natural Soft Daylight": "Natural soft daylight, gentle diffused shadows, luminous and airy feel.",
     "Golden Hour / Warm Sunset": "Warm golden hour sunlight, low sun angle, rich amber glow, long soft shadows.",
@@ -445,7 +444,7 @@ LIGHTING_OPTIONS = {
 }
 DEFAULT_LIGHTING = "Studio Softbox (Clean Commercial)"
 
-# Camera Framing & Lenses
+# Camera options
 CAMERA_OPTIONS = {
     "85mm Prime (Portrait Bokeh)": "Shot on 85mm f/1.4 prime lens, sharp subject with soft creamy background bokeh.",
     "35mm Street (Authentic Environmental)": "Shot on 35mm f/2 lens, natural field of view showing surrounding environment candidly.",
@@ -455,7 +454,7 @@ CAMERA_OPTIONS = {
 }
 DEFAULT_CAMERA = "85mm Prime (Portrait Bokeh)"
 
-# Composition Types
+# Composition options
 COMPOSITION_OPTIONS = {
     "Negative Space for Copy / Headline": "Clean composition with generous empty negative space dedicated for advertising text and copy.",
     "Grid Simetris Seimbang (Sticker Sheet / Icon Pack)": "Neatly organized symmetrical grid layout, elements evenly distributed across the entire canvas with balanced margins on all sides, knolling arrangement, isolated on solid white background, no lopsided empty space.",
@@ -467,7 +466,7 @@ COMPOSITION_OPTIONS = {
 }
 DEFAULT_COMPOSITION = "Negative Space for Copy / Headline"
 
-# Concurrency / rate limiting defaults
+# Rate limit and retry settings
 MAX_RETRIES = 5
 BASE_BACKOFF_SECONDS = 2.0
 MAX_BACKOFF_SECONDS = 60.0
@@ -479,7 +478,6 @@ DEFAULT_ADOBE_CATEGORY = 12
 _ENV_KEY_RE = re.compile(r"^\s*(?:export\s+)?(GEMINI_API_KEY|GOOGLE_API_KEY)\s*=\s*(.*)$")
 
 
-# Client factory
 def get_env_file_path() -> str:
     """Return absolute path to .env file in the project root."""
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
