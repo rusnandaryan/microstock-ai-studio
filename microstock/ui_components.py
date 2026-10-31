@@ -1093,19 +1093,17 @@ def inject_css(is_dark: bool = True) -> None:
 
 
 def render_header() -> None:
-    """Render the top Modern Studio hero banner."""
+    """Render the top Modern Studio header."""
     st.markdown(
         """
-        <div class="ms-hero-modern">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1.2rem;">
+        <div class="ms-hero-modern" style="padding:1.2rem 1.5rem; margin-bottom:1.1rem;">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
             <div>
-              <div style="display:inline-flex; align-items:center; gap:0.5rem; background:rgba(37,99,235,0.15); border:1px solid rgba(59,130,246,0.35); border-radius:6px; padding:0.25rem 0.65rem; margin-bottom:0.6rem;">
-                <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#10B981; box-shadow:0 0 8px #10B981;"></span>
-                <span style="font-family:'Space Grotesk',sans-serif; font-size:0.75rem; font-weight:700; color:#60A5FA; letter-spacing:0.5px; text-transform:uppercase;">Vulkan NCNN Hardware Acceleration Active</span>
-              </div>
-              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:2rem; font-weight:800; color:#F8FAFC; letter-spacing:-0.5px;">Microstock AI Studio</h1>
-              <p style="margin:0.35rem 0 0; font-size:0.95rem; color:#94A3B8; font-weight:500; line-height:1.5;">
-                Workstation Komersial: Prompt Engineering Pro, Vulkan NCNN Upscaler, & Gemini Vision SEO 50 Keywords.
+              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:800; color:#F8FAFC; letter-spacing:-0.5px;">
+                Microstock AI Studio
+              </h1>
+              <p style="margin:0.25rem 0 0; font-size:0.9rem; color:#94A3B8; font-weight:500; line-height:1.4;">
+                Prompt Engineering Komersial, NCNN Upscaler, dan Gemini Vision SEO Metadata.
               </p>
             </div>
             <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
@@ -1115,19 +1113,13 @@ def render_header() -> None:
               </div>
               <div class="ms-stat-pill">
                 <span class="ms-stat-label">MIN RESOLUSI</span>
-                <span class="ms-stat-val">≥ 4 MP / 300 DPI</span>
+                <span class="ms-stat-val">≥ 4 MP</span>
               </div>
               <div class="ms-stat-pill">
-                <span class="ms-stat-label">PRIVACY ENGINE</span>
-                <span class="ms-stat-val">100% RAM Lokal</span>
+                <span class="ms-stat-label">PEMROSESAN</span>
+                <span class="ms-stat-val">RAM Lokal</span>
               </div>
             </div>
-          </div>
-          <div class="ms-badges-container" style="margin-top:1rem;">
-            <span class="ms-step-badge ms-badge-accent">Prompt Komersial (80-160 Kata)</span>
-            <span class="ms-step-badge ms-badge-green">Gemini Vision SEO (50 Keywords)</span>
-            <span class="ms-step-badge ms-badge-purple">Auto-Sync Folder Downloads</span>
-            <span class="ms-step-badge ms-badge-amber">Smart Microstock ~8 MP (File Ringan)</span>
           </div>
         </div>
         """,
@@ -1140,25 +1132,11 @@ def render_sidebar() -> Optional[str]:
     with st.sidebar:
         st.markdown(
             """
-            <div class="ms-card-modern" style="padding:0.75rem 0.9rem; margin-bottom:1rem; border-color:var(--border-color); background:var(--bg-input);">
-              <div style="display:flex; align-items:center; justify-content:space-between;">
-                <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.82rem; color:var(--text-accent); letter-spacing:0.5px;">
-                  ● STUDIO PRO DARK
-                </span>
-                <span class="ms-step-badge ms-badge-green" style="font-size:0.7rem; padding:1px 6px;">
-                  Vulkan GPU
-                </span>
-              </div>
+            <div style="padding:0.4rem 0 0.7rem; margin-bottom:0.6rem; border-bottom:1px solid var(--border-color);">
+              <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; color:var(--text-accent); letter-spacing:0.5px;">
+                STUDIO WORKSTATION
+              </span>
             </div>
-            """,
-            unsafe_allow_html=True,
-        )
-
-        st.markdown(
-            """
-            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
-              // ENGINE & API ACCESS
-            </p>
             """,
             unsafe_allow_html=True,
         )
@@ -1166,38 +1144,38 @@ def render_sidebar() -> Optional[str]:
         saved_key = config.load_saved_api_key()
 
         if saved_key:
-            masked = saved_key[:6] + "..." + saved_key[-4:] if len(saved_key) > 12 else "●●●●●●●●"
+            masked = saved_key[:6] + "..." + saved_key[-4:] if len(saved_key) > 12 else "••••••••"
             st.markdown(
                 f"""
-                <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:0.8rem;">
+                <div class="ms-card-modern" style="padding:0.85rem; margin-bottom:0.8rem;">
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.3rem;">
-                    <b style="font-size:0.92rem; color:var(--text-primary);">Gemini API Key</b>
+                    <b style="font-size:0.9rem; color:var(--text-primary);">Gemini API Key</b>
                     <span class="ms-step-badge ms-badge-green" style="font-size:0.68rem; padding:1px 6px;">Aktif</span>
                   </div>
-                  <p style="font-size:0.82rem; color:var(--text-secondary); margin:0 0 0.45rem;">
-                    Tersimpan aman di komputer lokal Anda.
+                  <p style="font-size:0.8rem; color:var(--text-secondary); margin:0 0 0.45rem;">
+                    Tersimpan di perangkat lokal.
                   </p>
-                  <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.82rem; font-weight:600; color:var(--text-accent); font-family:'Space Grotesk', monospace; display:inline-block;">
-                    Key: {masked}
+                  <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.8rem; font-weight:600; color:var(--text-accent); font-family:'Space Grotesk', monospace; display:inline-block;">
+                    {masked}
                   </div>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
 
-            if st.button("Hapus API Key dari Komputer", type="secondary", use_container_width=True):
+            if st.button("Hapus API Key", type="secondary", use_container_width=True):
                 config.delete_saved_api_key()
-                st.toast("API Key berhasil dihapus dari komputer lokal!", icon="🗑️")
+                st.toast("API Key dihapus dari penyimpanan lokal.")
                 st.rerun()
             api_key = saved_key
         else:
             st.markdown(
                 """
-                <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:0.8rem;">
-                  <b style="font-size:0.92rem; color:var(--text-primary); display:block; margin-bottom:0.2rem;">
-                    🔑 Masukkan Gemini API Key
+                <div class="ms-card-modern" style="padding:0.85rem; margin-bottom:0.8rem;">
+                  <b style="font-size:0.9rem; color:var(--text-primary); display:block; margin-bottom:0.2rem;">
+                    Gemini API Key
                   </b>
-                  <p style="font-size:0.82rem; color:var(--text-secondary); margin:0; line-height:1.4;">
+                  <p style="font-size:0.8rem; color:var(--text-secondary); margin:0; line-height:1.4;">
                     Dibutuhkan untuk analisis Vision & metadata. Dapatkan gratis di Google AI Studio.
                   </p>
                 </div>
@@ -1206,18 +1184,25 @@ def render_sidebar() -> Optional[str]:
             )
             typed = st.text_input(
                 "Gemini API Key:", type="password", key="api_key_input",
-                placeholder="Tempelkan API Key di sini (AIzaSy...)",
+                placeholder="Tempelkan API Key di sini",
                 help="Dapatkan API key gratis di aistudio.google.com",
             )
             api_key = typed.strip() if typed else None
 
             if api_key:
-                if st.button("💾 Simpan Permanen di Komputer", type="primary", use_container_width=True):
+                if st.button("Simpan di Perangkat Ini", type="primary", use_container_width=True):
                     config.save_api_key(api_key)
-                    st.toast("API Key berhasil disimpan di komputer lokal!", icon="✅")
+                    st.toast("API Key disimpan ke komputer lokal.")
                     st.rerun()
             else:
-                st.caption("Belum punya API key? Buka [aistudio.google.com](https://aistudio.google.com) (Gratis).")
+                st.caption("Dapatkan gratis di [aistudio.google.com](https://aistudio.google.com).")
+
+        st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
+
+        if st.button("Bersihkan Cache", type="secondary", use_container_width=True):
+            st.cache_data.clear()
+            st.cache_resource.clear()
+            st.toast("Cache berhasil dibersihkan.")
 
         st.divider()
 
@@ -1240,18 +1225,18 @@ def render_sidebar() -> Optional[str]:
         st.markdown(
             """
             <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
-              // UTILITIES & STORAGE
+              Utilitas & Cache
             </p>
             """,
             unsafe_allow_html=True,
         )
-        if st.button("🧹 Bersihkan Cache Streamlit", use_container_width=True, type="secondary"):
+        if st.button("Bersihkan Cache Streamlit", use_container_width=True, type="secondary"):
             st.cache_data.clear()
             st.cache_resource.clear()
-            st.toast("Cache Streamlit berhasil dibersihkan!", icon="🧹")
+            st.toast("Cache Streamlit berhasil dibersihkan.")
 
         st.divider()
-        st.caption("Microstock AI Studio v2.5 Pro · Dark Obsidian Engine")
+        st.caption("Microstock AI Studio v2.5")
 
     return api_key
 

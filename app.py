@@ -30,7 +30,6 @@ from microstock.ui_components import (
 
 st.set_page_config(
     page_title="Microstock AI Studio Pro",
-    page_icon="📸",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -55,37 +54,15 @@ tab1, tab2, tab3 = st.tabs([
 
 # TAB 1: COMMERCIAL PROMPT STUDIO
 with tab1:
-    st.markdown(
-        """
-        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <div>
-              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
-                Generator Prompt Komersial Siap Pakai
-              </h2>
-              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
-                Formulasi prompt dengan 7 aturan komersial: 100% bebas model wanita, faceless, reservasi copy space, dan bebas trademark.
-              </p>
-            </div>
-            <div style="display:flex; gap:0.4rem;">
-              <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Zero Trademark</span>
-              <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">✓ Faceless / Back-angle</span>
-            </div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # =========================================================================
     # Trend Discovery Section (Full Width Landscape Banner)
     # =========================================================================
-    with st.expander("📅 10 Momen & Hari Besar Mendatang (Inspirasi Microstock)", expanded=bool("market_trends" in st.session_state)):
+    with st.expander("10 Momen Komersial Mendatang", expanded=bool("market_trends" in st.session_state)):
         col_scan_text, col_scan_btn = st.columns([3, 1], gap="medium")
         with col_scan_text:
-            st.caption("Pindai kalender momen global mendatang untuk menemukan 10 event bernilai komersial tinggi lengkap dengan 3 variasi sudut pandang visual.")
+            st.caption("Pindai kalender momen global mendatang untuk menemukan 10 event bernilai komersial tinggi lengkap dengan 4 variasi sudut pandang.")
         with col_scan_btn:
-            if st.button("🔄 Pindai 10 Momen Tren", use_container_width=True, type="secondary"):
+            if st.button("Pindai 10 Momen", use_container_width=True, type="secondary"):
                 if not api_key:
                     st.warning("Masukkan API Key di sidebar terlebih dahulu.")
                 else:
@@ -105,6 +82,7 @@ with tab1:
             raw_data = st.session_state.market_trends
             trends_list = raw_data.get("trends", []) if isinstance(raw_data, dict) else raw_data
             if trends_list:
+                import re
                 from microstock.trend_analyzer import ensure_trend_variations
 
                 if "selected_trend_idx" not in st.session_state:
@@ -138,7 +116,6 @@ with tab1:
                     active_idx = 0
                 active_trend = trends_list[active_idx]
 
-                # Selalu pastikan ada minimal 3-4 variasi sudut pandang
                 variations = ensure_trend_variations(active_trend)
                 var_idx = st.session_state.trend_var_indices.get(active_idx, 0) % len(variations)
                 active_concept = variations[var_idx]
@@ -146,7 +123,8 @@ with tab1:
                 if not st.session_state.get("tab1_base_idea"):
                     st.session_state.tab1_base_idea = active_concept
 
-                status_badge = active_trend.get("market_status", "🔥 Viral")
+                raw_status = active_trend.get("market_status", "Viral")
+                status_badge = re.sub(r"[^\w\s/]", "", str(raw_status)).strip() or "Viral"
                 event_name = active_trend.get("event_name") or active_trend.get("category", "Momen Peringatan")
                 target_date = active_trend.get("target_date", "Mendatang")
                 rec_cat = active_trend.get("recommended_cat", "Fotografi (Photorealism)")
@@ -163,7 +141,10 @@ with tab1:
                             <span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:2px 7px;">{status_badge}</span>
                           </div>
                           <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem;">
-                            🗓️ <b>Waktu:</b> {target_date} &nbsp;·&nbsp; 🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                            <b>Waktu:</b> {target_date} &nbsp;·&nbsp;
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                            <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
                           </div>
                           <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.15rem 0; line-height:1.35;">
                             <i>"{active_trend.get('reason', '')}"</i>
@@ -177,7 +158,10 @@ with tab1:
                         f"""
                         <div class="ms-card-modern" style="padding:0.75rem 0.95rem; margin-bottom:0.4rem; border-color:var(--accent-primary);">
                           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
-                            <span style="font-size:0.75rem; font-weight:700; color:var(--accent-primary);">💡 KONSEP VARIASI #{var_idx + 1} DARI {len(variations)}</span>
+                            <span style="font-size:0.75rem; font-weight:700; color:var(--accent-primary); letter-spacing:0.5px;">
+                              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M9 18h6M10 22h4M15 2a6 6 0 0 0-6 6c0 2 1 3.5 2 4.5V14a1 1 0 0 0 1 1h2a1 1 0 0 0 1-1v-1.5c1-1 2-2.5 2-4.5a6 6 0 0 0-6-6z"/></svg>
+                              KONSEP VARIASI {var_idx + 1} DARI {len(variations)}
+                            </span>
                           </div>
                           <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary); min-height:42px; line-height:1.35;">
                             {active_concept}
@@ -207,14 +191,14 @@ with tab1:
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
                     st.button(
-                        f"🎲 Ganti Variasi Konsep ({var_idx + 1}/{len(variations)})",
+                        f"Ganti Variasi ({var_idx + 1}/{len(variations)})",
                         key=f"cycle_var_{active_idx}",
                         on_click=_cycle_concept,
                         use_container_width=True,
                     )
                 with btn_col2:
                     st.button(
-                        "✅ Terapkan Gaya & Rasio ke Form",
+                        "Terapkan ke Form",
                         key=f"apply_all_{active_idx}",
                         on_click=_apply_current_trend,
                         use_container_width=True,
@@ -339,7 +323,7 @@ with tab1:
                             composition=selected_comp,
                         )
                         st.session_state.enhanced_prompt = res_prompt
-                        st.toast("Prompt komersial berhasil diracik!", icon="✅")
+                        st.toast("Prompt komersial berhasil diracik.")
                     except Exception as e:
                         st.error(f"Gagal membuat prompt: {e}")
 
@@ -355,16 +339,6 @@ with tab1:
 
         prompt_val = st.session_state.enhanced_prompt
         if prompt_val:
-            st.markdown(
-                """
-                <div style="display:flex; gap:0.4rem; flex-wrap:wrap; margin-bottom:0.6rem;">
-                  <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Faceless / Back-angle</span>
-                  <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">✓ Copy Space Ready</span>
-                  <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">✓ Zero Trademark</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
             # Handle string and legacy list gracefully
             if isinstance(prompt_val, list):
                 prompt_text = prompt_val[0] if prompt_val else ""
@@ -378,7 +352,7 @@ with tab1:
             c_btn1, c_btn2 = st.columns(2)
             with c_btn1:
                 st.link_button(
-                    "Buka Google Gemini Web",
+                    "Buka Gemini Web",
                     "https://gemini.google.com",
                     use_container_width=True,
                     type="primary",
@@ -388,13 +362,13 @@ with tab1:
                     st.session_state.enhanced_prompt = ""
                     st.rerun()
 
-            with st.expander("Panduan Alur Kerja Cepat (Auto-Sync Tanpa Upload Manual):", expanded=True):
+            with st.expander("Panduan Alur Kerja Auto-Sync:", expanded=True):
                 st.markdown(
                     """
-                    1. **Salin Prompt**: Klik ikon salin di sudut kanan atas kotak prompt di atas.
-                    2. **Tempel di Gemini Web**: Buka `gemini.google.com` dan tempelkan prompt tersebut.
-                    3. **Download Gambar**: Klik tombol unduh (⬇️) pada gambar pilihan Anda di web Gemini.
-                    4. **Buka Tab 2**: Gambar yang baru diunduh akan **otomatis terdeteksi via Auto-Sync**! Cukup 1 klik untuk memasukkannya ke antrean, langsung siap di-upscale (garansi ≥ 4 MP & opsional ≥ 4 MB) dan disusun 50 keywords SEO akurat tanpa repot upload manual.
+                    1. **Salin Prompt**: Klik tombol salin di sudut kanan atas kotak prompt.
+                    2. **Tempel di Gemini Web**: Buka `gemini.google.com` dan tempelkan prompt.
+                    3. **Download Gambar**: Unduh gambar pilihan Anda di web Gemini.
+                    4. **Buka Tab 2**: Gambar yang baru diunduh otomatis terdeteksi via Auto-Sync, siap di-upscale dan disusun 50 keywords SEO.
                     """
                 )
         else:
@@ -413,34 +387,12 @@ with tab1:
 
 # TAB 2: INSPEKSI GAMBAR & METADATA (GEMINI VISION)
 with tab2:
-    st.markdown(
-        """
-        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <div>
-              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
-                Inspeksi Visual & Paket Microstock
-              </h2>
-              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
-                Inspeksi elemen visual nyata dengan Gemini Vision, upscale resolusi NCNN (≥ 4 MP), dan susun 50 keyword SEO siap upload CSV/ZIP.
-              </p>
-            </div>
-            <div style="display:flex; gap:0.4rem;">
-              <span class="ms-step-badge ms-badge-purple" style="font-size:0.75rem;">Gemini Vision AI</span>
-              <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem;">50 Keywords Sorted</span>
-            </div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     # 1. AUTO-SYNC DOWNLOAD FOLDER WATCHER
-    with st.expander("Auto-Sync dari Folder Download (Deteksi Otomatis & Akumulasi)", expanded=True):
+    with st.expander("Auto-Sync Folder Download", expanded=True):
         st.markdown(
             """
-            <p style="font-size:0.9rem; color:var(--text-secondary); margin:0 0 0.6rem; font-weight:500;">
-              Fitur ini otomatis mendeteksi batch gambar yang Anda unduh dari <b>gemini.google.com</b>. Anda dapat memindai berkali-kali (gambar baru akan otomatis <b>diakumulasi tanpa duplikasi</b>).
+            <p style="font-size:0.88rem; color:var(--text-secondary); margin:0 0 0.5rem; font-weight:500;">
+              Mendeteksi otomatis gambar yang diunduh dari <b>gemini.google.com</b> dan mengakumulasi gambar baru tanpa duplikasi.
             </p>
             """,
             unsafe_allow_html=True,
@@ -448,27 +400,26 @@ with tab2:
         col_w1, col_w2, col_w3 = st.columns([2.5, 2, 1.2])
         with col_w1:
             watch_path = st.text_input(
-                "Folder Download yang Dipantau:",
+                "Folder Download:",
                 value=st.session_state.get("watch_dir", folder_watcher.get_default_downloads_dir()),
                 key="input_watch_dir",
-                help="Folder di Mac Anda tempat file hasil download Gemini Web mendarat (default: ~/Documents/Gemini Generated Images).",
+                help="Folder penyimpanan unduhan Gemini Web.",
             )
             st.session_state["watch_dir"] = watch_path
         with col_w2:
             selected_window = st.selectbox(
-                "Jendela Waktu Unduhan:",
+                "Rentang Waktu Unduhan:",
                 options=list(folder_watcher.TIME_WINDOWS.keys()),
-                index=0,  # 15 Menit Terakhir (Sesi Sekarang)
-                help="Hanya mendeteksi gambar yang diunduh dalam rentang waktu ini, mengabaikan file lama.",
+                index=0,
+                help="Mendeteksi gambar dalam rentang waktu yang dipilih.",
             )
         with col_w3:
-            st.caption("Pindai Folder:")
-            btn_scan = st.button("🔄 Pindai Sekarang", use_container_width=True)
+            st.caption("Aksi:")
+            btn_scan = st.button("Pindai Folder", use_container_width=True)
 
-        # Check for active in-progress downloads
         pending_dl = folder_watcher.check_pending_downloads(watch_path)
         if pending_dl > 0:
-            st.info(f"⏳ Terdeteksi **{pending_dl} file** sedang dalam proses download di browser. Tunggu hingga download selesai di browser, lalu klik **Pindai Sekarang** lagi.")
+            st.info(f"{pending_dl} file sedang dalam proses unduh di browser. Tunggu selesai, lalu klik Pindai Folder.")
 
         cutoff = folder_watcher.get_cutoff_timestamp(selected_window)
         found_files = folder_watcher.scan_recent_images(watch_path, since_timestamp=cutoff, max_files=50)
@@ -477,11 +428,10 @@ with tab2:
         existing_filenames = {item[0] for item in current_imported}
 
         if found_files:
-            # Count how many of the found files are genuinely new
             unimported_count = sum(1 for fn, _, _, _ in found_files if fn not in existing_filenames)
             st.markdown(
-                f"**Terdeteksi {len(found_files)} gambar pada rentang waktu ini** "
-                f"*( {unimported_count} gambar baru belum masuk antrean, {len(found_files) - unimported_count} sudah ada )*:"
+                f"**Terdeteksi {len(found_files)} gambar** "
+                f"({unimported_count} baru, {len(found_files) - unimported_count} sudah di antrean):"
             )
 
             thumb_cols = st.columns(min(len(found_files), 5))
@@ -489,12 +439,12 @@ with tab2:
                 with thumb_cols[i]:
                     img_data = folder_watcher.read_image_bytes(fpath)
                     if img_data:
-                        badge = "✅" if fn in existing_filenames else "🆕"
-                        st.image(img_data[1], caption=f"{badge} {fn[:12]}.. ({fsize//1024} KB)", use_container_width=True)
+                        tag_str = "[Baru]" if fn not in existing_filenames else "[Antrean]"
+                        st.image(img_data[1], caption=f"{tag_str} {fn[:14]} ({fsize//1024} KB)", use_container_width=True)
 
             c_imp1, c_imp2 = st.columns([2.5, 1.5])
             with c_imp1:
-                btn_add_label = f"📥 Tambahkan {unimported_count} Gambar Baru ke Antrean" if unimported_count > 0 else "✅ Semua Gambar Sudah Masuk Antrean"
+                btn_add_label = f"Tambahkan {unimported_count} Gambar ke Antrean" if unimported_count > 0 else "Semua Gambar Sudah di Antrean"
                 if st.button(btn_add_label, type="primary", use_container_width=True, disabled=unimported_count == 0):
                     added_count = 0
                     for fn, fpath, mtime, fsize in found_files:
@@ -505,27 +455,27 @@ with tab2:
                                 existing_filenames.add(fn)
                                 added_count += 1
                     st.session_state["imported_from_watcher"] = current_imported
-                    st.toast(f"Berhasil menambahkan {added_count} gambar! Total antrean: {len(current_imported)} gambar.", icon="✅")
+                    st.toast(f"{added_count} gambar ditambahkan ke antrean.")
                     st.rerun()
             with c_imp2:
                 if current_imported:
-                    if st.button(f"🗑️ Kosongkan Antrean ({len(current_imported)} Gambar)", use_container_width=True):
+                    if st.button(f"Kosongkan Antrean ({len(current_imported)})", use_container_width=True):
                         st.session_state["imported_from_watcher"] = []
                         st.rerun()
         else:
             st.markdown(
                 f"""
-                <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 1.5rem; text-align: center; margin-top: 0.6rem;">
-                  <b style="font-size: 1rem; color: var(--text-primary); display: block; margin-bottom: 0.35rem;">Belum Ada Gambar Baru yang Terdeteksi</b>
-                  <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 0; line-height: 1.5;">
-                    Setelah mengunduh gambar dari Gemini Web ke folder <code>{watch_path}</code>, klik tombol <b>Pindai Sekarang</b> di atas untuk mendeteksi batch secara otomatis.
+                <div class="ms-card-modern" style="border: 1px dashed var(--border-color); padding: 1.2rem; text-align: center; margin-top: 0.5rem;">
+                  <b style="font-size: 0.95rem; color: var(--text-primary); display: block; margin-bottom: 0.25rem;">Belum Ada Gambar Baru yang Terdeteksi</b>
+                  <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 0; line-height: 1.4;">
+                    Unduh gambar dari Gemini Web ke folder <code>{watch_path}</code>, lalu klik tombol Pindai Folder.
                   </p>
                 </div>
                 """,
                 unsafe_allow_html=True,
             )
             if current_imported:
-                if st.button(f"🗑️ Kosongkan Antrean Auto-Sync ({len(current_imported)} Gambar)", use_container_width=True):
+                if st.button(f"Kosongkan Antrean ({len(current_imported)})", use_container_width=True):
                     st.session_state["imported_from_watcher"] = []
                     st.rerun()
 
@@ -601,9 +551,9 @@ with tab2:
                         help="Smart Microstock melakukan upscale AI 4x untuk detail tajam, lalu mengoptimalkan dimensi ke standar 4K (~8 MP) agar file tidak membengkak dan cepat diunggah. Ultra 4x mempertahankan resolusi biner 4x penuh."
                     )
                     if "Smart" in upscale_mode:
-                        st.caption("✓ **Mode Smart Microstock Aktif:** Detail AI 4x tajam, dimensi optimal ~8 MP, ukuran file hemat (3-6 MB).")
+                        st.caption("Mode Smart Microstock: Detail tajam, dimensi optimal ~8 MP, ukuran file hemat (3-6 MB).")
                     else:
-                        st.caption("✓ **Mode Ultra 4x Aktif:** Resolusi biner 4x penuh (16-25 MP), ukuran file berkisar 10-25 MB.")
+                        st.caption("Mode Ultra 4x: Resolusi biner 4x penuh (16-25 MP), ukuran file berkisar 10-25 MB.")
                 else:
                     upscale_mode = "Off"
 
@@ -616,9 +566,9 @@ with tab2:
                         help="Standar wajib untuk kurasi Freepik / Vecteezy. Jika dicentang, berkas dipadatkan dengan padding marker non-destruktif sehingga dijamin ≥ 4 MB tanpa mengubah kualitas pixel."
                     )
                     if enforce_4mb:
-                        st.caption("✓ **Standar Freepik/Vecteezy Aktif:** Ukuran file fisik dijamin minimal **4 MB**.")
+                        st.caption("Standar Freepik/Vecteezy: Ukuran file fisik minimal 4 MB.")
                     else:
-                        st.caption("ℹ️ *Opsional:* Aktifkan jika Anda mengirim ke Freepik/Vecteezy yang menolak file < 4 MB.")
+                        st.caption("Aktifkan jika mengirim ke agensi yang mewajibkan file minimal 4 MB.")
 
         st.markdown("<br>", unsafe_allow_html=True)
         btn_analyze = st.button(
@@ -647,7 +597,7 @@ with tab2:
                             label=f"Gambar #{idx+1}",
                         )
                     except Exception as e:
-                        st.toast(f"⚠️ Gagal menyusun metadata untuk {filename}: {e}", icon="⚠️")
+                        st.toast(f"Gagal menyusun metadata untuk {filename}: {e}")
                         clean_title = os.path.splitext(filename)[0].replace("_", " ").replace("-", " ").strip().title()
                         from microstock.metadata import ImageMetadata
                         md = ImageMetadata(
@@ -683,7 +633,7 @@ with tab2:
                                         target_bytes = out_f.read()
                                 else:
                                     err_detail = f" ({err_msg})" if err_msg else ""
-                                    st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.", icon="⚠️")
+                                    st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.")
                             finally:
                                 for p in (in_path, out_path):
                                     if p and os.path.exists(p):
@@ -754,13 +704,13 @@ with tab2:
                 "csv": csv_bytes,
                 "local_dir": local_export_dir,
             }
-            st.success(f"Berhasil menganalisis {len(processed_items)} gambar dengan 100% akurasi visual!")
+            st.success(f"Berhasil menganalisis {len(processed_items)} gambar.")
             if do_upscale:
                 mode_label = "Smart Microstock ~8 MP" if "Smart" in upscale_mode else "Ultra 4x Penuh"
                 rule_info = f"mode {mode_label}, resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if enforce_4mb else "")
                 st.info(f"Gambar hasil upscale ({rule_info}) dan file CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
             else:
-                st.info(f"File metadata CSV otomatis tersimpan di folder lokal (file gambar asli tidak disimpan untuk menghemat ruang disk):\n`{local_export_dir}`")
+                st.info(f"File metadata CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
 
     # Display Results & Export Hub
     package = st.session_state.batch_package
@@ -781,28 +731,6 @@ with tab2:
 
 # TAB 3: REVERSE PROMPT (IMAGE TO PROMPT)
 with tab3:
-    st.markdown(
-        """
-        <div class="ms-card-modern" style="padding:1.1rem 1.3rem; margin-bottom:1.3rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.5rem;">
-            <div>
-              <h2 style="font-family:'Space Grotesk',sans-serif; font-size:1.45rem; font-weight:800; margin:0 0 0.2rem; color:var(--text-primary);">
-                Reverse Prompt Studio (Image to Prompt)
-              </h2>
-              <p style="color:var(--text-secondary); font-size:0.88rem; margin:0; font-weight:500;">
-                Bedah visual gambar referensi menjadi formula prompt fotografi komersial yang dapat direproduksi dan disimpan otomatis ke .txt.
-              </p>
-            </div>
-            <div style="display:flex; gap:0.4rem;">
-              <span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem;">Deconstruct Matrix</span>
-              <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem;">Auto-Save TXT</span>
-            </div>
-          </div>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
     uploaded_ref_files = st.file_uploader(
         "Pilih atau seret gambar referensi Anda (JPG, PNG, WebP):",
         type=["jpg", "jpeg", "png", "webp"],
@@ -866,7 +794,7 @@ with tab3:
                         )
                         saved_path = save_prompt_to_file(prompt_str, filename)
                     except Exception as e:
-                        st.toast(f"⚠️ Gagal menganalisis {filename}: {e}", icon="⚠️")
+                        st.toast(f"Gagal menganalisis {filename}: {e}")
                         ratio = _detect_ratio(w, h)
                         prompt_str = f"Commercial microstock asset [Aspect Ratio: {ratio}]"
                         saved_path = ""
@@ -883,7 +811,7 @@ with tab3:
                 rev_progress.progress(1.0, text=f"Selesai! {len(results)} prompt berhasil dibuat.")
 
             st.session_state.reverse_results = results
-            st.toast("Reverse Prompt berhasil dibuat dan disimpan!", icon="✅")
+            st.toast("Reverse Prompt berhasil dibuat dan disimpan!")
 
     # Display results
     if "reverse_results" in st.session_state and st.session_state.reverse_results:
@@ -903,7 +831,7 @@ with tab3:
                 with col_img:
                     st.image(item["raw_bytes"], caption=item["filename"], use_container_width=True)
                     rel_path = os.path.relpath(item["saved_path"], os.path.dirname(os.path.abspath(__file__)))
-                    st.caption(f"💾 File: `{rel_path}`")
+                    st.caption(f"File: `{rel_path}`")
                 with col_prompt:
                     st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
                     st.code(item["prompt"], language=None, wrap_lines=True)
@@ -915,7 +843,7 @@ with tab3:
                             use_container_width=True,
                         )
                     with c_act2:
-                        if st.button(f"📥 Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
+                        if st.button("Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
                             st.session_state.tab1_base_idea = item["prompt"]
-                            st.toast("Prompt berhasil dikirim ke Tab 1!", icon="✅")
+                            st.toast("Prompt berhasil dikirim ke Tab 1!")
 

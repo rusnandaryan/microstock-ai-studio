@@ -19,14 +19,14 @@ Untuk setiap momen atau hari peringatan (total 10 item), berikan:
 2. "category": Sama dengan event_name.
 3. "target_date": Perkiraan tanggal atau bulan perayaan (contoh: "22 April", "Minggu ke-3 Mei").
 4. "market_status": Estimasi tingkat atensi publik dan media:
-   - "🔥 Viral / Liputan Global Masif"
-   - "⭐ Tradisi Tahunan Best-Seller"
-   - "🚀 Momen Baru / Rising Awareness"
+   - "Viral / Liputan Masif"
+   - "Tradisi Tahunan"
+   - "Rising Trend"
 5. "reason": Penjelasan ringkas mengapa momen ini menarik atensi media dan aset visualnya sangat dicari pengiklan saat ini.
 6. "ideas": Array berisi 3 ide visual komersial konkret yang BERBEDA sudut pandang (misal: sudut close-up/hands-in-action, sudut still-life/flatlay objek, sudut arsitektur/lanskap luas). Semua 100% AMAN hak cipta, TANPA wanita, TANPA teks/tulisan/angka/logo, faceless.
 7. "recommended_cat": Kategori visual yang paling cocok, WAJIB salah satu dari:
    ["Fotografi (Photorealism)", "Ilustrasi & Seni Lukis", "Animasi & Kartun", "3D & Render", "Desain & Digital Art"]
-8. "recommended_style": Sub-gaya yang direkomendasikan (misal: "📷 Foto Komersial Bersih (Commercial Advertising)", "📐 3D Isometric Illustration (Tech & Business)", "🏷️ Paket Stiker Die-Cut (Die-Cut Sticker Pack)", dll).
+8. "recommended_style": Sub-gaya yang direkomendasikan (misal: "Foto Komersial Bersih (Commercial Advertising)", "3D Isometric Illustration (Tech & Business)", "Paket Stiker Die-Cut (Die-Cut Sticker Pack)", dll).
 9. "recommended_ratio": Rasio aspek terbaik, pilih salah satu dari: ["16:9", "1:1", "9:16", "4:3"].
 
 Keluarkan HANYA array JSON yang valid berisi 10 objek tanpa markdown formatting.

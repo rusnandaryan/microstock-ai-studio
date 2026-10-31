@@ -147,11 +147,11 @@ class TestTrendAnalyzerParser(unittest.TestCase):
             {
                 "event_name": f"Event {i}",
                 "target_date": f"{i} Mei",
-                "market_status": "🔥 Viral",
+                "market_status": "Viral",
                 "reason": "Liputan media tinggi",
                 "ideas": [f"Visual A {i}", f"Visual B {i}", f"Visual C {i}"],
                 "recommended_cat": "Fotografi (Photorealism)",
-                "recommended_style": "📷 Foto Komersial Bersih",
+                "recommended_style": "Foto Komersial Bersih",
                 "recommended_ratio": "16:9",
             }
             for i in range(1, 11)
