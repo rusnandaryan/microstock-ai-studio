@@ -348,6 +348,28 @@ class TestConfigKeyStore(unittest.TestCase):
                 loaded_after = config.load_saved_api_key()
                 self.assertIsNone(loaded_after)
 
+    def test_read_env_flexible_formatting(self):
+        import tempfile
+        import os
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_env = os.path.join(tmp_dir, ".env")
+            with open(fake_env, "w") as f:
+                f.write('export GOOGLE_API_KEY = "flex_key_999"\n')
+            with patch("microstock.config.get_env_file_path", return_value=fake_env):
+                self.assertEqual(config.load_saved_api_key(), "flex_key_999")
+
+    def test_resolve_api_key_precedence(self):
+        from unittest.mock import patch
+        # 1. User supplied takes highest priority
+        self.assertEqual(config.resolve_api_key("direct_key"), "direct_key")
+
+        # 2. Saved .env file takes precedence over env vars
+        with patch("microstock.config._read_env_file", return_value="env_file_key"):
+            with patch.dict("os.environ", {"GEMINI_API_KEY": "ambient_os_key"}):
+                self.assertEqual(config.resolve_api_key(), "env_file_key")
+
 
 class TestCliInterface(unittest.TestCase):
     def test_cli_help_runs_cleanly(self):

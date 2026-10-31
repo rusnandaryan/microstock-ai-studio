@@ -7,14 +7,14 @@ free of magic strings.
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
-from typing import Dict, Optional
+from typing import Dict, List, Optional
 
 from google import genai
 
 # Models
 # Text models for prompt enhancement & metadata SEO (with fallbacks if 503 high demand)
-TEXT_MODEL = "gemini-3.1-flash-lite"
 TEXT_MODEL_FALLBACKS = [
     "gemini-3.1-flash-lite",
     "gemini-3.5-flash-lite",
@@ -22,22 +22,18 @@ TEXT_MODEL_FALLBACKS = [
 ]
 
 # Microstock Resolution Standards (Adobe Stock & Shutterstock Requirements)
-# Minimum: 4 Megapixels (MP)
-# Maximum: 100 Megapixels (MP)
-MIN_IMAGE_MEGAPIXELS = 4.0
 MAX_IMAGE_MEGAPIXELS = 100.0
 TARGET_MIN_PIXELS = 4_200_000  # Safe upscale target (e.g. 2050x2050) to guarantee >= 4MP
 SMART_MICROSTOCK_TARGET_PIXELS = 8_294_400  # ~8.3 MP (ideal balance: 4K sharpness, 3-6 MB file size)
 MIN_FILE_SIZE_BYTES = 4_194_304  # 4 MB (4 * 1024 * 1024 bytes) for sites like Freepik / Vecteezy
 
-# Aspect ratios -> API value + resulting pixel dimensions (per image_size)
-# Source: Gemini image-generation docs (3.1 Flash Image / 3 Pro Image tables).
-ASPECT_RATIOS: Dict[str, Dict[str, str]] = {
-    "1:1": {"1K": "1024x1024", "2K": "2048x2048", "4K": "4096x4096"},
-    "9:16": {"1K": "768x1376", "2K": "1536x2752", "4K": "3072x5504"},
-    "16:9": {"1K": "1376x768", "2K": "2752x1536", "4K": "5504x3072"},
-    "4:3": {"1K": "1200x896", "2K": "2400x1792", "4K": "4800x3584"},
-    "3:4": {"1K": "896x1200", "2K": "1792x2400", "4K": "3584x4800"},
+# Aspect ratios
+ASPECT_RATIOS: Dict[str, str] = {
+    "1:1": "Square",
+    "9:16": "Vertical / Stories",
+    "16:9": "Widescreen / Banner",
+    "4:3": "Classic Landscape",
+    "3:4": "Classic Portrait",
 }
 ASPECT_RATIO_LABELS: Dict[str, str] = {
     "1:1": "1:1 · Square",
@@ -472,7 +468,6 @@ COMPOSITION_OPTIONS = {
 DEFAULT_COMPOSITION = "Negative Space for Copy / Headline"
 
 # Concurrency / rate limiting defaults
-DEFAULT_MAX_CONCURRENCY = 1
 MAX_RETRIES = 5
 BASE_BACKOFF_SECONDS = 2.0
 MAX_BACKOFF_SECONDS = 60.0
@@ -480,6 +475,8 @@ MAX_BACKOFF_SECONDS = 60.0
 TITLE_MAX_CHARS = 100
 KEYWORD_COUNT = 50
 DEFAULT_ADOBE_CATEGORY = 12
+
+_ENV_KEY_RE = re.compile(r"^\s*(?:export\s+)?(GEMINI_API_KEY|GOOGLE_API_KEY)\s*=\s*(.*)$")
 
 
 # Client factory
@@ -489,26 +486,32 @@ def get_env_file_path() -> str:
     return os.path.join(base_dir, ".env")
 
 
-def load_saved_api_key() -> Optional[str]:
-    """Read saved GEMINI_API_KEY from local .env file or environment."""
+def _read_env_file() -> Optional[str]:
+    """Read saved GEMINI_API_KEY or GOOGLE_API_KEY strictly from the local .env file."""
     env_path = get_env_file_path()
-    if os.path.exists(env_path):
-        try:
-            with open(env_path, "r", encoding="utf-8") as f:
-                for line in f:
-                    line = line.strip()
-                    if line.startswith("GEMINI_API_KEY="):
-                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                        if val:
-                            return val
-        except Exception:
-            pass
-    return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+    if not os.path.exists(env_path):
+        return None
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for line in f:
+                m = _ENV_KEY_RE.match(line.strip())
+                if m:
+                    val = m.group(2).strip().strip('"').strip("'")
+                    if val:
+                        return val
+    except Exception:
+        pass
+    return None
+
+
+def load_saved_api_key() -> Optional[str]:
+    """Read saved API key from local .env file or environment variables."""
+    return _read_env_file() or os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 
 def save_api_key(api_key: str) -> None:
-    """Save GEMINI_API_KEY to local .env file."""
-    api_key = api_key.strip()
+    """Save GEMINI_API_KEY atomically to local .env file."""
+    api_key = api_key.strip().replace("\r", "").replace("\n", "")
     if not api_key:
         return
     env_path = get_env_file_path()
@@ -517,35 +520,46 @@ def save_api_key(api_key: str) -> None:
     if os.path.exists(env_path):
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
-                if line.strip().startswith("GEMINI_API_KEY="):
-                    lines.append(f'GEMINI_API_KEY="{api_key}"\n')
-                    found = True
+                if _ENV_KEY_RE.match(line.strip()):
+                    if not found:
+                        lines.append(f'GEMINI_API_KEY="{api_key}"\n')
+                        found = True
                 else:
                     lines.append(line)
     if not found:
         lines.append(f'GEMINI_API_KEY="{api_key}"\n')
 
-    with open(env_path, "w", encoding="utf-8") as f:
+    # Atomic write to avoid file corruption
+    temp_path = f"{env_path}.tmp"
+    with open(temp_path, "w", encoding="utf-8") as f:
         f.writelines(lines)
     try:
-        os.chmod(env_path, 0o600)
+        os.chmod(temp_path, 0o600)
     except Exception:
         pass
+    os.replace(temp_path, env_path)
+
     os.environ["GEMINI_API_KEY"] = api_key
 
 
 def delete_saved_api_key() -> None:
-    """Remove GEMINI_API_KEY from local .env file and environment."""
+    """Remove GEMINI_API_KEY and GOOGLE_API_KEY from local .env file and environment."""
     env_path = get_env_file_path()
     if os.path.exists(env_path):
         lines = []
         with open(env_path, "r", encoding="utf-8") as f:
             for line in f:
-                if not line.strip().startswith("GEMINI_API_KEY="):
+                if not _ENV_KEY_RE.match(line.strip()):
                     lines.append(line)
         if any(line.strip() for line in lines):
-            with open(env_path, "w", encoding="utf-8") as f:
+            temp_path = f"{env_path}.tmp"
+            with open(temp_path, "w", encoding="utf-8") as f:
                 f.writelines(lines)
+            try:
+                os.chmod(temp_path, 0o600)
+            except Exception:
+                pass
+            os.replace(temp_path, env_path)
         else:
             try:
                 os.remove(env_path)
@@ -559,7 +573,7 @@ def resolve_api_key(user_supplied: Optional[str] = None) -> Optional[str]:
     """Priority: user input > saved .env > Streamlit secrets > environment variables."""
     if user_supplied and user_supplied.strip():
         return user_supplied.strip()
-    saved = load_saved_api_key()
+    saved = _read_env_file()
     if saved:
         return saved
     try:
@@ -569,7 +583,7 @@ def resolve_api_key(user_supplied: Optional[str] = None) -> Optional[str]:
                 return str(st.secrets[key])
     except Exception:
         pass
-    return None
+    return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 
 def get_client(api_key: str) -> genai.Client:

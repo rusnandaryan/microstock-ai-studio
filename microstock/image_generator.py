@@ -47,7 +47,7 @@ class BatchSettings:
     image_model: str = "Gemini Vision"
     image_size: str = "1K"
     batch_size: int = 4
-    max_concurrency: int = config.DEFAULT_MAX_CONCURRENCY
+    max_concurrency: int = 1
     export_format: str = "JPEG"
     file_prefix: str = "microstock"
     extra: dict = field(default_factory=dict)
