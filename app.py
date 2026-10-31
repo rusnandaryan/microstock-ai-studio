@@ -598,15 +598,8 @@ with tab2:
                         )
                     except Exception as e:
                         st.toast(f"Gagal menyusun metadata untuk {filename}: {e}")
-                        clean_title = os.path.splitext(filename)[0].replace("_", " ").replace("-", " ").strip().title()
-                        from microstock.metadata import ImageMetadata
-                        md = ImageMetadata(
-                            title=clean_title or "Commercial Microstock Asset",
-                            description=f"High quality commercial microstock asset: {clean_title or 'visual concept'}.",
-                            keywords=[w.lower() for w in clean_title.split() if len(w) > 2] + ["stock", "commercial", "concept", "isolated", "quality", "modern"],
-                            adobe_category=12,
-                            shutterstock_categories=["Objects", "Miscellaneous"],
-                        )
+                        from microstock.metadata import create_fallback_metadata
+                        md = create_fallback_metadata(filename)
 
                     target_bytes = raw_bytes
                     if do_upscale:
@@ -830,8 +823,9 @@ with tab3:
                 col_img, col_prompt = st.columns([1, 2.5], gap="medium")
                 with col_img:
                     st.image(item["raw_bytes"], caption=item["filename"], use_container_width=True)
-                    rel_path = os.path.relpath(item["saved_path"], os.path.dirname(os.path.abspath(__file__)))
-                    st.caption(f"File: `{rel_path}`")
+                    if item.get("saved_path"):
+                        rel_path = os.path.relpath(item["saved_path"], os.path.dirname(os.path.abspath(__file__)))
+                        st.caption(f"File: `{rel_path}`")
                 with col_prompt:
                     st.markdown(f"**Prompt #{i+1} (Siap Pakai & Bersih):**")
                     st.code(item["prompt"], language=None, wrap_lines=True)

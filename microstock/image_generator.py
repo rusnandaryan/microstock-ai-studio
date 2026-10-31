@@ -45,7 +45,6 @@ class BatchSettings:
     style_name: str = ""
     aspect_ratio: str = "16:9"
     image_model: str = "Gemini Vision"
-    hf_api_key: Optional[str] = None
     image_size: str = "1K"
     batch_size: int = 4
     max_concurrency: int = config.DEFAULT_MAX_CONCURRENCY

@@ -112,6 +112,33 @@ class TestUpscalerLogic(unittest.TestCase):
         # 3000x2000 = 6 MP -> Not needed (>= 4.2 MP)
         self.assertFalse(is_upscale_needed(3000, 2000))
 
+    def test_run_upscale_missing_binary(self):
+        from unittest.mock import patch
+        from microstock.upscaler import run_upscale
+        with patch("microstock.upscaler.get_upscaler_binary_path", return_value=None):
+            success, err = run_upscale("dummy_in.jpg", "dummy_out.jpg")
+            self.assertFalse(success)
+            self.assertIn("tidak ditemukan", err)
+
+    def test_run_upscale_timeout_handled(self):
+        import subprocess
+        from unittest.mock import patch
+        from microstock.upscaler import run_upscale
+        with patch("microstock.upscaler.get_upscaler_binary_path", return_value="/bin/dummy"):
+            with patch("subprocess.run", side_effect=subprocess.TimeoutExpired(cmd="realesrgan", timeout=1)):
+                success, err = run_upscale("dummy_in.jpg", "dummy_out.jpg", timeout=1)
+                self.assertFalse(success)
+                self.assertIn("melebihi batas waktu", err)
+
+
+class TestFallbackMetadata(unittest.TestCase):
+    def test_create_fallback_metadata_cleans_filename(self):
+        from microstock.metadata import create_fallback_metadata
+        md = create_fallback_metadata("vintage_coffee_cup-01.jpg")
+        self.assertEqual(md.title, "Vintage Coffee Cup 01")
+        self.assertIn("coffee", md.keywords)
+        self.assertEqual(md.adobe_category, 12)
+
 
 class TestKeywordSanitization(unittest.TestCase):
     def test_normalize_keywords_removes_duplicates_and_strips(self):
@@ -234,6 +261,27 @@ class TestExportHub(unittest.TestCase):
         self.assertEqual(ss_df.iloc[0]["Filename"], "desk.jpg")
         self.assertEqual(ss_df.iloc[0]["illustration"], "no")
 
+    def test_to_shutterstock_df_infers_illustration_from_keywords_or_category(self):
+        meta_illu = ImageMetadata(
+            title="Abstract 3D Vector Icon",
+            description="Minimalist 3D vector illustration.",
+            keywords=["vector", "illustration", "3d render", "icon"],
+            adobe_category=8,
+            shutterstock_categories=["Arts", "Abstract"],
+        )
+        item_illu = BatchItem(
+            index=0,
+            variation="vector",
+            final_prompt="3d vector",
+            filename="vector.jpg",
+            image_bytes=self.sample_bytes,
+            metadata=meta_illu,
+        )
+        master_df = build_metadata_dataframe([item_illu])
+        ss_df = to_shutterstock_df(master_df, [item_illu])
+        self.assertEqual(ss_df.iloc[0]["illustration"], "yes")
+
+
     def test_build_zip_packages_files(self):
         import zipfile
         zip_bytes = build_zip([self.item], None)
@@ -244,6 +292,24 @@ class TestExportHub(unittest.TestCase):
             self.assertIn("adobe_stock.csv", namelist)
             self.assertIn("shutterstock.csv", namelist)
             self.assertIn("README.txt", namelist)
+
+
+class TestConfigKeyStore(unittest.TestCase):
+    def test_save_load_delete_api_key(self):
+        import tempfile
+        import os
+        from unittest.mock import patch
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            fake_env = os.path.join(tmp_dir, ".env")
+            with patch("microstock.config.get_env_file_path", return_value=fake_env):
+                config.save_api_key("test_api_key_12345")
+                loaded = config.load_saved_api_key()
+                self.assertEqual(loaded, "test_api_key_12345")
+
+                config.delete_saved_api_key()
+                loaded_after = config.load_saved_api_key()
+                self.assertIsNone(loaded_after)
 
 
 class TestCliInterface(unittest.TestCase):

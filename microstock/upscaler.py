@@ -28,6 +28,7 @@ def run_upscale(
     scale: int = 4,
     model: str = "realesrgan-x4plus",
     tile_size: int = 400,
+    timeout: int = 120,
 ) -> Tuple[bool, Optional[str]]:
     """Run the upscaler on the input file and save to output_path.
     
@@ -62,11 +63,14 @@ def run_upscale(
             check=True,
             capture_output=True,
             text=True,
-            cwd=os.path.join(base_dir, "upscayl_bin")
+            cwd=os.path.join(base_dir, "upscayl_bin"),
+            timeout=timeout,
         )
         if os.path.exists(output_path) and os.path.getsize(output_path) > 0:
             return True, None
         return False, "Berkas output kosong atau gagal dibuat oleh NCNN."
+    except subprocess.TimeoutExpired:
+        return False, f"Upscale dibatalkan karena melebihi batas waktu {timeout} detik."
     except subprocess.CalledProcessError as e:
         err_msg = e.stderr.strip() if e.stderr else str(e)
         return False, err_msg

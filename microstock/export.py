@@ -57,7 +57,20 @@ def to_shutterstock_df(master: pd.DataFrame, items: List[BatchItem], s: Optional
             "Editorial", "Mature content", "illustration"]
     if master.empty:
         return pd.DataFrame(columns=cols)
-    is_illu = "yes" if s and s.style_name in config.STYLES and config.STYLES[s.style_name].is_illustration else "no"
+
+    def _is_illustration(row: pd.Series) -> str:
+        if s and s.style_name in config.STYLES:
+            return "yes" if config.STYLES[s.style_name].is_illustration else "no"
+        cat_str = str(row.get("Shutterstock Categories", "")).lower()
+        adobe_cat = row.get("Adobe Category")
+        if adobe_cat == 8 or any(c in cat_str for c in ("arts", "abstract", "signs/symbols", "illustration")):
+            return "yes"
+        kw_str = str(row.get("Keywords", "")).lower()
+        if any(w in kw_str for w in ("illustration", "vector", "3d render", "drawing", "watercolor", "clipart")):
+            return "yes"
+        return "no"
+
+    illu_series = master.apply(_is_illustration, axis=1)
     return pd.DataFrame({
         "Filename": master["Filename"],
         "Description": master["Description"].where(master["Description"] != "", master["Title"]),
@@ -65,7 +78,7 @@ def to_shutterstock_df(master: pd.DataFrame, items: List[BatchItem], s: Optional
         "Categories": master["Shutterstock Categories"],
         "Editorial": "no",
         "Mature content": "no",
-        "illustration": is_illu,
+        "illustration": illu_series,
     })
 
 

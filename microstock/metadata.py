@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import os
 import re
 from dataclasses import asdict, dataclass, field
 from typing import Callable, List, Optional
@@ -149,6 +150,22 @@ def clamp_description(desc: str, limit: int = 200) -> str:
         return desc
     cut = desc[: limit - 1].rsplit(" ", 1)[0].rstrip(",;:-– ")
     return cut + "."
+
+
+def create_fallback_metadata(filename: str) -> ImageMetadata:
+    """Create basic microstock metadata from filename when Gemini Vision fails."""
+    clean_title = os.path.splitext(filename)[0].replace("_", " ").replace("-", " ").strip().title()
+    title = clean_title or "Commercial Microstock Asset"
+    keywords = [w.lower() for w in clean_title.split() if len(w) > 2] + [
+        "stock", "commercial", "concept", "isolated", "quality", "modern"
+    ]
+    return ImageMetadata(
+        title=title,
+        description=f"High quality commercial microstock asset: {title}.",
+        keywords=normalize_keywords(keywords),
+        adobe_category=12,
+        shutterstock_categories=["Objects", "Miscellaneous"],
+    )
 
 
 def _parse_json(text: str) -> dict:

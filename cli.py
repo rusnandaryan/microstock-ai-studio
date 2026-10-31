@@ -137,17 +137,29 @@ def cmd_process(args: argparse.Namespace) -> None:
     """Analyze images from folder or file list, upscale, and export SEO package."""
     client = get_authenticated_client(args.api_key)
     targets: List[tuple[str, bytes, str]] = []
+    seen_names = set()
+
+    def _add_target(fn: str, b: bytes, m: str) -> None:
+        name = os.path.basename(fn).strip()
+        stem, ext = os.path.splitext(name)
+        candidate = name
+        counter = 1
+        while candidate.lower() in seen_names:
+            candidate = f"{stem}_{counter}{ext}"
+            counter += 1
+        seen_names.add(candidate.lower())
+        targets.append((candidate, b, m))
 
     if os.path.isdir(args.source):
         found = folder_watcher.scan_recent_images(args.source, max_files=args.limit)
         for fn, fpath, _, _ in found:
             item = folder_watcher.read_image_bytes(fpath)
             if item:
-                targets.append(item)
+                _add_target(item[0], item[1], item[2])
     elif os.path.isfile(args.source):
         item = folder_watcher.read_image_bytes(args.source)
         if item:
-            targets.append(item)
+            _add_target(item[0], item[1], item[2])
 
     if not targets:
         print(f"⚠️ Tidak ada gambar yang ditemukan untuk diproses di: {args.source}")
@@ -169,15 +181,8 @@ def cmd_process(args: argparse.Namespace) -> None:
                 )
             except Exception as e:
                 print(f"    ⚠️ Gagal metadata: {e}. Menggunakan fallback.")
-                clean_title = os.path.splitext(filename)[0].replace("_", " ").title()
-                from microstock.metadata import ImageMetadata
-                md = ImageMetadata(
-                    title=clean_title,
-                    description=f"High quality stock asset: {clean_title}.",
-                    keywords=["stock", "commercial", "modern", "quality"],
-                    adobe_category=12,
-                    shutterstock_categories=["Objects"],
-                )
+                from microstock.metadata import create_fallback_metadata
+                md = create_fallback_metadata(filename)
 
             target_bytes = raw_bytes
             if args.upscale:
