@@ -90,12 +90,12 @@ with tab1:
         )
 
         # Trend Discovery Section
-        with st.expander("📈 Sedang buntu? Cek Tren & Ide Microstock Laris", expanded=False):
-            if st.button("Analisis Tren Adobe Stock Saat Ini", use_container_width=True, type="secondary"):
+        with st.expander("📅 10 Momen & Hari Besar Mendatang (Inspirasi Microstock)", expanded=False):
+            if st.button("Prediksi 10 Momen Terbesar & Kebutuhan Visual", use_container_width=True, type="secondary"):
                 if not api_key:
                     st.warning("Masukkan API Key di sidebar terlebih dahulu.")
                 else:
-                    with st.spinner("Menganalisis data pasar dan tren unduhan microstock..."):
+                    with st.spinner("Menganalisis kalender momen global, media massa, dan tren unduhan microstock..."):
                         try:
                             from microstock.trend_analyzer import get_trending_ideas
                             client = config.get_client(api_key)
@@ -114,46 +114,57 @@ with tab1:
                     st.markdown(
                         f"""
                         <div class="ms-step-badge ms-badge-green" style="display:inline-block; padding:0.5rem 0.85rem; margin-bottom:0.8rem; font-size:0.88rem; font-weight:700;">
-                          📅 Periode Analisis: {period_str} (Berdasarkan Tren Pasar Global)
+                          📅 Tanggal Analisis: {period_str} (Kebutuhan Aset 2-8 Minggu ke Depan)
                         </div>
                         """,
                         unsafe_allow_html=True,
                     )
 
+                col_t1, col_t2 = st.columns(2)
                 for i, trend in enumerate(trends_list):
-                    status_badge = trend.get("market_status", "🔥 High Demand")
-                    rec_cat = trend.get("recommended_cat", "Fotografi (Photorealism)")
-                    rec_style = trend.get("recommended_style", "")
-                    rec_ratio = trend.get("recommended_ratio", "16:9")
+                    col = col_t1 if i % 2 == 0 else col_t2
+                    with col:
+                        status_badge = trend.get("market_status", "🔥 Viral")
+                        event_name = trend.get("event_name") or trend.get("category", "Momen Peringatan")
+                        target_date = trend.get("target_date", "Mendatang")
+                        rec_cat = trend.get("recommended_cat", "Fotografi (Photorealism)")
+                        rec_style = trend.get("recommended_style", "")
+                        rec_ratio = trend.get("recommended_ratio", "16:9")
 
-                    st.markdown(
-                        f"""
-                        <div class="ms-card-modern" style="padding:1rem; margin-bottom:0.8rem;">
-                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                            <b style="font-size:1rem; color:var(--text-accent);">{trend.get('category', 'Kategori Tren')}</b>
-                            <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem; padding:2px 8px;">{status_badge}</span>
-                          </div>
-                          <p style="font-size:0.88rem; color:var(--text-secondary); margin:0.3rem 0; line-height:1.4;"><i>"{trend.get('reason', '')}"</i></p>
-                          <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.4rem 0.6rem; font-size:0.8rem; color:var(--text-primary); margin-bottom:0.4rem;">
-                            🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
-                          </div>
-                          <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; padding:0.5rem 0.65rem; margin-top:0.4rem; font-size:0.88rem; font-weight:600; color:var(--text-primary);">
-                            💡 {trend.get('base_idea', '')}
-                          </div>
-                        </div>
-                        """, unsafe_allow_html=True
-                    )
-                    if st.button(f"Terapkan Tren #{i+1}", key=f"use_trend_{i}", use_container_width=True):
-                        st.session_state.tab1_base_idea = trend.get("base_idea", "")
-                        if rec_cat in config.STYLE_CATEGORIES:
-                            st.session_state.tab1_style_cat = rec_cat
-                            if rec_style in config.STYLE_CATEGORIES[rec_cat]:
-                                st.session_state.tab1_style_sub = rec_style
-                            else:
-                                st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
-                        if rec_ratio in config.ASPECT_RATIOS:
-                            st.session_state.tab1_ratio = rec_ratio
-                        st.rerun()
+                        st.markdown(
+                            f"""
+                            <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:0.75rem;">
+                              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:0.35rem;">
+                                <b style="font-size:0.95rem; color:var(--text-accent); line-height:1.3;">{event_name}</b>
+                                <span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:2px 7px; white-space:nowrap;">{status_badge}</span>
+                              </div>
+                              <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem;">
+                                🗓️ <b>Waktu:</b> {target_date}
+                              </div>
+                              <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.25rem 0; line-height:1.4;">
+                                <i>"{trend.get('reason', '')}"</i>
+                              </p>
+                              <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.35rem 0.55rem; font-size:0.78rem; color:var(--text-primary); margin:0.35rem 0;">
+                                🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
+                              </div>
+                              <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; padding:0.45rem 0.6rem; font-size:0.84rem; font-weight:600; color:var(--text-primary);">
+                                💡 {trend.get('base_idea', '')}
+                              </div>
+                            </div>
+                            """,
+                            unsafe_allow_html=True,
+                        )
+                        if st.button(f"Gunakan Ide #{i+1}", key=f"use_trend_{i}", use_container_width=True):
+                            st.session_state.tab1_base_idea = trend.get("base_idea", "")
+                            if rec_cat in config.STYLE_CATEGORIES:
+                                st.session_state.tab1_style_cat = rec_cat
+                                if rec_style in config.STYLE_CATEGORIES[rec_cat]:
+                                    st.session_state.tab1_style_sub = rec_style
+                                else:
+                                    st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
+                            if rec_ratio in config.ASPECT_RATIOS:
+                                st.session_state.tab1_ratio = rec_ratio
+                            st.rerun()
 
         st.markdown("**Konsep Utama / Subjek Gambar**")
         base_idea = st.text_area(

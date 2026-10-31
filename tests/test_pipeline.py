@@ -4,6 +4,7 @@ Tests image padding, resolution enforcement, vision preparation, and upscaler lo
 Uses standard Python unittest (no external test runner dependencies needed).
 """
 import io
+import json
 import unittest
 from PIL import Image
 
@@ -142,15 +143,39 @@ class TestReversePromptHelpers(unittest.TestCase):
 
 class TestTrendAnalyzerParser(unittest.TestCase):
     def test_parse_trends_json_markdown_wrapped(self):
-        markdown_str = """```json
-        [
-            {"category": "Green Tech", "reason": "High demand", "base_idea": "Solar farm"}
+        sample_items = [
+            {
+                "event_name": f"Event {i}",
+                "target_date": f"{i} Mei",
+                "market_status": "🔥 Viral",
+                "reason": "Liputan media tinggi",
+                "base_idea": f"Visual {i}",
+                "recommended_cat": "Fotografi (Photorealism)",
+                "recommended_style": "📷 Foto Komersial Bersih",
+                "recommended_ratio": "16:9",
+            }
+            for i in range(1, 11)
         ]
-        ```"""
-        parsed = _parse_trends_json(markdown_str, "30 October 2026")
+        import json
+        markdown_str = f"```json\n{json.dumps(sample_items)}\n```"
+        parsed = _parse_trends_json(markdown_str, "31 October 2026")
         self.assertIsNotNone(parsed)
-        self.assertEqual(parsed["period"], "30 October 2026")
+        self.assertEqual(parsed["period"], "31 October 2026")
+        self.assertEqual(len(parsed["trends"]), 10)
+        # Category alias should be populated automatically from event_name
+        self.assertEqual(parsed["trends"][0]["category"], "Event 1")
+        self.assertEqual(parsed["trends"][0]["target_date"], "1 Mei")
+
+    def test_parse_trends_json_dict_format(self):
+        dict_str = json.dumps({
+            "trends": [
+                {"category": "Earth Day", "target_date": "22 April", "reason": "Awareness", "base_idea": "Tree planting"}
+            ]
+        })
+        parsed = _parse_trends_json(dict_str, "31 October 2026")
+        self.assertIsNotNone(parsed)
         self.assertEqual(len(parsed["trends"]), 1)
+        self.assertEqual(parsed["trends"][0]["event_name"], "Earth Day")
 
 
 class TestExportHub(unittest.TestCase):

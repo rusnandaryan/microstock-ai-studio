@@ -69,21 +69,23 @@ def cmd_prompt(args: argparse.Namespace) -> None:
 
 
 def cmd_trends(args: argparse.Namespace) -> None:
-    """Check trending topics on Adobe Stock."""
+    """Check 10 upcoming global moments and microstock commercial trends."""
     client = get_authenticated_client(args.api_key)
-    print("⏳ Menganalisis tren pasar Adobe Stock & Shutterstock saat ini...")
+    print("⏳ Menganalisis 10 momen & hari besar mendatang di media massa dan microstock...")
     try:
         data = get_trending_ideas(client)
         trends = data.get("trends", [])
         period = data.get("period", "Hari ini")
         print("\n" + "=" * 60)
-        print(f"🔥 4 TREN KOMERSIAL UTAMA MICROSTOCK ({period}):")
+        print(f"📅 10 MOMEN & HARI BESAR MENDATANG MICROSTOCK ({period}):")
         print("=" * 60)
         for i, item in enumerate(trends, 1):
-            print(f"\n{i}. [{item.get('market_status', 'High Demand')}] {item.get('category', '')}")
+            name = item.get("event_name") or item.get("category", "")
+            date = item.get("target_date", "Mendatang")
+            print(f"\n{i}. [{item.get('market_status', 'Viral')}] {name} ({date})")
             print(f"   Alasan : {item.get('reason', '')}")
             print(f"   Ide    : \"{item.get('base_idea', '')}\"")
-            print(f"   Gaya   : {item.get('recommended_style', '')} ({item.get('recommended_ratio', '16:9')})")
+            print(f"   Format : {item.get('recommended_cat', '')} · {item.get('recommended_style', '')} ({item.get('recommended_ratio', '16:9')})")
         print("\n" + "=" * 60)
     except Exception as e:
         print(f"❌ Gagal mengambil data tren: {e}")
@@ -310,7 +312,7 @@ def main() -> None:
     p_reverse.set_defaults(func=cmd_reverse)
 
     # 4. Subcommand: trends
-    p_trends = subparsers.add_parser("trends", help="Lihat 4 kategori topik komersial yang sedang tren di Adobe Stock")
+    p_trends = subparsers.add_parser("trends", help="Lihat 10 momen & hari besar mendatang yang berpotensi trending di microstock")
     p_trends.set_defaults(func=cmd_trends)
 
     # 5. Subcommand: gui
