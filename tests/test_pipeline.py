@@ -149,22 +149,22 @@ class TestTrendAnalyzerParser(unittest.TestCase):
                 "target_date": f"{i} Mei",
                 "market_status": "🔥 Viral",
                 "reason": "Liputan media tinggi",
-                "base_idea": f"Visual {i}",
+                "ideas": [f"Visual A {i}", f"Visual B {i}", f"Visual C {i}"],
                 "recommended_cat": "Fotografi (Photorealism)",
                 "recommended_style": "📷 Foto Komersial Bersih",
                 "recommended_ratio": "16:9",
             }
             for i in range(1, 11)
         ]
-        import json
         markdown_str = f"```json\n{json.dumps(sample_items)}\n```"
         parsed = _parse_trends_json(markdown_str, "31 October 2026")
         self.assertIsNotNone(parsed)
         self.assertEqual(parsed["period"], "31 October 2026")
         self.assertEqual(len(parsed["trends"]), 10)
-        # Category alias should be populated automatically from event_name
         self.assertEqual(parsed["trends"][0]["category"], "Event 1")
         self.assertEqual(parsed["trends"][0]["target_date"], "1 Mei")
+        self.assertEqual(len(parsed["trends"][0]["ideas"]), 3)
+        self.assertEqual(parsed["trends"][0]["base_idea"], "Visual A 1")
 
     def test_parse_trends_json_dict_format(self):
         dict_str = json.dumps({
@@ -176,6 +176,7 @@ class TestTrendAnalyzerParser(unittest.TestCase):
         self.assertIsNotNone(parsed)
         self.assertEqual(len(parsed["trends"]), 1)
         self.assertEqual(parsed["trends"][0]["event_name"], "Earth Day")
+        self.assertEqual(parsed["trends"][0]["ideas"], ["Tree planting"])
 
 
 class TestExportHub(unittest.TestCase):

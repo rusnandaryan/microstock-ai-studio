@@ -23,7 +23,7 @@ Untuk setiap momen atau hari peringatan (total 10 item), berikan:
    - "⭐ Tradisi Tahunan Best-Seller"
    - "🚀 Momen Baru / Rising Awareness"
 5. "reason": Penjelasan ringkas mengapa momen ini menarik atensi media dan aset visualnya sangat dicari pengiklan saat ini.
-6. "base_idea": Ide gambar komersial konkret, 100% AMAN hak cipta, TANPA wanita, TANPA teks/tulisan/angka/logo, fokus faceless/objek/lanskap/arsitektur/hands-in-action.
+6. "ideas": Array berisi 3 ide visual komersial konkret yang BERBEDA sudut pandang (misal: sudut close-up/hands-in-action, sudut still-life/flatlay objek, sudut arsitektur/lanskap luas). Semua 100% AMAN hak cipta, TANPA wanita, TANPA teks/tulisan/angka/logo, faceless.
 7. "recommended_cat": Kategori visual yang paling cocok, WAJIB salah satu dari:
    ["Fotografi (Photorealism)", "Ilustrasi & Seni Lukis", "Animasi & Kartun", "3D & Render", "Desain & Digital Art"]
 8. "recommended_style": Sub-gaya yang direkomendasikan (misal: "📷 Foto Komersial Bersih (Commercial Advertising)", "📐 3D Isometric Illustration (Tech & Business)", "🏷️ Paket Stiker Die-Cut (Die-Cut Sticker Pack)", dll).
@@ -50,6 +50,17 @@ def _parse_trends_json(text: str, now_str: str) -> Optional[Dict[str, Any]]:
                     t["category"] = t["event_name"]
                 elif "event_name" not in t and "category" in t:
                     t["event_name"] = t["category"]
+
+                raw_ideas = t.get("ideas")
+                if isinstance(raw_ideas, list) and len(raw_ideas) > 0:
+                    t["ideas"] = [str(x) for x in raw_ideas]
+                    t["base_idea"] = t["ideas"][0]
+                elif "base_idea" in t and t["base_idea"]:
+                    t["ideas"] = [t["base_idea"]]
+                else:
+                    t["ideas"] = [t.get("event_name", "Konsep Visual")]
+                    t["base_idea"] = t["ideas"][0]
+
         return {"period": now_str, "trends": trends}
     return None
 

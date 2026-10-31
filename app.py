@@ -77,6 +77,128 @@ with tab1:
         unsafe_allow_html=True,
     )
 
+    # =========================================================================
+    # Trend Discovery Section (Full Width Landscape Banner)
+    # =========================================================================
+    with st.expander("📅 10 Momen & Hari Besar Mendatang (Inspirasi Microstock)", expanded=bool("market_trends" in st.session_state)):
+        col_scan_text, col_scan_btn = st.columns([3, 1], gap="medium")
+        with col_scan_text:
+            st.caption("Pindai kalender momen global mendatang untuk menemukan 10 event bernilai komersial tinggi lengkap dengan 3 variasi sudut pandang visual.")
+        with col_scan_btn:
+            if st.button("🔄 Pindai 10 Momen Tren", use_container_width=True, type="secondary"):
+                if not api_key:
+                    st.warning("Masukkan API Key di sidebar terlebih dahulu.")
+                else:
+                    with st.spinner("Menganalisis kalender momen global, media massa, dan tren unduhan microstock..."):
+                        try:
+                            from microstock.trend_analyzer import get_trending_ideas
+                            client = config.get_client(api_key)
+                            trends_data = get_trending_ideas(client)
+                            st.session_state.market_trends = trends_data
+                            st.session_state.selected_trend_idx = 0
+                            st.session_state.trend_var_indices = {}
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Gagal mengambil tren: {e}")
+
+        if "market_trends" in st.session_state:
+            raw_data = st.session_state.market_trends
+            trends_list = raw_data.get("trends", []) if isinstance(raw_data, dict) else raw_data
+            if trends_list:
+                if "selected_trend_idx" not in st.session_state:
+                    st.session_state.selected_trend_idx = 0
+                if "trend_var_indices" not in st.session_state:
+                    st.session_state.trend_var_indices = {}
+
+                pill_options = list(range(len(trends_list)))
+                selected_idx = st.pills(
+                    "Pilih Momen:",
+                    options=pill_options,
+                    format_func=lambda i: f"#{i+1} {trends_list[i].get('event_name', '')[:20]}",
+                    default=st.session_state.selected_trend_idx if st.session_state.selected_trend_idx < len(trends_list) else 0,
+                    label_visibility="collapsed",
+                    key="trend_pills_selector",
+                )
+                if selected_idx is not None and selected_idx != st.session_state.selected_trend_idx:
+                    st.session_state.selected_trend_idx = selected_idx
+                    cur_trend = trends_list[selected_idx]
+                    cur_vars = cur_trend.get("ideas", [cur_trend.get("base_idea", "")])
+                    cur_v_idx = st.session_state.trend_var_indices.get(selected_idx, 0) % len(cur_vars)
+                    st.session_state.tab1_base_idea = cur_vars[cur_v_idx]
+                    st.rerun()
+
+                active_idx = st.session_state.selected_trend_idx
+                if active_idx >= len(trends_list):
+                    active_idx = 0
+                active_trend = trends_list[active_idx]
+
+                variations = active_trend.get("ideas", [active_trend.get("base_idea", "")])
+                var_idx = st.session_state.trend_var_indices.get(active_idx, 0) % len(variations)
+                active_concept = variations[var_idx]
+
+                status_badge = active_trend.get("market_status", "🔥 Viral")
+                event_name = active_trend.get("event_name") or active_trend.get("category", "Momen Peringatan")
+                target_date = active_trend.get("target_date", "Mendatang")
+                rec_cat = active_trend.get("recommended_cat", "Fotografi (Photorealism)")
+                rec_style = active_trend.get("recommended_style", "")
+                rec_ratio = active_trend.get("recommended_ratio", "16:9")
+
+                card_col1, card_col2 = st.columns([1.6, 1.4], gap="medium")
+                with card_col1:
+                    st.markdown(
+                        f"""
+                        <div class="ms-card-modern" style="padding:0.75rem 0.95rem; margin-bottom:0.4rem;">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                            <b style="font-size:1.02rem; color:var(--text-accent);">{event_name}</b>
+                            <span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:2px 7px;">{status_badge}</span>
+                          </div>
+                          <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem;">
+                            🗓️ <b>Waktu:</b> {target_date} &nbsp;·&nbsp; 🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
+                          </div>
+                          <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.15rem 0; line-height:1.35;">
+                            <i>"{active_trend.get('reason', '')}"</i>
+                          </p>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+                with card_col2:
+                    st.markdown(
+                        f"""
+                        <div class="ms-card-modern" style="padding:0.75rem 0.95rem; margin-bottom:0.4rem; border-color:var(--accent-primary);">
+                          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem;">
+                            <span style="font-size:0.75rem; font-weight:700; color:var(--accent-primary);">💡 KONSEP VARIASI #{var_idx + 1} DARI {len(variations)}</span>
+                          </div>
+                          <div style="font-size:0.84rem; font-weight:600; color:var(--text-primary); min-height:42px; line-height:1.35;">
+                            {active_concept}
+                          </div>
+                        </div>
+                        """,
+                        unsafe_allow_html=True,
+                    )
+
+                btn_col1, btn_col2 = st.columns(2)
+                with btn_col1:
+                    if st.button(f"🎲 Ganti Variasi Konsep ({var_idx + 1}/{len(variations)})", key=f"cycle_var_{active_idx}", use_container_width=True):
+                        next_var_idx = (var_idx + 1) % len(variations)
+                        st.session_state.trend_var_indices[active_idx] = next_var_idx
+                        st.session_state.tab1_base_idea = variations[next_var_idx]
+                        st.rerun()
+                with btn_col2:
+                    if st.button("✅ Terapkan Gaya & Rasio ke Form", key=f"apply_all_{active_idx}", use_container_width=True):
+                        st.session_state.tab1_base_idea = active_concept
+                        if rec_cat in config.STYLE_CATEGORIES:
+                            st.session_state.tab1_style_cat = rec_cat
+                            if rec_style in config.STYLE_CATEGORIES[rec_cat]:
+                                st.session_state.tab1_style_sub = rec_style
+                            else:
+                                st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
+                        if rec_ratio in config.ASPECT_RATIOS:
+                            st.session_state.tab1_ratio = rec_ratio
+                        st.rerun()
+
+    st.markdown("<div style='margin-bottom:0.6rem;'></div>", unsafe_allow_html=True)
+
     col_left, col_right = st.columns([1.15, 0.85], gap="large")
 
     with col_left:
@@ -88,83 +210,6 @@ with tab1:
             """,
             unsafe_allow_html=True,
         )
-
-        # Trend Discovery Section
-        with st.expander("📅 10 Momen & Hari Besar Mendatang (Inspirasi Microstock)", expanded=False):
-            if st.button("Prediksi 10 Momen Terbesar & Kebutuhan Visual", use_container_width=True, type="secondary"):
-                if not api_key:
-                    st.warning("Masukkan API Key di sidebar terlebih dahulu.")
-                else:
-                    with st.spinner("Menganalisis kalender momen global, media massa, dan tren unduhan microstock..."):
-                        try:
-                            from microstock.trend_analyzer import get_trending_ideas
-                            client = config.get_client(api_key)
-                            trends_data = get_trending_ideas(client)
-                            st.session_state.market_trends = trends_data
-                        except Exception as e:
-                            st.error(f"Gagal mengambil tren: {e}")
-            
-            if "market_trends" in st.session_state:
-                st.markdown("<br>", unsafe_allow_html=True)
-                raw_data = st.session_state.market_trends
-                period_str = raw_data.get("period", "") if isinstance(raw_data, dict) else ""
-                trends_list = raw_data.get("trends", []) if isinstance(raw_data, dict) else raw_data
-
-                if period_str:
-                    st.markdown(
-                        f"""
-                        <div class="ms-step-badge ms-badge-green" style="display:inline-block; padding:0.5rem 0.85rem; margin-bottom:0.8rem; font-size:0.88rem; font-weight:700;">
-                          📅 Tanggal Analisis: {period_str} (Kebutuhan Aset 2-8 Minggu ke Depan)
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-
-                col_t1, col_t2 = st.columns(2)
-                for i, trend in enumerate(trends_list):
-                    col = col_t1 if i % 2 == 0 else col_t2
-                    with col:
-                        status_badge = trend.get("market_status", "🔥 Viral")
-                        event_name = trend.get("event_name") or trend.get("category", "Momen Peringatan")
-                        target_date = trend.get("target_date", "Mendatang")
-                        rec_cat = trend.get("recommended_cat", "Fotografi (Photorealism)")
-                        rec_style = trend.get("recommended_style", "")
-                        rec_ratio = trend.get("recommended_ratio", "16:9")
-
-                        st.markdown(
-                            f"""
-                            <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:0.75rem;">
-                              <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:8px; margin-bottom:0.35rem;">
-                                <b style="font-size:0.95rem; color:var(--text-accent); line-height:1.3;">{event_name}</b>
-                                <span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:2px 7px; white-space:nowrap;">{status_badge}</span>
-                              </div>
-                              <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem;">
-                                🗓️ <b>Waktu:</b> {target_date}
-                              </div>
-                              <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.25rem 0; line-height:1.4;">
-                                <i>"{trend.get('reason', '')}"</i>
-                              </p>
-                              <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.35rem 0.55rem; font-size:0.78rem; color:var(--text-primary); margin:0.35rem 0;">
-                                🎯 <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
-                              </div>
-                              <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:6px; padding:0.45rem 0.6rem; font-size:0.84rem; font-weight:600; color:var(--text-primary);">
-                                💡 {trend.get('base_idea', '')}
-                              </div>
-                            </div>
-                            """,
-                            unsafe_allow_html=True,
-                        )
-                        if st.button(f"Gunakan Ide #{i+1}", key=f"use_trend_{i}", use_container_width=True):
-                            st.session_state.tab1_base_idea = trend.get("base_idea", "")
-                            if rec_cat in config.STYLE_CATEGORIES:
-                                st.session_state.tab1_style_cat = rec_cat
-                                if rec_style in config.STYLE_CATEGORIES[rec_cat]:
-                                    st.session_state.tab1_style_sub = rec_style
-                                else:
-                                    st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
-                            if rec_ratio in config.ASPECT_RATIOS:
-                                st.session_state.tab1_ratio = rec_ratio
-                            st.rerun()
 
         st.markdown("**Konsep Utama / Subjek Gambar**")
         base_idea = st.text_area(
