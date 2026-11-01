@@ -115,7 +115,6 @@ class ImageMetadata:
         return asdict(self)
 
 
-# Normalisation / validation helpers
 _BANNED = {"ai", "ai generated", "ai-generated", "generated", "gemini", "prompt", "generative ai"}
 
 
@@ -197,7 +196,6 @@ def _parse_json(text: str) -> dict:
     return data
 
 
-# Gemini calls
 def _prepare_vision_bytes(raw_bytes: bytes, orig_mime: str) -> tuple[bytes, str]:
     """Sanitize, normalize, and compress image to guaranteed RGB JPEG under 2048px.
     

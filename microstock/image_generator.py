@@ -14,10 +14,9 @@ from PIL import Image
 from . import config
 from .metadata import ImageMetadata
 
-PREVIEW_MAX_SIDE = 900  # px – lightweight thumbnails for the UI grid
+PREVIEW_MAX_SIDE = 900  # px - lightweight thumbnails for the UI grid
 
 
-# Data models
 @dataclass
 class BatchItem:
     index: int
@@ -102,7 +101,7 @@ def finalize_image(
     total_pixels = width * height
     mp = total_pixels / 1_000_000
 
-    # 1. Enforce minimum resolution >= 4 MP (MANDATORY when upscale is active)
+    # Ensure image meets microstock resolution threshold
     if enforce_microstock_res and total_pixels < config.TARGET_MIN_PIXELS:
         scale_res = math.sqrt(config.TARGET_MIN_PIXELS / max(1, total_pixels))
         new_w = max(1, int(math.ceil(width * scale_res)))
@@ -112,7 +111,7 @@ def finalize_image(
         total_pixels = width * height
         mp = total_pixels / 1_000_000
 
-    # 2. Smart Microstock cap: Downsample if exceeding target (e.g. ~8.3 MP)
+    # Cap resolution if exceeding smart microstock target
     if max_target_pixels and total_pixels > max_target_pixels:
         scale_down = math.sqrt(max_target_pixels / total_pixels)
         new_w = max(1, int(round(width * scale_down)))
@@ -122,7 +121,7 @@ def finalize_image(
         total_pixels = width * height
         mp = total_pixels / 1_000_000
 
-    # 3. Downscale only if image exceeds the extreme 100MP microstock cap
+    # Downscale if exceeding the 100MP microstock ceiling
     if total_pixels > 0 and mp > config.MAX_IMAGE_MEGAPIXELS:
         scale = math.sqrt(98_000_000 / total_pixels)
         new_w = max(1, int(round(width * scale)))
@@ -136,7 +135,6 @@ def finalize_image(
         export_bytes = buf.getvalue()
         mime = "image/png"
     else:
-        # Standard high-quality JPEG
         buf = io.BytesIO()
         save_kwargs = {"quality": jpeg_quality, "optimize": True, "dpi": (300, 300)}
         if jpeg_quality >= 98:
@@ -145,7 +143,7 @@ def finalize_image(
         export_bytes = buf.getvalue()
         mime = "image/jpeg"
 
-        # 4. Enforce minimum file size >= 4 MB (OPTIONAL checkbox)
+        # Pad JPEG stream to satisfy Freepik minimum file size
         if enforce_min_filesize and len(export_bytes) < config.MIN_FILE_SIZE_BYTES:
             export_bytes = _pad_jpeg_to_min_size(export_bytes, config.MIN_FILE_SIZE_BYTES)
 

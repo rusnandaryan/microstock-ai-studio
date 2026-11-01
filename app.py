@@ -52,11 +52,7 @@ tab1, tab2, tab3 = st.tabs([
     "3. Reverse Prompt (Image to Prompt)",
 ])
 
-# TAB 1: COMMERCIAL PROMPT STUDIO
 with tab1:
-    # =========================================================================
-    # Trend Discovery Section (Full Width Landscape Banner)
-    # =========================================================================
     with st.expander("10 Momen Komersial Mendatang", expanded=bool("market_trends" in st.session_state)):
         col_scan_text, col_scan_btn = st.columns([3, 1], gap="medium")
         with col_scan_text:
@@ -382,9 +378,7 @@ with tab1:
             )
 
 
-# TAB 2: INSPEKSI GAMBAR & METADATA (GEMINI VISION)
 with tab2:
-    # 1. AUTO-SYNC DOWNLOAD FOLDER WATCHER
     with st.expander("Auto-Sync Folder Download", expanded=True):
         st.markdown(
             """
@@ -701,7 +695,6 @@ with tab2:
         render_results_grid(package["items"], package["id"])
 
 
-# TAB 3: REVERSE PROMPT (IMAGE TO PROMPT)
 with tab3:
     uploaded_ref_files = st.file_uploader(
         "Pilih atau seret gambar referensi Anda (JPG, PNG, WebP):",

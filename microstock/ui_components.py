@@ -27,7 +27,7 @@ def get_modern_css(is_dark: bool = True) -> str:
         border_focus = "#3B82F6"
         text_primary = "#F8FAFC"
         text_secondary = "#94A3B8"
-        text_muted = "#64748B"
+        text_muted = "#8898AA"
         text_accent = "#60A5FA"
         accent_blue = "#2563EB"
         accent_blue_hover = "#1D4ED8"
@@ -1134,7 +1134,6 @@ def render_header() -> None:
     )
 
 
-# Sidebar
 def render_sidebar() -> Optional[str]:
     with st.sidebar:
         st.markdown(
@@ -1241,7 +1240,6 @@ def render_sidebar() -> Optional[str]:
     return api_key
 
 
-# Output grid & cards
 def _copy_block(label: str, text: str) -> None:
     st.markdown(f"**{label}**")
     st.code(text or "-", language=None, wrap_lines=True)
@@ -1277,7 +1275,6 @@ def render_card(item: BatchItem, batch_id: str) -> None:
                 _copy_block(f"Description ({len(md.description)} karakter)", md.description)
                 _copy_block(f"Keywords CSV ({len(md.keywords)}/{config.KEYWORD_COUNT})", md.keywords_csv)
                 
-                # Visual tag chip cluster
                 chips_html = "".join(
                     f'<span class="ms-step-badge ms-badge-accent" style="font-size:0.68rem; padding:1px 5px; margin:2px 2px; display:inline-block;">#{k}</span>'
                     for k in md.keywords

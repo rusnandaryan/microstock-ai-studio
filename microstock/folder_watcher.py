@@ -107,7 +107,6 @@ def scan_recent_images(
             except (PermissionError, OSError):
                 continue
 
-    # Sort newest first
     results.sort(key=lambda x: x[2], reverse=True)
     return results[:max_files]
 
