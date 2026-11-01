@@ -38,7 +38,7 @@ from microstock.upscaler import is_upscale_needed, upscale_bytes
 def get_authenticated_client(api_key: str | None = None):
     key = api_key or config.load_saved_api_key()
     if not key:
-        print("❌ Error: GEMINI_API_KEY belum disetel.")
+        print("[ERROR] GEMINI_API_KEY belum disetel.")
         print("   Silakan simpan API key di file .env atau operasikan via flag: --api-key <KEY>")
         sys.exit(1)
     return config.get_client(key)
@@ -47,7 +47,7 @@ def get_authenticated_client(api_key: str | None = None):
 def cmd_prompt(args: argparse.Namespace) -> None:
     """Generate commercial image prompt matching stock criteria."""
     client = get_authenticated_client(args.api_key)
-    print(f"⏳ Meracik prompt komersial untuk: '{args.idea}'...")
+    print(f"[INFO] Meracik prompt komersial untuk: '{args.idea}'...")
     try:
         result = enhance_prompt(
             client=client,
@@ -59,25 +59,25 @@ def cmd_prompt(args: argparse.Namespace) -> None:
             composition=args.composition,
         )
         print("\n" + "=" * 60)
-        print("📸 PROMPT KOMERSIAL SIAP PAKAI:")
+        print("PROMPT KOMERSIAL SIAP PAKAI:")
         print("=" * 60)
         print(result)
         print("=" * 60 + "\n")
     except Exception as e:
-        print(f"❌ Gagal meracik prompt: {e}")
+        print(f"[ERROR] Gagal meracik prompt: {e}")
         sys.exit(1)
 
 
 def cmd_trends(args: argparse.Namespace) -> None:
     """Check 10 upcoming global moments and microstock commercial trends."""
     client = get_authenticated_client(args.api_key)
-    print("⏳ Menganalisis 10 momen & hari besar mendatang di media massa dan microstock...")
+    print("[INFO] Menganalisis 10 momen & hari besar mendatang di media massa dan microstock...")
     try:
         data = get_trending_ideas(client)
         trends = data.get("trends", [])
         period = data.get("period", "Hari ini")
         print("\n" + "=" * 60)
-        print(f"📅 10 MOMEN & HARI BESAR MENDATANG MICROSTOCK ({period}):")
+        print(f"10 MOMEN & HARI BESAR MENDATANG MICROSTOCK ({period}):")
         print("=" * 60)
         for i, item in enumerate(trends, 1):
             name = item.get("event_name") or item.get("category", "")
@@ -88,18 +88,18 @@ def cmd_trends(args: argparse.Namespace) -> None:
             print(f"   Format : {item.get('recommended_cat', '')} · {item.get('recommended_style', '')} ({item.get('recommended_ratio', '16:9')})")
         print("\n" + "=" * 60)
     except Exception as e:
-        print(f"❌ Gagal mengambil data tren: {e}")
+        print(f"[ERROR] Gagal mengambil data tren: {e}")
         sys.exit(1)
 
 
 def cmd_reverse(args: argparse.Namespace) -> None:
     """Reverse prompt an image file."""
     if not os.path.isfile(args.image_path):
-        print(f"❌ File tidak ditemukan: {args.image_path}")
+        print(f"[ERROR] File tidak ditemukan: {args.image_path}")
         sys.exit(1)
 
     client = get_authenticated_client(args.api_key)
-    print(f"⏳ Menganalisis elemen visual: {os.path.basename(args.image_path)}...")
+    print(f"[INFO] Menganalisis elemen visual: {os.path.basename(args.image_path)}...")
 
     with open(args.image_path, "rb") as f:
         raw_bytes = f.read()
@@ -123,13 +123,13 @@ def cmd_reverse(args: argparse.Namespace) -> None:
         prompt_str = asyncio.run(_run())
         saved_path = save_prompt_to_file(prompt_str, os.path.basename(args.image_path))
         print("\n" + "=" * 60)
-        print("🎯 REVERSE PROMPT BERHASIL DISUSUN:")
+        print("REVERSE PROMPT BERHASIL DISUSUN:")
         print("=" * 60)
         print(prompt_str)
         print("=" * 60)
-        print(f"💾 Tersimpan di: {saved_path}\n")
+        print(f"Tersimpan di: {saved_path}\n")
     except Exception as e:
-        print(f"❌ Gagal membuat reverse prompt: {e}")
+        print(f"[ERROR] Gagal membuat reverse prompt: {e}")
         sys.exit(1)
 
 
@@ -162,16 +162,16 @@ def cmd_process(args: argparse.Namespace) -> None:
             _add_target(item[0], item[1], item[2])
 
     if not targets:
-        print(f"⚠️ Tidak ada gambar yang ditemukan untuk diproses di: {args.source}")
+        print(f"[WARN] Tidak ada gambar yang ditemukan untuk diproses di: {args.source}")
         sys.exit(0)
 
-    print(f"🚀 Memulai pemrosesan {len(targets)} gambar (Upscale: {args.upscale}, Freepik Min 4MB: {args.freepik})...\n")
+    print(f"[INFO] Memulai pemrosesan {len(targets)} gambar (Upscale: {args.upscale}, Freepik Min 4MB: {args.freepik})...\n")
 
     processed_items: list[BatchItem] = []
 
     async def _process_all():
         for idx, (filename, raw_bytes, mime) in enumerate(targets, 1):
-            print(f"[{idx}/{len(targets)}] 🔍 Inspeksi Gemini Vision: {filename}...")
+            print(f"[{idx}/{len(targets)}] [INSPEKSI] Gemini Vision: {filename}...")
             try:
                 md = await generate_metadata_from_vision_async(
                     client=client,
@@ -180,7 +180,7 @@ def cmd_process(args: argparse.Namespace) -> None:
                     label=filename,
                 )
             except Exception as e:
-                print(f"    ⚠️ Gagal metadata: {e}. Menggunakan fallback.")
+                print(f"    [WARN] Gagal metadata: {e}. Menggunakan fallback.")
                 from microstock.metadata import create_fallback_metadata
                 md = create_fallback_metadata(filename)
 
@@ -193,10 +193,10 @@ def cmd_process(args: argparse.Namespace) -> None:
                     ow, oh = 1024, 1024
 
                 if is_upscale_needed(ow, oh):
-                    print(f"    ⚡ Menjalankan AI Upscale 4x ({ow}x{oh} -> ~4x)...")
+                    print(f"    [UPSCALE] Menjalankan AI Upscale 4x ({ow}x{oh} -> ~4x)...")
                     target_bytes, success, err = await asyncio.to_thread(upscale_bytes, raw_bytes)
                     if not success:
-                        print(f"    ⚠️ Upscale gagal: {err}. Beralih ke Lanczos.")
+                        print(f"    [WARN] Upscale gagal: {err}. Beralih ke Lanczos.")
 
             exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
                 finalize_image,
@@ -220,7 +220,7 @@ def cmd_process(args: argparse.Namespace) -> None:
                 height=h,
                 metadata=md,
             ))
-            print(f"    ✅ Selesai: {w}x{h} px ({len(exp_bytes)/1024/1024:.2f} MB), {len(md.keywords)} keywords.")
+            print(f"    [OK] Selesai: {w}x{h} px ({len(exp_bytes)/1024/1024:.2f} MB), {len(md.keywords)} keywords.")
 
     asyncio.run(_process_all())
 
@@ -245,17 +245,17 @@ def cmd_process(args: argparse.Namespace) -> None:
                     f_img.write(it.image_bytes)
 
     print("\n" + "=" * 60)
-    print("🎉 PEMROSESAN SELESAI DENGAN SUKSES!")
+    print("[SUKSES] PEMROSESAN SELESAI DENGAN SUKSES!")
     print("=" * 60)
-    print(f"📁 Folder Hasil Ekspor : {export_dir}")
-    print(f"📄 Master CSV           : {export_dir}/metadata.csv")
-    print(f"📦 Paket Siap Upload    : {export_dir}/package_{timestamp}.zip")
+    print(f"Folder Hasil Ekspor : {export_dir}")
+    print(f"Master CSV           : {export_dir}/metadata.csv")
+    print(f"Paket Siap Upload    : {export_dir}/package_{timestamp}.zip")
     print("=" * 60 + "\n")
 
 
 def cmd_gui(args: argparse.Namespace) -> None:
     """Launch Streamlit Web GUI."""
-    print("🌐 Menjalankan Microstock AI Studio di browser...")
+    print("[INFO] Menjalankan Microstock AI Studio di browser...")
     app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.py")
     subprocess.run([sys.executable, "-m", "streamlit", "run", app_path])
 
@@ -263,7 +263,7 @@ def cmd_gui(args: argparse.Namespace) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(
         prog="microstock",
-        description="📸 Microstock AI Studio - Professional Terminal CLI & Automation Tool",
+        description="Microstock AI Studio - Professional Terminal CLI & Automation Tool",
         epilog="Contoh penggunaan:\n"
                "  python cli.py prompt \"cangkir kopi keramik\"\n"
                "  python cli.py process ~/Downloads --upscale\n"

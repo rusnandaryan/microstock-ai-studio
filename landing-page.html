@@ -133,7 +133,7 @@
         <a href="#interactive-demo" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Interactive Demo</a>
         <a href="#specs" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Stock Standards</a>
         <a href="#rules" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Compliance Engine</a>
-        <a href="#pricing" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Pricing & Plans</a>
+        <a href="#pricing" class="hover:text-blue-600 dark:hover:text-blue-400 transition-colors">Local Architecture</a>
       </nav>
 
       <div class="flex items-center gap-3">
@@ -161,7 +161,7 @@
       <a href="#interactive-demo" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Interactive Demo</a>
       <a href="#specs" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Stock Standards</a>
       <a href="#rules" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Compliance Engine</a>
-      <a href="#pricing" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Pricing & Plans</a>
+      <a href="#pricing" class="block text-sm font-medium text-slate-700 dark:text-slate-200 hover:text-blue-600 dark:hover:text-blue-400 py-1.5 mobile-link">Local Architecture</a>
       <div class="pt-2 border-t border-studio-borderLight dark:border-studio-borderDark">
         <a href="#quickstart" class="block text-center w-full py-2.5 rounded-lg bg-blue-600 text-white font-medium text-xs mobile-link">Launch Local Studio</a>
       </div>
@@ -171,9 +171,6 @@
   <main>
     <!-- Hero Section -->
     <section class="relative pt-16 pb-20 md:pt-24 md:pb-28 overflow-hidden">
-      <!-- Subtle Grid Background -->
-      <div class="absolute inset-0 opacity-[0.03] dark:opacity-[0.05] pointer-events-none bg-[radial-gradient(#2563EB_1px,transparent_1px)] [background-size:24px_24px]"></div>
-
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
         <div class="max-w-3xl">
           <h1 class="font-heading text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-slate-900 dark:text-white leading-[1.15]">
@@ -682,146 +679,72 @@
       </div>
     </section>
 
-    <!-- Pricing & Packaging Section with Frequency Toggle -->
+    <!-- Local Architecture & Free Local Execution Section -->
     <section id="pricing" class="py-16 md:py-24 border-t border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark/50">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="text-center max-w-2xl mx-auto mb-10">
-          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Contributor Licensing</span>
+          <span class="text-xs font-mono font-semibold uppercase tracking-wider text-blue-600 dark:text-blue-400">Zero Cloud Subscriptions</span>
           <h2 class="mt-1 font-heading text-2xl sm:text-3xl font-bold tracking-tight text-slate-900 dark:text-white">
-            Predictable pricing without token markups
+            100% Free & Open Local Workstation
           </h2>
           <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
-            Run the heavy visual upscaler locally on your Mac GPU with zero cloud upcharge. Use your own Gemini API key for pennies per thousand assets.
+            No recurring subscription fees, no per-image markup, and no data leaving your machine unnecessarily. Run the full suite locally on your Mac.
           </p>
-
-          <!-- Billing Frequency Toggle -->
-          <div class="mt-6 inline-flex items-center p-1 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark text-xs font-medium">
-            <button id="billMonthly" type="button" class="px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer">
-              Monthly Billing
-            </button>
-            <button id="billAnnual" type="button" class="px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1.5">
-              <span>Annual</span>
-              <span class="px-1.5 py-0.5 rounded text-[10px] bg-emerald-500/10 text-emerald-500 font-mono font-bold">SAVE 20%</span>
-            </button>
-          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto items-stretch">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto items-stretch">
           
-          <!-- Tier 1: Local Solo -->
           <div class="rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm">
             <div>
-              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Community Contributor</div>
-              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Local Edition</h3>
-              <div class="mt-4 flex items-baseline gap-1">
-                <span class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$0</span>
-                <span class="text-xs text-slate-400">/ forever free</span>
-              </div>
+              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Compute Pipeline</div>
+              <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-white mt-1">Local Vulkan GPU</h3>
               <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Ideal for independent creators running the studio directly on their personal workstation.
+                Image upscaling (Real-ESRGAN NCNN) runs directly on your local hardware via Vulkan acceleration without cloud upcharge or token costs.
               </p>
-
-              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Full Streamlit workstation app</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Local Real-ESRGAN Vulkan engine</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Bring your own Gemini API key</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Downloads auto-sync and CSV export</span>
-                </li>
+              <ul class="mt-4 space-y-2 text-xs text-slate-500">
+                <li>Zero cloud GPU rental fees</li>
+                <li>Unlimited local 4x upscales</li>
+                <li>Offline capable upscaler binary</li>
               </ul>
             </div>
-
-            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors btn-press cursor-pointer">
-              Run Setup Guide
-            </a>
+            <div class="mt-6 pt-4 border-t border-studio-borderLight dark:border-studio-borderDark text-xs font-mono text-blue-600 dark:text-blue-400">
+              Free & Unlimited
+            </div>
           </div>
 
-          <!-- Tier 2: Studio Pro (Featured) -->
-          <div class="rounded-xl border-2 border-blue-600 bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-md relative">
-            <div class="absolute -top-3 right-6 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-600 text-white tracking-wider uppercase">
-              Most Popular
-            </div>
+          <div class="rounded-xl border border-blue-500/40 bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm">
             <div>
-              <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-semibold uppercase">High-Volume Pro</div>
-              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Studio Contributor</h3>
-              <div class="mt-4 flex items-baseline gap-1">
-                <span id="pricePro" class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$29</span>
-                <span id="periodPro" class="text-xs text-slate-400">/ month</span>
-              </div>
+              <div class="text-xs font-mono text-blue-600 dark:text-blue-400 font-semibold uppercase">API Integration</div>
+              <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-white mt-1">Direct Gemini AI Key</h3>
               <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                For active contributors uploading 500+ commercial images per month across multiple stock portals.
+                Connect your personal Google Gemini API key directly. No middleman proxy or markup fees. Google AI Studio provides free tier quotas.
               </p>
-
-              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Everything in Local Edition</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Multi-stock automated CSV formatters</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Adobe Stock live trend tracker API</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Priority email and Discord setup support</span>
-                </li>
+              <ul class="mt-4 space-y-2 text-xs text-slate-500">
+                <li>Direct client to Google connection</li>
+                <li>API key saved securely in local .env</li>
+                <li>Zero third-party subscription</li>
               </ul>
             </div>
-
-            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors shadow-sm btn-press cursor-pointer">
-              Get Started with Pro
-            </a>
+            <div class="mt-6 pt-4 border-t border-studio-borderLight dark:border-studio-borderDark text-xs font-mono text-blue-600 dark:text-blue-400">
+              Direct & Transparent
+            </div>
           </div>
 
-          <!-- Tier 3: Agency Team -->
           <div class="rounded-xl border border-studio-borderLight dark:border-studio-borderDark bg-white dark:bg-studio-cardDark p-6 flex flex-col justify-between shadow-sm">
             <div>
-              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Stock Agency</div>
-              <h3 class="font-heading text-xl font-bold text-slate-900 dark:text-white mt-1">Agency Cluster</h3>
-              <div class="mt-4 flex items-baseline gap-1">
-                <span id="priceAgency" class="text-3xl font-bold font-heading text-slate-900 dark:text-white">$89</span>
-                <span id="periodAgency" class="text-xs text-slate-400">/ month</span>
-              </div>
+              <div class="text-xs font-mono text-slate-400 font-semibold uppercase">Workstation Engine</div>
+              <h3 class="font-heading text-lg font-bold text-slate-900 dark:text-white mt-1">Python & Streamlit</h3>
               <p class="mt-3 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                Centralized asset management and multi-seat queue processing for commercial microstock agencies.
+                Full source code available. Run either the web-based visual workstation (<code>streamlit run app.py</code>) or headless terminal CLI (<code>python cli.py</code>).
               </p>
-
-              <ul class="mt-6 space-y-2.5 text-xs text-slate-600 dark:text-slate-300 border-t border-studio-borderLight dark:border-studio-borderDark pt-6">
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>5 Contributor seats included</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Centralized shared keyword taxonomies</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Direct FTP/SFTP auto-dispatch to stock agencies</span>
-                </li>
-                <li class="flex items-center gap-2">
-                  <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                  <span>Custom compliance rule builder</span>
-                </li>
+              <ul class="mt-4 space-y-2 text-xs text-slate-500">
+                <li>Full source transparency</li>
+                <li>CLI scripting for batch cron jobs</li>
+                <li>Automatic CSV metadata export</li>
               </ul>
             </div>
-
-            <a href="#quickstart" class="mt-8 block w-full text-center py-2.5 rounded-lg border border-studio-borderLight dark:border-studio-borderDark bg-slate-50 dark:bg-studio-surfaceDark hover:bg-slate-100 text-slate-800 dark:text-slate-200 text-xs font-semibold transition-colors btn-press cursor-pointer">
-              Contact Sales
+            <a href="#quickstart" class="mt-6 block w-full text-center py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold transition-colors btn-press">
+              Run Local Setup
             </a>
           </div>
 
@@ -838,7 +761,7 @@
             Launch your local studio in under two minutes
           </h2>
           <p class="mt-3 text-sm text-slate-600 dark:text-slate-300">
-            Built with Python and Streamlit for seamless Mac (Apple Silicon and Intel) local operation with Vulkan GPU acceleration.
+            Built with Python and Streamlit for reliable Mac (Apple Silicon and Intel) local operation with Vulkan GPU acceleration.
           </p>
         </div>
 
@@ -1009,32 +932,6 @@
     tabMod1.addEventListener('click', () => setModuleTab(tabMod1, 'cardMod1'));
     tabMod2.addEventListener('click', () => setModuleTab(tabMod2, 'cardMod2'));
     tabMod3.addEventListener('click', () => setModuleTab(tabMod3, 'cardMod3'));
-
-    // Billing Frequency Toggle Handler
-    const billMonthly = document.getElementById('billMonthly');
-    const billAnnual = document.getElementById('billAnnual');
-    const pricePro = document.getElementById('pricePro');
-    const periodPro = document.getElementById('periodPro');
-    const priceAgency = document.getElementById('priceAgency');
-    const periodAgency = document.getElementById('periodAgency');
-
-    billMonthly.addEventListener('click', () => {
-      billMonthly.className = 'px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer';
-      billAnnual.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer flex items-center gap-1.5';
-      pricePro.textContent = '$29';
-      periodPro.textContent = '/ month';
-      priceAgency.textContent = '$89';
-      periodAgency.textContent = '/ month';
-    });
-
-    billAnnual.addEventListener('click', () => {
-      billAnnual.className = 'px-3 py-1.5 rounded-md bg-blue-600 text-white font-semibold transition-all cursor-pointer flex items-center gap-1.5';
-      billMonthly.className = 'px-3 py-1.5 rounded-md text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer';
-      pricePro.textContent = '$23';
-      periodPro.textContent = '/ month (billed yearly)';
-      priceAgency.textContent = '$71';
-      periodAgency.textContent = '/ month (billed yearly)';
-    });
 
     // 1-Click Terminal Quickstart Copy Buttons
     document.querySelectorAll('.copy-cmd-btn').forEach(btn => {

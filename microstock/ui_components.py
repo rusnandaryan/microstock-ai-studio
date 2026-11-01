@@ -15,32 +15,45 @@ from .image_generator import BatchItem, BatchSettings
 
 
 def get_modern_css(is_dark: bool = True) -> str:
-    """Generate high-precision Pro Dark Studio workstation CSS."""
-    # Obsidian Pro Dark Workstation Palette (Blackmagic / Linear / Figma Studio Caliber)
-    # WCAG AAA Compliant: Text (#F8FAFC) on bg (#080B11) = 18.2:1
-    # Card bg (#0F1623), Borders (#1D283E), Secondary Text (#94A3B8 = 6.8:1)
-    # Text Accent (#60A5FA on #080B11 = 8.8:1 - Passes AAA)
-    scheme = "dark"
-    bg_page = "#06080D"
-    bg_card = "#0B0F19"
-    bg_sidebar = "#05070B"
-    bg_input = "#0E1424"
-    bg_elevated = "#131A2E"
-    border_color = "rgba(255, 255, 255, 0.08)"
-    border_focus = "#3B82F6"
-    text_primary = "#F8FAFC"
-    text_secondary = "#94A3B8"
-    text_muted = "#64748B"
-    text_accent = "#60A5FA"
-    accent_blue = "#2563EB"
-    accent_blue_hover = "#1D4ED8"
-    hero_bg = "linear-gradient(135deg, #0B0F19 0%, #06080D 100%)"
-    hero_border = "rgba(255, 255, 255, 0.08)"
-    code_bg = "#05070B"
-    tab_bg_inactive = "transparent"
-    tab_border = "rgba(255, 255, 255, 0.08)"
-    badge_border = "rgba(255, 255, 255, 0.1)"
-    scrollbar_thumb = "#1E293B"
+    """Generate high-precision Studio workstation CSS for dark and light modes."""
+    if is_dark:
+        scheme = "dark"
+        bg_page = "#06080D"
+        bg_card = "#0B0F19"
+        bg_sidebar = "#05070B"
+        bg_input = "#0E1424"
+        bg_elevated = "#131A2E"
+        border_color = "rgba(255, 255, 255, 0.08)"
+        border_focus = "#3B82F6"
+        text_primary = "#F8FAFC"
+        text_secondary = "#94A3B8"
+        text_muted = "#64748B"
+        text_accent = "#60A5FA"
+        accent_blue = "#2563EB"
+        accent_blue_hover = "#1D4ED8"
+        hero_bg = "linear-gradient(135deg, #0B0F19 0%, #06080D 100%)"
+        hero_border = "rgba(255, 255, 255, 0.08)"
+        code_bg = "#05070B"
+        scrollbar_thumb = "#1E293B"
+    else:
+        scheme = "light"
+        bg_page = "#F8FAFC"
+        bg_card = "#FFFFFF"
+        bg_sidebar = "#F1F5F9"
+        bg_input = "#FFFFFF"
+        bg_elevated = "#E2E8F0"
+        border_color = "rgba(0, 0, 0, 0.1)"
+        border_focus = "#2563EB"
+        text_primary = "#0F172A"
+        text_secondary = "#475569"
+        text_muted = "#64748B"
+        text_accent = "#2563EB"
+        accent_blue = "#2563EB"
+        accent_blue_hover = "#1D4ED8"
+        hero_bg = "linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)"
+        hero_border = "rgba(0, 0, 0, 0.1)"
+        code_bg = "#F1F5F9"
+        scrollbar_thumb = "#CBD5E1"
 
     return f"""
 <style>
@@ -255,32 +268,26 @@ p, span, li, label, b, strong {{
 }}
 
 .ms-badge-accent,
-.ms-badge-blue {{
-  background: rgba(59, 130, 246, 0.15) !important;
+.ms-badge-blue,
+.ms-badge-purple {{
+  background: rgba(59, 130, 246, 0.12) !important;
   color: #60A5FA !important;
   -webkit-text-fill-color: #60A5FA !important;
-  border-color: rgba(59, 130, 246, 0.35) !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
 }}
 
 .ms-badge-green {{
-  background: rgba(16, 185, 129, 0.15) !important;
+  background: rgba(16, 185, 129, 0.12) !important;
   color: #34D399 !important;
   -webkit-text-fill-color: #34D399 !important;
-  border-color: rgba(16, 185, 129, 0.35) !important;
-}}
-
-.ms-badge-purple {{
-  background: rgba(168, 85, 247, 0.15) !important;
-  color: #C084FC !important;
-  -webkit-text-fill-color: #C084FC !important;
-  border-color: rgba(168, 85, 247, 0.35) !important;
+  border-color: rgba(16, 185, 129, 0.3) !important;
 }}
 
 .ms-badge-amber {{
-  background: rgba(245, 158, 11, 0.15) !important;
-  color: #FBBF24 !important;
-  -webkit-text-fill-color: #FBBF24 !important;
-  border-color: rgba(245, 158, 11, 0.35) !important;
+  background: rgba(148, 163, 184, 0.12) !important;
+  color: #94A3B8 !important;
+  -webkit-text-fill-color: #94A3B8 !important;
+  border-color: rgba(148, 163, 184, 0.25) !important;
 }}
 
 /* Modern Tabs Styling */
@@ -1197,19 +1204,12 @@ def render_sidebar() -> Optional[str]:
             else:
                 st.caption("Dapatkan gratis di [aistudio.google.com](https://aistudio.google.com).")
 
-        st.markdown("<div style='margin-top:1.2rem;'></div>", unsafe_allow_html=True)
-
-        if st.button("Bersihkan Cache", type="secondary", use_container_width=True):
-            st.cache_data.clear()
-            st.cache_resource.clear()
-            st.toast("Cache berhasil dibersihkan.")
-
         st.divider()
 
         st.markdown(
             """
             <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
-              // WORKFLOW GUIDE
+              Panduan Alur Kerja
             </p>
             <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:1rem;">
               <ol style="margin: 0.2rem 0 0 1.1rem; padding: 0; font-size: 0.83rem; line-height: 1.55; color:var(--text-secondary);">
@@ -1230,10 +1230,10 @@ def render_sidebar() -> Optional[str]:
             """,
             unsafe_allow_html=True,
         )
-        if st.button("Bersihkan Cache Streamlit", use_container_width=True, type="secondary"):
+        if st.button("Bersihkan Cache", use_container_width=True, type="secondary"):
             st.cache_data.clear()
             st.cache_resource.clear()
-            st.toast("Cache Streamlit berhasil dibersihkan.")
+            st.toast("Cache berhasil dibersihkan.")
 
         st.divider()
         st.caption("Microstock AI Studio v2.5")

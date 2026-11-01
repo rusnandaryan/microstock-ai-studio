@@ -453,5 +453,17 @@ class TestFolderWatcherLimit(unittest.TestCase):
                 self.assertIsNone(res)
 
 
+class TestUiThemeSupport(unittest.TestCase):
+    def test_get_modern_css_dark_and_light(self):
+        from microstock.ui_components import get_modern_css
+        dark_css = get_modern_css(is_dark=True)
+        self.assertIn("color-scheme: dark", dark_css)
+        self.assertIn("--bg-page: #06080D", dark_css)
+
+        light_css = get_modern_css(is_dark=False)
+        self.assertIn("color-scheme: light", light_css)
+        self.assertIn("--bg-page: #F8FAFC", light_css)
+
+
 if __name__ == "__main__":
     unittest.main()

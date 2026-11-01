@@ -1,11 +1,11 @@
-# 📸 Microstock AI Studio
+# Microstock AI Studio
 
 Selamat datang di **Microstock AI Studio**!  
 Aplikasi komprehensif ini dirancang khusus untuk mempermudah dan mempercepat alur kerja (*workflow*) kontributor microstock (seperti **Adobe Stock** dan **Shutterstock**). Dengan dukungan kecerdasan buatan **Google Gemini AI**, Anda dapat meriset tren, membuat prompt komersial berkualitas tinggi, memeriksa visual gambar secara otomatis, hingga menyusun metadata SEO 50 kata kunci bebas penolakan (*anti-rejection*).
 
 ---
 
-## ✨ Fitur-Fitur Utama & Alur Kerja
+## Fitur-Fitur Utama & Alur Kerja
 
 Aplikasi ini dibagi menjadi 3 modul kerja utama yang rapi dan terisolasi:
 
@@ -13,7 +13,7 @@ Aplikasi ini dibagi menjadi 3 modul kerja utama yang rapi dan terisolasi:
 ┌────────────────────────────────────────────────────────────────────────┐
 │                        MICROSTOCK AI STUDIO                            │
 ├────────────────────┬─────────────────────────────┬─────────────────────┤
-│  🎯 Tab 1:         │  🔍 Tab 2:                  │  🖼️ Tab 3:          │
+│  Tab 1:            │  Tab 2:                     │  Tab 3:             │
 │  Prompt Generator  │  Inspeksi Visual & Metadata │  Reverse Prompt     │
 │  (Text to Prompt)  │  (Vision & Auto-Cleanup)    │  (Image to Prompt)  │
 └────────────────────┴─────────────────────────────┴─────────────────────┘
@@ -21,7 +21,7 @@ Aplikasi ini dibagi menjadi 3 modul kerja utama yang rapi dan terisolasi:
 
 ---
 
-### 🎯 Tab 1: Studio Pembuat Prompt (Text to Prompt)
+### Tab 1: Studio Pembuat Prompt (Text to Prompt)
 
 Ubah ide singkat Anda menjadi **5 variasi prompt bahasa Inggris profesional** siap generate yang telah disterilkan sesuai standar ketat microstock internasional.
 
@@ -31,11 +31,11 @@ Ubah ide singkat Anda menjadi **5 variasi prompt bahasa Inggris profesional** si
    - **Fitur 1-Click Apply:** Cukup klik tombol pada kartu tren, semua parameter (ide dasar, kategori gaya, sub-gaya, dan rasio) langsung otomatis terisi ke form pembuatan prompt!
 
 2. **Katalog Gaya Visual Terlengkap (Menu Bertingkat 5 Kategori):**
-   - **📸 Fotografi (Photorealism):** Commercial Advertising, Dokumenter & Human Interest, Macro Photography, Portrait Faceless, Street Photography, Sinematik Film 35mm, Food Editorial, Arsitektur Minimalis.
-   - **🎨 Ilustrasi & Seni Lukis:** Cat Air & Gouache, Cat Minyak Klasik, Sketsa Pensil & Arang, Impresionisme Bertekstur, Surealisme Modern, Seni Abstrak Kontemporer, Ilustrasi Stiker Die-Cut.
-   - **🎬 Animasi & Kartun:** Pastel Kawaii Mascot Design, Anime Jepang Kontemporer, Manga Tinta Hitam Putih, Chibi & Karakter Imut, Kartun Klasik Retro, Komik Pop Art Halftone, Whimsical Studio Anime (Ghibli-inspired), 3D Animated Feature (Pixar-inspired).
-   - **🧊 3D & Render:** 3D Miniature Diorama (Miniature World), 3D Commercial Studio Render, 3D Isometric Illustration, 3D Claymation (Tanah Liat Taktil), Low-Poly 3D Minimalist, Octane Render Photorealistic, 3D Glassmorphism & Akrilik Transparan.
-   - **⚡ Desain & Digital Art:** Paket Stiker Die-Cut (Die-Cut Sticker Pack), Icon Desain Aplikasi & Web, Flat Design Vector Minimalist, Logo Monogram & Geometris, Cyberpunk & Futuristic Neon, Steampunk Vintage Mekanikal, Synthwave 80s, Pixel Art 16-bit, Digital Concept Art Sci-Fi/Fantasi.
+   - **Fotografi (Photorealism):** Commercial Advertising, Dokumenter & Human Interest, Macro Photography, Portrait Faceless, Street Photography, Sinematik Film 35mm, Food Editorial, Arsitektur Minimalis.
+   - **Ilustrasi & Seni Lukis:** Cat Air & Gouache, Cat Minyak Klasik, Sketsa Pensil & Arang, Impresionisme Bertekstur, Surealisme Modern, Seni Abstrak Kontemporer, Ilustrasi Stiker Die-Cut.
+   - **Animasi & Kartun:** Pastel Kawaii Mascot Design, Anime Jepang Kontemporer, Manga Tinta Hitam Putih, Chibi & Karakter Imut, Kartun Klasik Retro, Komik Pop Art Halftone, Whimsical Studio Anime (Ghibli-inspired), 3D Animated Feature (Pixar-inspired).
+   - **3D & Render:** 3D Miniature Diorama (Miniature World), 3D Commercial Studio Render, 3D Isometric Illustration, 3D Claymation (Tanah Liat Taktil), Low-Poly 3D Minimalist, Octane Render Photorealistic, 3D Glassmorphism & Akrilik Transparan.
+   - **Desain & Digital Art:** Paket Stiker Die-Cut (Die-Cut Sticker Pack), Icon Desain Aplikasi & Web, Flat Design Vector Minimalist, Logo Monogram & Geometris, Cyberpunk & Futuristic Neon, Steampunk Vintage Mekanikal, Synthwave 80s, Pixel Art 16-bit, Digital Concept Art Sci-Fi/Fantasi.
 
 3. **Pilihan Komposisi & Framing Fleksibel:**
    - **Negative Space for Copy / Headline:** Ruang kosong bersih 30%–40% untuk penempatan teks promosi/iklan.
@@ -49,18 +49,18 @@ Ubah ide singkat Anda menjadi **5 variasi prompt bahasa Inggris profesional** si
 
 ---
 
-### 🔍 Tab 2: Pemeriksa Gambar, Upscale & SEO Metadata (Gemini Vision)
+### Tab 2: Pemeriksa Gambar, Upscale & SEO Metadata (Gemini Vision)
 
 Pemeriksaan konten visual nyata dengan AI, upscale cerdas dengan standar microstock komersial, dan penyusunan metadata SEO 50 keywords.
 
-1. **⚡ Auto-Sync dari Folder Download (Filter Waktu Sesi & Akumulasi Cerdas):**
+1. **Auto-Sync dari Folder Download (Filter Waktu Sesi & Akumulasi Cerdas):**
    - Menghilangkan proses upload manual yang membosankan! Aplikasi memantau folder `Downloads` Mac Anda secara cerdas.
    - **Filter Jendela Waktu Sesi:** Pilihan rentang waktu (*15 Menit Terakhir / 30 Menit / 1 Jam / Hari Ini*) sehingga 30+ gambar yang baru diunduh langsung terjaring semua tanpa terganggu file lama.
-   - **Akumulasi Cerdas Anti-Duplikat:** Jika Anda mengunduh bertahap, cukup klik *Pindai* lagi—gambar baru akan otomatis ditambahkan ke antrean tanpa menduplikasi file yang sudah ada.
+   - **Akumulasi Cerdas Anti-Duplikat:** Jika Anda mengunduh bertahap, cukup klik *Pindai* lagi, gambar baru akan otomatis ditambahkan ke antrean tanpa menduplikasi file yang sudah ada.
    - **Deteksi Download Aktif:** Otomatis memperingatkan jika browser masih memproses file `.crdownload` yang belum tuntas.
    - Masih tersedia kotak unggah manual jika Anda ingin memasukkan gambar dari folder lain.
 
-2. **🛡️ Aturan Upscale Cerdas (Standar Adobe Stock & Freepik Tanpa Perlu Pilih Skala Manual):**
+2. **Aturan Upscale Cerdas (Standar Adobe Stock & Freepik Tanpa Perlu Pilih Skala Manual):**
    - **Minimal 4 Megapiksel (WAJIB & Otomatis):** Sistem menghitung skala yang tepat secara otomatis agar output selalu $\ge$ **4 MP** ($\ge 4.000.000$ piksel) sesuai syarat minimum Adobe Stock & Shutterstock tanpa perlu memilih angka 2x/3x/4x secara manual.
    - **Minimal 4 Megabyte (OPSIONAL):** Kotak centang khusus *"Wajibkan ukuran file fisik minimal 4 MB"*. Jika dicentang, file dipastikan berukuran $\ge 4$ MB di disk untuk memenuhi standar Freepik / Vecteezy. Jika tidak dicentang, kompresi normal dipertahankan agar hemat penyimpanan lokal Mac Anda.
    - **Auto-Upscaler NCNN Lokal:** Ditenagai mesin AI Real-ESRGAN Vulkan langsung di GPU komputer Anda tanpa koneksi internet.
@@ -76,7 +76,7 @@ Pemeriksaan konten visual nyata dengan AI, upscale cerdas dengan standar microst
 
 ---
 
-### 🖼️ Tab 3: Reverse Prompt Studio (Image to Prompt)
+### Tab 3: Reverse Prompt Studio (Image to Prompt)
 
 Punya gambar referensi yang menarik dan ingin membuat prompt serupa untuk di-generate ulang?
 
@@ -89,7 +89,7 @@ Punya gambar referensi yang menarik dan ingin membuat prompt serupa untuk di-gen
 
 ---
 
-## 🛡️ 7 Aturan Kepatuhan Mutlak (Universal Compliance Rules)
+## 7 Aturan Kepatuhan Mutlak (Universal Compliance Rules)
 
 Semua prompt yang dihasilkan oleh aplikasi ini (baik di Tab 1 maupun Tab 3) secara otomatis disterilkan dengan 7 aturan komersial universal:
 
@@ -120,7 +120,7 @@ Semua prompt yang dihasilkan oleh aplikasi ini (baik di Tab 1 maupun Tab 3) seca
 
 ---
 
-## 💻 Panduan Instalasi & Penggunaan
+## Panduan Instalasi & Penggunaan
 
 ### 1. Prasyarat
 - Komputer dengan **Python 3.9** ke atas.
@@ -159,7 +159,7 @@ Masukkan **Gemini API Key** Anda pada kolom di sidebar kiri, dan simpan agar oto
 
 ---
 
-## 📁 Struktur Penyimpanan Lokal
+## Struktur Penyimpanan Lokal
 
 - `exports/prompts/` : Menyimpan file prompt hasil Reverse Prompt (format `*.txt`).
 - `exports/batch_[timestamp]/` : Menyimpan metadata `metadata.csv` (serta gambar hasil *upscale* jika diaktifkan).
