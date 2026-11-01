@@ -384,5 +384,74 @@ class TestCliInterface(unittest.TestCase):
         self.assertIn("gui", res.stdout)
 
 
+class TestPromptEnhancer(unittest.TestCase):
+    def test_format_with_aspect_ratio(self):
+        from microstock.prompt_enhancer import _format_with_aspect_ratio
+        res = _format_with_aspect_ratio("A clean coffee cup", "16:9")
+        self.assertEqual(res, "A clean coffee cup [Aspect Ratio: 16:9]")
+
+        res2 = _format_with_aspect_ratio("A clean coffee cup [Aspect Ratio: 1:1]", "16:9")
+        self.assertEqual(res2, "A clean coffee cup [Aspect Ratio: 16:9]")
+
+    def test_parse_enhancer_response(self):
+        from microstock.prompt_enhancer import parse_enhancer_response
+        res = parse_enhancer_response("A minimal ceramic vase", "4:3")
+        self.assertEqual(res, "A minimal ceramic vase [Aspect Ratio: 4:3]")
+
+        json_payload = '```json\n{"prompt": "A modern glass teapot"}\n```'
+        res2 = parse_enhancer_response(json_payload, "1:1")
+        self.assertEqual(res2, "A modern glass teapot [Aspect Ratio: 1:1]")
+
+    def test_build_enhancer_input(self):
+        from microstock.prompt_enhancer import build_enhancer_input
+        prompt_input = build_enhancer_input(
+            base_idea="Minimalist wooden desk",
+            style_name="Fotografi (Photorealism)",
+            aspect_ratio="16:9",
+        )
+        self.assertIn("Minimalist wooden desk", prompt_input)
+        self.assertIn("16:9", prompt_input)
+
+
+class TestUpscalerBytes(unittest.TestCase):
+    def test_upscale_bytes_fallback_when_binary_missing(self):
+        from unittest.mock import patch
+        from microstock.upscaler import upscale_bytes
+        sample = _create_sample_jpeg(100, 100)
+        with patch("microstock.upscaler.get_upscaler_binary_path", return_value=None):
+            result, success, err = upscale_bytes(sample)
+            self.assertFalse(success)
+            self.assertEqual(result, sample)
+            self.assertIn("tidak ditemukan", err)
+
+
+class TestReversePromptSave(unittest.TestCase):
+    def test_save_prompt_avoids_overwriting(self):
+        import tempfile
+        import os
+        from unittest.mock import patch
+        from microstock.reverse_prompt import save_prompt_to_file
+
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            with patch("microstock.reverse_prompt.os.path.abspath", return_value=os.path.join(tmp_dir, "mock")):
+                p1 = save_prompt_to_file("Prompt 1", "test.jpg")
+                p2 = save_prompt_to_file("Prompt 2", "test.jpg")
+                self.assertNotEqual(p1, p2)
+                self.assertTrue(os.path.exists(p1))
+                self.assertTrue(os.path.exists(p2))
+
+
+class TestFolderWatcherLimit(unittest.TestCase):
+    def test_read_image_bytes_skips_large_file(self):
+        import tempfile
+        from unittest.mock import patch
+        from microstock.folder_watcher import read_image_bytes
+
+        with tempfile.NamedTemporaryFile(suffix=".jpg") as tmp:
+            with patch("os.path.getsize", return_value=51 * 1024 * 1024):
+                res = read_image_bytes(tmp.name)
+                self.assertIsNone(res)
+
+
 if __name__ == "__main__":
     unittest.main()

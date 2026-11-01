@@ -111,7 +111,7 @@ def build_zip(items: List[BatchItem], s: Optional[BatchSettings] = None,
 def _readme(s: Optional[BatchSettings], master: pd.DataFrame) -> str:
     style_text = s.style_name if s else "Commercial AI Stock"
     ratio_text = s.aspect_ratio if s else "Original"
-    model_text = s.image_model if s else "Gemini Nano Banana"
+    model_text = s.image_model if s else "Gemini Vision & Real-ESRGAN"
     return (
         "Microstock AI Studio - Export Bundle\n\n"
         f"Total Images  : {len(master)}\n"

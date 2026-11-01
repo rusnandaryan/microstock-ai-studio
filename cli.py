@@ -32,7 +32,7 @@ from microstock.metadata import generate_metadata_from_vision_async
 from microstock.prompt_enhancer import enhance_prompt
 from microstock.reverse_prompt import _detect_ratio, generate_reverse_prompt_async, save_prompt_to_file
 from microstock.trend_analyzer import get_trending_ideas
-from microstock.upscaler import is_upscale_needed, run_upscale
+from microstock.upscaler import is_upscale_needed, upscale_bytes
 
 
 def get_authenticated_client(api_key: str | None = None):
@@ -194,25 +194,9 @@ def cmd_process(args: argparse.Namespace) -> None:
 
                 if is_upscale_needed(ow, oh):
                     print(f"    ⚡ Menjalankan AI Upscale 4x ({ow}x{oh} -> ~4x)...")
-                    import tempfile
-                    in_p = None
-                    out_p = None
-                    try:
-                        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
-                            in_f.write(raw_bytes)
-                            in_p = in_f.name
-                        out_p = in_p.replace(".jpg", "_up.jpg")
-                        success, err = await asyncio.to_thread(run_upscale, in_p, out_p, 4, "realesrgan-x4plus", 400)
-                        if success:
-                            with open(out_p, "rb") as out_f:
-                                target_bytes = out_f.read()
-                        else:
-                            print(f"    ⚠️ Upscale gagal: {err}. Beralih ke Lanczos.")
-                    finally:
-                        for p in (in_p, out_p):
-                            if p and os.path.exists(p):
-                                try: os.remove(p)
-                                except OSError: pass
+                    target_bytes, success, err = await asyncio.to_thread(upscale_bytes, raw_bytes)
+                    if not success:
+                        print(f"    ⚠️ Upscale gagal: {err}. Beralih ke Lanczos.")
 
             exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
                 finalize_image,

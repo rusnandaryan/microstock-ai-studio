@@ -101,10 +101,7 @@ with tab1:
                     label_visibility="collapsed",
                     key="trend_pills_selector",
                 )
-                if selected_idx is None:
-                    selected_idx = st.session_state.selected_trend_idx
-                    st.session_state.trend_pills_selector = selected_idx
-                elif selected_idx != st.session_state.selected_trend_idx:
+                if selected_idx is not None and selected_idx != st.session_state.selected_trend_idx:
                     st.session_state.selected_trend_idx = selected_idx
                     cur_trend = trends_list[selected_idx]
                     cur_vars = ensure_trend_variations(cur_trend)
@@ -609,31 +606,13 @@ with tab2:
                         except Exception:
                             orig_w, orig_h = 1024, 1024
 
-                        from microstock.upscaler import is_upscale_needed, run_upscale
+                        from microstock.upscaler import is_upscale_needed, upscale_bytes
                         if is_upscale_needed(orig_w, orig_h):
                             progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (AI Upscale 4x Standar Microstock) #{idx+1} dari {len(image_entries)}: {filename}...")
-                            import tempfile
-                            in_path = None
-                            out_path = None
-                            try:
-                                with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
-                                    in_f.write(raw_bytes)
-                                    in_path = in_f.name
-                                out_path = in_path.replace(".jpg", "_up.jpg")
-                                success, err_msg = await asyncio.to_thread(run_upscale, in_path, out_path, 4, "realesrgan-x4plus", 400)
-                                if success:
-                                    with open(out_path, "rb") as out_f:
-                                        target_bytes = out_f.read()
-                                else:
-                                    err_detail = f" ({err_msg})" if err_msg else ""
-                                    st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.")
-                            finally:
-                                for p in (in_path, out_path):
-                                    if p and os.path.exists(p):
-                                        try:
-                                            os.remove(p)
-                                        except OSError:
-                                            pass
+                            target_bytes, success, err_msg = await asyncio.to_thread(upscale_bytes, raw_bytes)
+                            if not success:
+                                err_detail = f" ({err_msg})" if err_msg else ""
+                                st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.")
                         else:
                             progress_bar.progress(idx / len(image_entries), text=f"Gambar #{idx+1} sudah beresolusi tinggi ({orig_w}x{orig_h} px ≥ 4 MP), melewati perbesaran AI...")
 

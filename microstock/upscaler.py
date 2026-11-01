@@ -76,3 +76,33 @@ def run_upscale(
         return False, err_msg
     except Exception as e:
         return False, str(e)
+
+
+def upscale_bytes(
+    raw_bytes: bytes,
+    scale: int = 4,
+    model: str = "realesrgan-x4plus",
+    tile_size: int = 400,
+    timeout: int = 120,
+) -> Tuple[bytes, bool, Optional[str]]:
+    """Upscale raw image bytes via temporary files. Returns (result_bytes, success, err_msg)."""
+    import tempfile
+    in_p, out_p = None, None
+    try:
+        with tempfile.NamedTemporaryFile(suffix=".jpg", delete=False) as in_f:
+            in_f.write(raw_bytes)
+            in_p = in_f.name
+        out_p = in_p.replace(".jpg", "_up.jpg")
+        success, err = run_upscale(in_p, out_p, scale, model, tile_size, timeout)
+        if success and os.path.exists(out_p):
+            with open(out_p, "rb") as out_f:
+                return out_f.read(), True, None
+        return raw_bytes, False, err
+    finally:
+        for p in (in_p, out_p):
+            if p and os.path.exists(p):
+                try:
+                    os.remove(p)
+                except OSError:
+                    pass
+

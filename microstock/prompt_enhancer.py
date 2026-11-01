@@ -183,16 +183,6 @@ def enhance_prompt(
                     text = (response.text or "").strip()
                     if text:
                         return parse_enhancer_response(text, aspect_ratio)
-                elif hasattr(client, "interactions"):
-                    interaction = client.interactions.create(
-                        model=model_name,
-                        system_instruction=ENHANCER_SYSTEM_INSTRUCTION,
-                        input=prompt_input,
-                        store=False,
-                    )
-                    text = (interaction.output_text or "").strip()
-                    if text:
-                        return parse_enhancer_response(text, aspect_ratio)
             except Exception as e:
                 last_err = e
                 err_str = str(e).lower()

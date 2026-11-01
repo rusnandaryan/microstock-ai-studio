@@ -150,6 +150,10 @@ def save_prompt_to_file(prompt: str, original_filename: str) -> str:
     clean_name = re.sub(r"[^a-zA-Z0-9_\-]+", "_", os.path.splitext(original_filename)[0])
     txt_filename = f"prompt_{clean_name}.txt"
     txt_path = os.path.join(prompts_dir, txt_filename)
+    counter = 1
+    while os.path.exists(txt_path):
+        txt_path = os.path.join(prompts_dir, f"prompt_{clean_name}_{counter}.txt")
+        counter += 1
 
     with open(txt_path, "w", encoding="utf-8") as f:
         f.write(prompt)

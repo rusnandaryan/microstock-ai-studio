@@ -111,16 +111,6 @@ def get_trending_ideas(
                     parsed = _parse_trends_json(response.text or "", now_str)
                     if parsed:
                         return parsed
-                elif hasattr(client, "interactions"):
-                    interaction = client.interactions.create(
-                        model=model_name,
-                        system_instruction=TREND_SYSTEM_INSTRUCTION,
-                        input=f"Analisis 10 momen dan hari besar mendatang dalam 2-8 minggu dari {now_str} untuk microstock.",
-                        store=False,
-                    )
-                    parsed = _parse_trends_json(interaction.output_text or "", now_str)
-                    if parsed:
-                        return parsed
             except json.JSONDecodeError as e:
                 raise TransientError(f"Failed to parse JSON: {e}") from e
             except Exception as e:
