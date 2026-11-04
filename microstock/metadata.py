@@ -6,7 +6,7 @@ import json
 import os
 import re
 from dataclasses import asdict, dataclass, field
-from typing import Callable, List, Optional
+from typing import Any, Callable, List, Optional
 
 from google import genai
 
@@ -69,16 +69,16 @@ METADATA_SCHEMA = {
         "keywords": {
             "type": "array",
             "items": {"type": "string"},
-            "minItems": config.KEYWORD_COUNT,
-            "maxItems": config.KEYWORD_COUNT,
-            "description": "Exactly 50 keywords, broad to specific.",
+            "description": "50 unique keywords, broad to specific.",
         },
-        "adobe_category": {"type": "integer", "enum": list(ADOBE_CATEGORIES.keys())},
+        "adobe_category": {
+            "type": "integer",
+            "description": "Single best Adobe Stock category id (integer 1-21).",
+        },
         "shutterstock_categories": {
             "type": "array",
             "items": {"type": "string", "enum": SHUTTERSTOCK_CATEGORIES},
-            "minItems": 1,
-            "maxItems": 2,
+            "description": "1 or 2 best Shutterstock categories.",
         },
     },
     "required": ["title", "description", "keywords", "adobe_category", "shutterstock_categories"],
@@ -185,8 +185,14 @@ def create_fallback_metadata(filename: str) -> ImageMetadata:
 
 def _parse_json(text: str) -> dict:
     text = (text or "").strip()
-    if text.startswith("```"):
-        text = re.sub(r"^```(?:json)?|```$", "", text, flags=re.MULTILINE).strip()
+    match = re.search(r"```(?:json)?\s*(\{.*?\})\s*```", text, re.DOTALL)
+    if match:
+        text = match.group(1).strip()
+    elif not (text.startswith("{") and text.endswith("}")):
+        start = text.find("{")
+        end = text.rfind("}")
+        if start != -1 and end != -1 and end > start:
+            text = text[start : end + 1].strip()
     try:
         data = json.loads(text)
     except json.JSONDecodeError as exc:
@@ -251,7 +257,12 @@ def _create_json(client: genai.Client, system_instruction: str, contents: Any, s
         except Exception as e:
             last_err = e
             err_str = str(e).lower()
-            if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
+            if any(term in err_str for term in (
+                "503", "unavailable", "high demand", "404", "not found",
+                "400", "invalid_argument", "invalid argument",
+                "429", "quota", "resource_exhausted", "rate limit",
+                "malformed json", "empty json",
+            )):
                 continue
             raise
 
@@ -307,10 +318,12 @@ async def generate_metadata_from_vision_async(
         except Exception:
             break
 
+    raw_cat = data.get("adobe_category", config.DEFAULT_ADOBE_CATEGORY)
     try:
-        adobe_cat = int(data.get("adobe_category", config.DEFAULT_ADOBE_CATEGORY))
+        adobe_cat = int(raw_cat)
     except (ValueError, TypeError):
-        adobe_cat = config.DEFAULT_ADOBE_CATEGORY
+        name_map = {name.lower(): cid for cid, name in ADOBE_CATEGORIES.items()}
+        adobe_cat = name_map.get(str(raw_cat).strip().lower(), config.DEFAULT_ADOBE_CATEGORY)
 
     if adobe_cat not in ADOBE_CATEGORIES:
         adobe_cat = config.DEFAULT_ADOBE_CATEGORY

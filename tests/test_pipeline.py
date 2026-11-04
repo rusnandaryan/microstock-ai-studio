@@ -180,8 +180,52 @@ class TestMetadataHelpers(unittest.TestCase):
         from microstock.rate_limit import TransientError
         self.assertEqual(_parse_json('{"key": "value"}'), {"key": "value"})
         self.assertEqual(_parse_json('```json\n{"key": "value"}\n```'), {"key": "value"})
+        self.assertEqual(_parse_json('Analysis result:\n```json\n{"key": "value"}\n```\nDone.'), {"key": "value"})
         with self.assertRaises(TransientError):
             _parse_json("not json")
+
+    def test_metadata_schema_valid_for_genai(self):
+        from google.genai import types
+        from microstock.metadata import METADATA_SCHEMA, SUPPLEMENT_SCHEMA
+        s_main = types.Schema.model_validate(METADATA_SCHEMA)
+        self.assertIsNotNone(s_main)
+        s_sup = types.Schema.model_validate(SUPPLEMENT_SCHEMA)
+        self.assertIsNotNone(s_sup)
+
+    def test_generate_metadata_from_vision_async_mocked(self):
+        import asyncio
+        from unittest.mock import MagicMock
+        from microstock.metadata import generate_metadata_from_vision_async
+
+        mock_resp = MagicMock()
+        mock_resp.text = json.dumps({
+            "title": "Fresh Organic Apples in Wooden Box",
+            "description": "High quality commercial shot of fresh organic apples in a wooden crate.",
+            "keywords": [f"keyword{i}" for i in range(50)],
+            "adobe_category": "Food",
+            "shutterstock_categories": ["Food and drink"],
+        })
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.return_value = mock_resp
+
+        # Create 100x100 dummy JPEG bytes
+        from PIL import Image
+        import io
+        buf = io.BytesIO()
+        Image.new("RGB", (100, 100), color="red").save(buf, format="JPEG")
+        raw_bytes = buf.getvalue()
+
+        md = asyncio.run(generate_metadata_from_vision_async(
+            client=mock_client,
+            image_bytes=raw_bytes,
+            mime_type="image/jpeg",
+        ))
+
+        self.assertEqual(md.adobe_category, 7)  # "Food" maps to 7
+        self.assertIn("Food and drink", md.shutterstock_categories)
+        self.assertEqual(len(md.keywords), 50)
+        self.assertTrue(len(md.title) > 0)
 
 
 class TestFolderWatcher(unittest.TestCase):
