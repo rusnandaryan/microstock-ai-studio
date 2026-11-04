@@ -114,16 +114,16 @@ def scan_recent_images(
 def read_image_bytes(filepath: str) -> Optional[Tuple[str, bytes, str]]:
     """Read an image file safely and return (filename, bytes, mime_type)."""
     try:
-        if os.path.getsize(filepath) > 50 * 1024 * 1024:
+        max_bytes = 50 * 1024 * 1024
+        with open(filepath, "rb") as f:
+            data = f.read(max_bytes + 1)
+        if not data or len(data) > max_bytes:
             return None
         filename = os.path.basename(filepath)
         mime, _ = mimetypes.guess_type(filepath)
         if not mime or not mime.startswith("image/"):
             mime = "image/jpeg"
-        with open(filepath, "rb") as f:
-            data = f.read()
-        if len(data) > 0:
-            return filename, data, mime
+        return filename, data, mime
     except Exception:
         pass
     return None

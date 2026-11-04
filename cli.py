@@ -261,6 +261,9 @@ def cmd_gui(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    api_parser = argparse.ArgumentParser(add_help=False)
+    api_parser.add_argument("--api-key", help="Google Gemini API Key (opsional jika sudah ada di .env)")
+
     parser = argparse.ArgumentParser(
         prog="microstock",
         description="Microstock AI Studio - Professional Terminal CLI & Automation Tool",
@@ -271,13 +274,13 @@ def main() -> None:
                "  python cli.py trends\n"
                "  python cli.py gui",
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        parents=[api_parser],
     )
-    parser.add_argument("--api-key", help="Google Gemini API Key (opsional jika sudah ada di .env)")
 
     subparsers = parser.add_subparsers(dest="command", help="Perintah yang tersedia:")
 
     # 1. Subcommand: prompt
-    p_prompt = subparsers.add_parser("prompt", help="Racik 1 prompt komersial profesional terstandarisasi")
+    p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik 1 prompt komersial profesional terstandarisasi")
     p_prompt.add_argument("idea", help="Konsep dasar / ide subjek gambar")
     p_prompt.add_argument("--style", default=config.DEFAULT_STYLE, help="Nama gaya preset estetika")
     p_prompt.add_argument("--ratio", default="16:9", choices=list(config.ASPECT_RATIOS.keys()), help="Target rasio aspek")
@@ -287,7 +290,7 @@ def main() -> None:
     p_prompt.set_defaults(func=cmd_prompt)
 
     # 2. Subcommand: process
-    p_process = subparsers.add_parser("process", help="Analisis folder gambar, susun metadata SEO, AI upscale, dan buat ZIP")
+    p_process = subparsers.add_parser("process", parents=[api_parser], help="Analisis folder gambar, susun metadata SEO, AI upscale, dan buat ZIP")
     p_process.add_argument("source", nargs="?", default=folder_watcher.get_default_downloads_dir(), help="Path folder atau file gambar (default: Gemini Downloads)")
     p_process.add_argument("--limit", type=int, default=50, help="Batas maksimal gambar yang dipindai (default: 50)")
     p_process.add_argument("--upscale", action="store_true", help="Aktifkan AI upscaler 4x jika resolusi < 4.2 MP")
@@ -296,16 +299,16 @@ def main() -> None:
     p_process.set_defaults(func=cmd_process)
 
     # 3. Subcommand: reverse
-    p_reverse = subparsers.add_parser("reverse", help="Bedah visual gambar menjadi prompt komersial (Image to Prompt)")
+    p_reverse = subparsers.add_parser("reverse", parents=[api_parser], help="Bedah visual gambar menjadi prompt komersial (Image to Prompt)")
     p_reverse.add_argument("image_path", help="Path ke file gambar yang ingin dianalisis")
     p_reverse.set_defaults(func=cmd_reverse)
 
     # 4. Subcommand: trends
-    p_trends = subparsers.add_parser("trends", help="Lihat 10 momen & hari besar mendatang yang berpotensi trending di microstock")
+    p_trends = subparsers.add_parser("trends", parents=[api_parser], help="Lihat 10 momen & hari besar mendatang yang berpotensi trending di microstock")
     p_trends.set_defaults(func=cmd_trends)
 
     # 5. Subcommand: gui
-    p_gui = subparsers.add_parser("gui", help="Buka antarmuka visual web (Streamlit)")
+    p_gui = subparsers.add_parser("gui", parents=[api_parser], help="Buka antarmuka visual web (Streamlit)")
     p_gui.set_defaults(func=cmd_gui)
 
     if len(sys.argv) == 1:

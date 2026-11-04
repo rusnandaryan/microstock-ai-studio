@@ -148,7 +148,7 @@ def finalize_image(
             export_bytes = _pad_jpeg_to_min_size(export_bytes, config.MIN_FILE_SIZE_BYTES)
 
     preview = rgb.copy()
-    preview.thumbnail((PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.LANCZOS)
+    preview.thumbnail((PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS)
     pbuf = io.BytesIO()
     preview.save(pbuf, format="JPEG", quality=85)
     return export_bytes, pbuf.getvalue(), mime, width, height

@@ -111,12 +111,15 @@ def get_trending_ideas(
                     parsed = _parse_trends_json(response.text or "", now_str)
                     if parsed:
                         return parsed
-            except json.JSONDecodeError as e:
-                raise TransientError(f"Failed to parse JSON: {e}") from e
-            except Exception as e:
+            except (json.JSONDecodeError, Exception) as e:
                 last_err = e
                 err_str = str(e).lower()
-                if any(term in err_str for term in ("503", "unavailable", "high demand", "404")):
+                if any(term in err_str for term in (
+                    "503", "unavailable", "high demand", "404", "not found",
+                    "400", "invalid_argument", "invalid argument",
+                    "429", "quota", "resource_exhausted", "rate limit",
+                    "json", "decode",
+                )):
                     continue
                 raise
 

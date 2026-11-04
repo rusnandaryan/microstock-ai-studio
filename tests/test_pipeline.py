@@ -488,13 +488,29 @@ class TestReversePromptSave(unittest.TestCase):
 class TestFolderWatcherLimit(unittest.TestCase):
     def test_read_image_bytes_skips_large_file(self):
         import tempfile
-        from unittest.mock import patch
+        from unittest.mock import patch, mock_open
         from microstock.folder_watcher import read_image_bytes
 
         with tempfile.NamedTemporaryFile(suffix=".jpg") as tmp:
-            with patch("os.path.getsize", return_value=51 * 1024 * 1024):
+            with patch("builtins.open", mock_open(read_data=b"x" * (51 * 1024 * 1024))):
                 res = read_image_bytes(tmp.name)
                 self.assertIsNone(res)
+
+
+class TestCliArgParser(unittest.TestCase):
+    def test_cli_subcommand_accepts_api_key_flag(self):
+        import sys
+        from unittest.mock import patch
+        import cli
+        test_argv = ["cli.py", "prompt", "test idea", "--api-key", "my_test_key"]
+        with patch.object(sys, "argv", test_argv):
+            # Capture parser created in main
+            with patch("cli.cmd_prompt") as mock_func:
+                cli.main()
+                mock_func.assert_called_once()
+                args = mock_func.call_args[0][0]
+                self.assertEqual(args.api_key, "my_test_key")
+                self.assertEqual(args.idea, "test idea")
 
 
 class TestUiThemeSupport(unittest.TestCase):

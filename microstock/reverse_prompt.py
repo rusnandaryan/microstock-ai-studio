@@ -127,7 +127,11 @@ async def generate_reverse_prompt_async(
             except Exception as e:
                 last_err = e
                 err_str = str(e).lower()
-                if any(term in err_str for term in ("503", "unavailable", "high demand", "404", "400", "invalid_argument", "invalid argument")):
+                if any(term in err_str for term in (
+                    "503", "unavailable", "high demand", "404", "not found",
+                    "400", "invalid_argument", "invalid argument",
+                    "429", "quota", "resource_exhausted", "rate limit",
+                )):
                     continue
                 raise
         if last_err:
