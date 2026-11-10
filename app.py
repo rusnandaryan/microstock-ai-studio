@@ -6,6 +6,11 @@ Tab 2: Inspeksi Visual Gambar & Paket SEO Microstock (Gemini Vision 100% Akurat)
 """
 from __future__ import annotations
 
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", module="urllib3")
+warnings.filterwarnings("ignore", message=".*urllib3.*")
+
 import asyncio
 import io
 import os
