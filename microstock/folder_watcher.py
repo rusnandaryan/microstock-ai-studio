@@ -127,3 +127,196 @@ def read_image_bytes(filepath: str) -> Optional[Tuple[str, bytes, str]]:
     except Exception:
         pass
     return None
+
+
+# ==============================================================================
+# KERNEL EVENT-DRIVEN FOLDER WATCHER (0% CPU IDLE)
+# ==============================================================================
+
+import collections
+import threading
+from typing import Callable, Deque
+
+
+class FolderMonitor:
+    """Event-driven background directory watcher with zero idle CPU spin.
+    
+    Uses OS watchdog events (FSEvents/inotify) if installed, or an ultra-low-impact
+    kernel directory stat monitor (checks mtime every interval) as an efficient fallback.
+    Automatically filters out in-progress downloads (.crdownload, .part).
+    """
+
+    def __init__(
+        self,
+        directory: Optional[str] = None,
+        on_image_detected: Optional[Callable[[str, str], None]] = None,
+        poll_interval: float = 1.5,
+    ):
+        self.directory = directory or get_default_downloads_dir()
+        self.poll_interval = poll_interval
+        self._callbacks: List[Callable[[str, str], None]] = []
+        if on_image_detected:
+            self._callbacks.append(on_image_detected)
+
+        self._lock = threading.Lock()
+        self._running = False
+        self._thread: Optional[threading.Thread] = None
+        self._stop_event = threading.Event()
+        self._recent_events: Deque[Dict[str, Any]] = collections.deque(maxlen=50)
+        self._known_files: set = set()
+        self._backend = "polling"
+        self._watchdog_observer = None
+
+    def add_callback(self, callback: Callable[[str, str], None]) -> None:
+        """Register a callback invoked when a new finished image is detected: fn(filename, path)."""
+        with self._lock:
+            if callback not in self._callbacks:
+                self._callbacks.append(callback)
+
+    def get_recent_events(self, limit: int = 20) -> List[Dict[str, Any]]:
+        """Return recently captured image creation events."""
+        with self._lock:
+            items = list(self._recent_events)
+            items.reverse()
+            return items[:limit]
+
+    def is_running(self) -> bool:
+        """Return True if background monitor is currently running."""
+        return self._running
+
+    def get_backend_name(self) -> str:
+        """Return the active monitoring backend (watchdog FSEvents or adaptive kernel stat)."""
+        return self._backend
+
+    def start(self) -> bool:
+        """Start directory monitor in background daemon thread."""
+        with self._lock:
+            if self._running:
+                return True
+            if not os.path.isdir(self.directory):
+                return False
+
+            # Seed existing files so we don't trigger alerts for past downloads
+            try:
+                self._known_files = {
+                    e.name for e in os.scandir(self.directory)
+                    if e.is_file() and os.path.splitext(e.name)[1].lower() in VALID_IMAGE_EXTENSIONS
+                }
+            except Exception:
+                self._known_files = set()
+
+            self._stop_event.clear()
+
+            # Attempt watchdog observer
+            try:
+                import watchdog.events
+                import watchdog.observers
+
+                class _WHandler(watchdog.events.FileSystemEventHandler):
+                    def __init__(self, parent: "FolderMonitor"):
+                        self.parent = parent
+
+                    def on_created(self, event):
+                        if not event.is_directory:
+                            self.parent._handle_fs_event(event.src_path)
+
+                    def on_moved(self, event):
+                        if not event.is_directory:
+                            self.parent._handle_fs_event(event.dest_path)
+
+                observer = watchdog.observers.Observer()
+                observer.schedule(_WHandler(self), self.directory, recursive=False)
+                observer.daemon = True
+                observer.start()
+                self._watchdog_observer = observer
+                self._backend = "watchdog_native"
+                self._running = True
+                return True
+            except ImportError:
+                # Fallback to kernel stat watcher thread
+                self._backend = "kernel_stat"
+                self._thread = threading.Thread(target=self._run_stat_loop, daemon=True, name="KernelFolderWatcher")
+                self._thread.start()
+                self._running = True
+                return True
+
+    def stop(self) -> None:
+        """Stop background monitor cleanly."""
+        with self._lock:
+            if not self._running:
+                return
+            self._stop_event.set()
+            if self._watchdog_observer:
+                try:
+                    self._watchdog_observer.stop()
+                    self._watchdog_observer.join(timeout=1.0)
+                except Exception:
+                    pass
+                self._watchdog_observer = None
+            self._running = False
+
+    def _handle_fs_event(self, filepath: str) -> None:
+        """Process a raw filesystem event."""
+        fname = os.path.basename(filepath)
+        ext = os.path.splitext(fname)[1].lower()
+        if ext in IGNORED_EXTENSIONS or ext not in VALID_IMAGE_EXTENSIONS:
+            return
+
+        # Ensure file is completely written (size > 0 and stable)
+        time.sleep(0.3)
+        try:
+            if not os.path.isfile(filepath):
+                return
+            size = os.path.getsize(filepath)
+            if size == 0:
+                return
+        except OSError:
+            return
+
+        with self._lock:
+            if fname in self._known_files:
+                return
+            self._known_files.add(fname)
+            evt = {
+                "filename": fname,
+                "filepath": filepath,
+                "detected_at": time.time(),
+                "size_bytes": size,
+            }
+            self._recent_events.append(evt)
+            callbacks = list(self._callbacks)
+
+        for cb in callbacks:
+            try:
+                cb(fname, filepath)
+            except Exception:
+                pass
+
+    def _run_stat_loop(self) -> None:
+        """Ultra-low CPU loop querying directory mtime."""
+        last_dir_mtime = 0.0
+        try:
+            last_dir_mtime = os.stat(self.directory).st_mtime
+        except Exception:
+            pass
+
+        while not self._stop_event.is_set():
+            time.sleep(self.poll_interval)
+            try:
+                current_mtime = os.stat(self.directory).st_mtime
+                if current_mtime != last_dir_mtime:
+                    last_dir_mtime = current_mtime
+                    # Directory modified, check for new completed images
+                    with os.scandir(self.directory) as it:
+                        for entry in it:
+                            try:
+                                if not entry.is_file():
+                                    continue
+                                name = entry.name
+                                ext = os.path.splitext(name)[1].lower()
+                                if ext in VALID_IMAGE_EXTENSIONS and name not in self._known_files:
+                                    self._handle_fs_event(entry.path)
+                            except (PermissionError, OSError):
+                                continue
+            except (PermissionError, OSError):
+                continue

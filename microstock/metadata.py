@@ -22,6 +22,31 @@ ADOBE_CATEGORIES = {
     17: "Social Issues", 18: "Sports", 19: "Technology", 20: "Transport", 21: "Travel",
 }
 
+# Adobe Stock Category Keywords Taxonomy for Deterministic Auto-Classification
+ADOBE_CATEGORY_KEYWORDS: Dict[int, set] = {
+    1: {"animal", "animals", "wildlife", "dog", "cat", "pet", "bird", "fish", "horse", "mammal", "fauna", "insect"},
+    2: {"building", "architecture", "interior", "exterior", "house", "skyscraper", "facade", "urban", "room", "construction"},
+    3: {"business", "office", "finance", "corporate", "money", "investment", "marketing", "work", "meeting", "economy"},
+    4: {"drink", "drinks", "beverage", "coffee", "tea", "cocktail", "juice", "cup", "mug", "wine", "beer", "water", "smoothie"},
+    5: {"environment", "climate", "ecology", "nature", "conservation", "pollution", "sustainability", "earth", "green energy"},
+    6: {"emotion", "mood", "feeling", "thinking", "mind", "stress", "peace", "zen", "concept", "meditation", "dream"},
+    7: {"food", "meal", "dish", "culinary", "restaurant", "breakfast", "dinner", "lunch", "snack", "bakery", "fruit", "vegetable", "dessert", "bread"},
+    8: {"graphic", "resources", "texture", "pattern", "background", "abstract", "icon", "vector", "illustration", "banner", "frame", "element"},
+    9: {"hobby", "leisure", "craft", "gaming", "music", "guitar", "painting", "reading", "gardening", "recreation"},
+    10: {"industry", "factory", "manufacturing", "warehouse", "machinery", "engineering", "industrial", "steel", "oil"},
+    11: {"landscape", "mountain", "ocean", "sea", "river", "forest", "desert", "sunset", "sunrise", "sky", "scenery", "valley"},
+    12: {"lifestyle", "home", "daily", "wellness", "living", "family", "routine", "modern life", "relaxation", "cozy"},
+    13: {"people", "person", "portrait", "hands", "crowd", "man", "woman", "human", "face", "gesture"},
+    14: {"plant", "plants", "flower", "flowers", "botanical", "flora", "leaf", "leaves", "tree", "garden", "succulent"},
+    15: {"culture", "religion", "tradition", "heritage", "ceremony", "festival", "temple", "spiritual", "cultural"},
+    16: {"science", "laboratory", "chemistry", "physics", "biology", "research", "medical", "microscope", "healthcare"},
+    17: {"social", "issues", "charity", "diversity", "community", "equality", "society", "volunteer", "activism"},
+    18: {"sport", "sports", "fitness", "workout", "athlete", "running", "gym", "football", "soccer", "basketball", "training"},
+    19: {"technology", "digital", "tech", "computer", "data", "cyber", "software", "network", "internet", "code", "ai", "hardware", "smartphone"},
+    20: {"transport", "transportation", "car", "vehicle", "airplane", "flight", "train", "ship", "boat", "traffic", "road"},
+    21: {"travel", "tourism", "vacation", "trip", "holiday", "destination", "landmark", "journey", "explore", "resort"},
+}
+
 # Shutterstock image categories
 SHUTTERSTOCK_CATEGORIES = [
     "Abstract", "Animals/Wildlife", "Arts", "Backgrounds/Textures", "Beauty/Fashion",
@@ -30,6 +55,83 @@ SHUTTERSTOCK_CATEGORIES = [
     "Objects", "Parks/Outdoor", "People", "Religion", "Science", "Signs/Symbols",
     "Sports/Recreation", "Technology", "Transportation", "Vintage",
 ]
+
+
+def validate_adobe_category(val: Any) -> int:
+    """Validate and normalize Adobe Stock category representation (returns int 1-21)."""
+    if val is None:
+        return config.DEFAULT_ADOBE_CATEGORY
+    if isinstance(val, int) and 1 <= val <= 21:
+        return val
+    s = str(val).strip()
+    if s.isdigit():
+        num = int(s)
+        if 1 <= num <= 21:
+            return num
+    # Match name
+    s_lower = s.lower()
+    for cat_id, cat_name in ADOBE_CATEGORIES.items():
+        if cat_name.lower() == s_lower or s_lower in cat_name.lower():
+            return cat_id
+    return config.DEFAULT_ADOBE_CATEGORY
+
+
+def classify_adobe_category(
+    title: str,
+    description: str,
+    keywords: List[str],
+) -> Tuple[int, str]:
+    """Classify asset text and keywords into the best matching Adobe Stock category (1-21)."""
+    text_corpus = f"{title} {description} {' '.join(keywords)}".lower()
+    tokens = set(re.findall(r"\b[a-z]{3,}\b", text_corpus))
+
+    scores: Dict[int, int] = {cat_id: 0 for cat_id in ADOBE_CATEGORIES}
+    for cat_id, target_keywords in ADOBE_CATEGORY_KEYWORDS.items():
+        overlap = tokens.intersection(target_keywords)
+        title_lower = title.lower()
+        title_bonus = sum(2 for kw in overlap if kw in title_lower)
+        scores[cat_id] = len(overlap) + title_bonus
+
+    best_cat_id = max(scores, key=lambda k: scores[k])
+    if scores[best_cat_id] == 0:
+        best_cat_id = config.DEFAULT_ADOBE_CATEGORY
+    return best_cat_id, ADOBE_CATEGORIES[best_cat_id]
+
+
+def classify_shutterstock_categories(
+    title: str,
+    description: str,
+    keywords: List[str],
+    max_cats: int = 2,
+) -> List[str]:
+    """Classify asset into 1 or 2 standard Shutterstock categories."""
+    adobe_id, _ = classify_adobe_category(title, description, keywords)
+    # Mapping Adobe categories to corresponding Shutterstock categories
+    mapping: Dict[int, List[str]] = {
+        1: ["Animals/Wildlife"],
+        2: ["Buildings/Landmarks", "Interiors"],
+        3: ["Business/Finance"],
+        4: ["Food and drink"],
+        5: ["Nature"],
+        6: ["Abstract"],
+        7: ["Food and drink"],
+        8: ["Backgrounds/Textures", "Abstract"],
+        9: ["Sports/Recreation", "Arts"],
+        10: ["Industrial"],
+        11: ["Nature", "Parks/Outdoor"],
+        12: ["People"],
+        13: ["People"],
+        14: ["Nature"],
+        15: ["Religion"],
+        16: ["Science"],
+        17: ["People"],
+        18: ["Sports/Recreation"],
+        19: ["Technology"],
+        20: ["Transportation"],
+        21: ["Parks/Outdoor", "Nature"],
+    }
+    cats = mapping.get(adobe_id, ["Objects", "Miscellaneous"])
+    return cats[:max_cats]
 
 METADATA_SYSTEM_INSTRUCTION = f"""\
 You are a senior microstock SEO specialist with years of top-seller experience on
@@ -102,6 +204,13 @@ class ImageMetadata:
     keywords: List[str] = field(default_factory=list)
     adobe_category: int = config.DEFAULT_ADOBE_CATEGORY
     shutterstock_categories: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.adobe_category = validate_adobe_category(self.adobe_category)
+        if not self.shutterstock_categories:
+            self.shutterstock_categories = classify_shutterstock_categories(
+                self.title, self.description, self.keywords
+            )
 
     @property
     def keywords_csv(self) -> str:

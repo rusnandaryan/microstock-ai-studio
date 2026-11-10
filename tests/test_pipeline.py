@@ -696,3 +696,122 @@ class TestDistributor(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSecurityModule(unittest.TestCase):
+    def test_store_and_retrieve_secret(self):
+        from microstock import security
+        svc = "test_unit_service"
+        acc = "user_alpha"
+        val = "P@ssw0rd_Unit_Test_123!"
+
+        stored = security.store_secret(svc, acc, val)
+        self.assertTrue(stored)
+
+        retrieved = security.get_secret(svc, acc)
+        self.assertEqual(retrieved, val)
+
+        deleted = security.delete_secret(svc, acc)
+        self.assertTrue(deleted)
+
+        self.assertIsNone(security.get_secret(svc, acc))
+
+    def test_agency_password_helpers(self):
+        from microstock import security
+        agency = "adobe_stock"
+        user = "test_contributor"
+        pwd = "sftp_secret_pass_456"
+
+        self.assertTrue(security.store_agency_password(agency, user, pwd))
+        self.assertEqual(security.get_agency_password(agency, user), pwd)
+        security.delete_agency_password(agency, user)
+        self.assertIsNone(security.get_agency_password(agency, user))
+
+    def test_vault_encryption_integrity(self):
+        from microstock import security
+        enc_key, mac_key = security._derive_vault_keys()
+        data = b"Sensitive microstock confidential metadata payload"
+        encrypted = security._encrypt_payload(data, enc_key, mac_key)
+
+        decrypted = security._decrypt_payload(encrypted, enc_key, mac_key)
+        self.assertEqual(decrypted, data)
+
+        # Tampered blob must fail decryption
+        tampered = bytearray(encrypted)
+        tampered[20] ^= 0xFF
+        self.assertIsNone(security._decrypt_payload(bytes(tampered), enc_key, mac_key))
+
+
+class TestFolderMonitor(unittest.TestCase):
+    def test_folder_monitor_lifecycle(self):
+        import tempfile
+        import time
+        import os
+        from microstock.folder_watcher import FolderMonitor
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            captured = []
+            def _on_detected(fn, path):
+                captured.append(fn)
+
+            monitor = FolderMonitor(directory=tmpdir, on_image_detected=_on_detected, poll_interval=0.1)
+            self.assertTrue(monitor.start())
+            self.assertTrue(monitor.is_running())
+
+            # Create sample image
+            test_img = os.path.join(tmpdir, "gemini_render_001.jpg")
+            with open(test_img, "wb") as f:
+                f.write(b"\xff\xd8\xff\xe0" + b"\x00" * 100)
+
+            time.sleep(0.5)
+            monitor.stop()
+            self.assertFalse(monitor.is_running())
+
+            events = monitor.get_recent_events()
+            self.assertGreaterEqual(len(events), 1)
+            self.assertEqual(events[0]["filename"], "gemini_render_001.jpg")
+            self.assertIn("gemini_render_001.jpg", captured)
+
+
+class TestCategoryClassification(unittest.TestCase):
+    def test_validate_adobe_category(self):
+        from microstock.metadata import validate_adobe_category
+        self.assertEqual(validate_adobe_category(7), 7)
+        self.assertEqual(validate_adobe_category("7"), 7)
+        self.assertEqual(validate_adobe_category("Food"), 7)
+        self.assertEqual(validate_adobe_category("technology"), 19)
+        self.assertEqual(validate_adobe_category("Animals"), 1)
+        self.assertEqual(validate_adobe_category(999), config.DEFAULT_ADOBE_CATEGORY)
+        self.assertEqual(validate_adobe_category(None), config.DEFAULT_ADOBE_CATEGORY)
+
+    def test_classify_adobe_category(self):
+        from microstock.metadata import classify_adobe_category
+        # Food test
+        cat_id, cat_name = classify_adobe_category(
+            title="Fresh Salmon Sushi Roll Meal",
+            description="Japanese sushi dinner served on bamboo plate",
+            keywords=["food", "sushi", "salmon", "meal", "dinner", "restaurant", "culinary"],
+        )
+        self.assertEqual(cat_id, 7)
+        self.assertEqual(cat_name, "Food")
+
+        # Technology test
+        cat_id, cat_name = classify_adobe_category(
+            title="Cloud Data Server Cyber Network",
+            description="Modern computer technology in datacenter",
+            keywords=["technology", "computer", "digital", "server", "data", "software", "network"],
+        )
+        self.assertEqual(cat_id, 19)
+        self.assertEqual(cat_name, "Technology")
+
+    def test_image_metadata_post_init(self):
+        from microstock.metadata import ImageMetadata
+        md = ImageMetadata(
+            title="Espresso Coffee Cup on Wooden Table",
+            description="Morning hot beverage in coffee shop",
+            keywords=["drink", "coffee", "espresso", "beverage", "cup", "cappuccino"],
+            adobe_category="Drinks",
+        )
+        self.assertEqual(md.adobe_category, 4)
+        self.assertEqual(md.adobe_category_name, "Drinks")
+        self.assertIn("Food and drink", md.shutterstock_categories)

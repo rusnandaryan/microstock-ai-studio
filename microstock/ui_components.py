@@ -1255,6 +1255,9 @@ def render_card(item: BatchItem, batch_id: str) -> None:
             xmp_badge = '<span class="ms-step-badge ms-badge-accent" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem;">IPTC Injected</span>' if getattr(item, "is_xmp_injected", False) else ''
             dup_risk = getattr(item, "duplicate_risk", None)
             dup_badge = f'<span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem;">Duplikat: {dup_risk}</span>' if dup_risk else ''
+            cat_name = getattr(item.metadata, "adobe_category_name", "") if getattr(item, "metadata", None) else ""
+            cat_id = getattr(item.metadata, "adobe_category", None) if getattr(item, "metadata", None) else None
+            cat_badge = f'<span class="ms-step-badge" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem; background:rgba(99,102,241,0.15); color:#818cf8; border:1px solid rgba(99,102,241,0.3);">Kat: #{cat_id} {cat_name}</span>' if cat_id else ''
             st.markdown(
                 f"""
                 <div style="margin: 0.5rem 0 0.2rem;">
@@ -1263,6 +1266,7 @@ def render_card(item: BatchItem, batch_id: str) -> None:
                   </span>
                   {xmp_badge}
                   {dup_badge}
+                  {cat_badge}
                   <span style="font-size:0.8rem; color:var(--text-secondary); margin-left:0.4rem;">
                     {size_mb:.1f} MB · {item.filename}
                   </span>
@@ -1294,7 +1298,7 @@ def render_card(item: BatchItem, batch_id: str) -> None:
                     </div>
                     <div style="margin-top:0.4rem;">
                       <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem; margin-right:0.3rem;">
-                        Adobe: {md.adobe_category_name}
+                        Adobe: #{md.adobe_category} {md.adobe_category_name}
                       </span>
                     """
                     + "".join(f'<span class="ms-step-badge ms-badge-accent" style="font-size:0.75rem; margin-right:0.3rem;">SS: {c}</span>' for c in md.shutterstock_categories)

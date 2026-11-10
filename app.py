@@ -856,7 +856,21 @@ with tab4:
         unsafe_allow_html=True,
     )
 
-    from microstock import db, distributor
+    from microstock import db, distributor, metadata, security
+
+    sec_info = security.get_security_status()
+    kc_status = "macOS Keychain Native" if sec_info.get("keychain_supported") else "Encrypted Local Vault (PBKDF2 0600)"
+    st.markdown(
+        f"""
+        <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:0.5rem 0.8rem; margin-bottom:1rem; display:flex; align-items:center; justify-content:space-between;">
+          <span style="font-size:0.82rem; color:var(--text-primary);">
+            🔒 <b>Keamanan Kredensial:</b> {kc_status} Aktif · 0 Plaintext Passwords di Basis Data
+          </span>
+          <span class="ms-step-badge ms-badge-green" style="font-size:0.7rem;">Vault Aman</span>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
     # 1. DATABASE ASSETS OVERVIEW
     recent_assets = db.list_recent_assets(limit=50)
@@ -881,6 +895,7 @@ with tab4:
                     "Rasio": a.get("aspect_ratio", ""),
                     "pHash": a.get("phash_hex", "")[:8] + "...",
                     "IPTC Embedded": "Ya" if a.get("is_xmp_injected") else "Tidak",
+                    "Kategori": f"#{a.get('adobe_category_id', 12)} {metadata.ADOBE_CATEGORIES.get(a.get('adobe_category_id', 12), '')}",
                     "Judul": a.get("title", ""),
                     "Tanggal": str(a.get("created_at", ""))[:19],
                 })

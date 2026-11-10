@@ -1,170 +1,137 @@
-# Microstock AI Studio
+# Microstock AI Studio Pro
 
-Selamat datang di **Microstock AI Studio**!  
-Aplikasi komprehensif ini dirancang khusus untuk mempermudah dan mempercepat alur kerja (*workflow*) kontributor microstock (seperti **Adobe Stock** dan **Shutterstock**). Dengan dukungan kecerdasan buatan **Google Gemini AI**, Anda dapat meriset tren, membuat prompt komersial berkualitas tinggi, memeriksa visual gambar secara otomatis, hingga menyusun metadata SEO 50 kata kunci bebas penolakan (*anti-rejection*).
+Workstation desktop lokal (*local-first*) bertenaga AI untuk kreator microstock profesional (**Adobe Stock**, **Shutterstock**, dan **Freepik**). Ditenagai oleh **Google Gemini AI**, **Real-ESRGAN Vulkan GPU**, **SQLite WAL Database**, injeksi metadata **Lossless Adobe XMP/IPTC**, proteksi akun **64-bit dHash (Perceptual Hash)**, dan **Direct SFTP/FTP Contributor Dispatcher**.
 
 ---
 
-## Fitur-Fitur Utama & Alur Kerja
-
-Aplikasi ini dibagi menjadi 3 modul kerja utama yang rapi dan terisolasi:
+## 🏗️ Alur Kerja & Arsitektur Workstation (4 Modul Inti)
 
 ```
-┌────────────────────────────────────────────────────────────────────────┐
-│                        MICROSTOCK AI STUDIO                            │
-├────────────────────┬─────────────────────────────┬─────────────────────┤
-│  Tab 1:            │  Tab 2:                     │  Tab 3:             │
-│  Prompt Generator  │  Inspeksi Visual & Metadata │  Reverse Prompt     │
-│  (Text to Prompt)  │  (Vision & Auto-Cleanup)    │  (Image to Prompt)  │
-└────────────────────┴─────────────────────────────┴─────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────────────────────┐
+│                                   MICROSTOCK AI STUDIO PRO                                  │
+├────────────────────┬─────────────────────────────┬─────────────────────┬────────────────────┤
+│  Tab 1:            │  Tab 2:                     │  Tab 3:             │  Tab 4:            │
+│  Prompt Generator  │  Inspeksi Visual & Metadata │  Reverse Prompt     │  Distribusi & DB   │
+│  (Text to Prompt)  │  (Vision, XMP & pHash)      │  (Image to Prompt)  │  (SFTP, FTP & WAL) │
+└────────────────────┴─────────────────────────────┴─────────────────────┴────────────────────┘
 ```
 
 ---
 
 ### Tab 1: Studio Pembuat Prompt (Text to Prompt)
-
-Ubah ide singkat Anda menjadi **5 variasi prompt bahasa Inggris profesional** siap generate yang telah disterilkan sesuai standar ketat microstock internasional.
-
-1. **Riset Tren Pasar Terkini (Dynamic Market Trends):**
-   - Menampilkan analisa tren komersial teratas Adobe Stock berdasarkan tanggal/periode dinamis saat ini.
-   - Menyajikan data lengkap: alasan permintaan pasar (*market reason*), status peluang (*High Demand / Low Competition, Evergreen, Rising Trend*), serta rekomendasi gaya visual dan rasio aspek.
-   - **Fitur 1-Click Apply:** Cukup klik tombol pada kartu tren, semua parameter (ide dasar, kategori gaya, sub-gaya, dan rasio) langsung otomatis terisi ke form pembuatan prompt!
-
-2. **Katalog Gaya Visual Terlengkap (Menu Bertingkat 5 Kategori):**
-   - **Fotografi (Photorealism):** Commercial Advertising, Dokumenter & Human Interest, Macro Photography, Portrait Faceless, Street Photography, Sinematik Film 35mm, Food Editorial, Arsitektur Minimalis.
-   - **Ilustrasi & Seni Lukis:** Cat Air & Gouache, Cat Minyak Klasik, Sketsa Pensil & Arang, Impresionisme Bertekstur, Surealisme Modern, Seni Abstrak Kontemporer, Ilustrasi Stiker Die-Cut.
-   - **Animasi & Kartun:** Pastel Kawaii Mascot Design, Anime Jepang Kontemporer, Manga Tinta Hitam Putih, Chibi & Karakter Imut, Kartun Klasik Retro, Komik Pop Art Halftone, Whimsical Studio Anime (Ghibli-inspired), 3D Animated Feature (Pixar-inspired).
-   - **3D & Render:** 3D Miniature Diorama (Miniature World), 3D Commercial Studio Render, 3D Isometric Illustration, 3D Claymation (Tanah Liat Taktil), Low-Poly 3D Minimalist, Octane Render Photorealistic, 3D Glassmorphism & Akrilik Transparan.
-   - **Desain & Digital Art:** Paket Stiker Die-Cut (Die-Cut Sticker Pack), Icon Desain Aplikasi & Web, Flat Design Vector Minimalist, Logo Monogram & Geometris, Cyberpunk & Futuristic Neon, Steampunk Vintage Mekanikal, Synthwave 80s, Pixel Art 16-bit, Digital Concept Art Sci-Fi/Fantasi.
-
-3. **Pilihan Komposisi & Framing Fleksibel:**
-   - **Negative Space for Copy / Headline:** Ruang kosong bersih 30%–40% untuk penempatan teks promosi/iklan.
-   - **Grid Simetris Seimbang (Sticker Sheet / Icon Pack):** Penataan grid seimbang (*knolling layout*) dengan batas kontur potong putih (*die-cut cutline*) rapi di setiap elemen, tanpa ruang kosong sepihak.
-   - **Full Frame / Edge-to-Edge (Tanpa Ruang Kosong):** Komposisi padat visual dari tepi ke tepi tanpa area kosong.
-   - Serta opsi komposisi klasik: *Centered Hero Framing, Rule of Thirds (Left/Right),* dan *Balanced Symmetry*.
-
-4. **Kondisi Pencahayaan & Lensa Kamera:**
-   - Pencahayaan: *Studio Softbox, Natural Soft Daylight, Golden Hour, Dramatic Rim Lighting, High Key, Moody Chiaroscuro*.
-   - Lensa: *85mm Prime (Bokeh Lembut), 35mm Street, 100mm Macro (Detail Ekstrem), 24mm Wide Angle, Top-Down Flat Lay (90°)*.
+Ubah ide singkat menjadi **5 variasi prompt bahasa Inggris komersial** yang telah disterilkan dari risiko penolakan (*rejection-free*).
+- **Riset Tren Pasar Terkini:** Memindai 10 peluang momen komersial teratas Adobe Stock secara dinamis lengkap dengan tombol *1-Click Apply*.
+- **Katalog 5 Kategori Gaya Visual:** Fotografi (Commercial, Documentary, Macro, Faceless), Ilustrasi & Lukisan (Watercolor, Oil, Sketch), Animasi & Kartun (Kawaii, Anime, 3D CGI Pixar-like), 3D & Render (Diorama, Isometric, Claymation, Octane), serta Desain (Sticker Sheet, App Icons, Flat Vector).
+- **Framing Komersial:** *Negative Space for Copy* (30–40% area bersih), *Knolling Grid/Die-Cut*, dan *Full Frame*.
+- **Lensa & Pencahayaan:** Pilihan lensa 85mm prime, 100mm macro, 24mm wide, top-down flat lay, studio softbox, dan golden hour.
 
 ---
 
-### Tab 2: Pemeriksa Gambar, Upscale & SEO Metadata (Gemini Vision)
-
-Pemeriksaan konten visual nyata dengan AI, upscale cerdas dengan standar microstock komersial, dan penyusunan metadata SEO 50 keywords.
-
-1. **Auto-Sync dari Folder Download (Filter Waktu Sesi & Akumulasi Cerdas):**
-   - Menghilangkan proses upload manual yang membosankan! Aplikasi memantau folder `Downloads` Mac Anda secara cerdas.
-   - **Filter Jendela Waktu Sesi:** Pilihan rentang waktu (*15 Menit Terakhir / 30 Menit / 1 Jam / Hari Ini*) sehingga 30+ gambar yang baru diunduh langsung terjaring semua tanpa terganggu file lama.
-   - **Akumulasi Cerdas Anti-Duplikat:** Jika Anda mengunduh bertahap, cukup klik *Pindai* lagi, gambar baru akan otomatis ditambahkan ke antrean tanpa menduplikasi file yang sudah ada.
-   - **Deteksi Download Aktif:** Otomatis memperingatkan jika browser masih memproses file `.crdownload` yang belum tuntas.
-   - Masih tersedia kotak unggah manual jika Anda ingin memasukkan gambar dari folder lain.
-
-2. **Aturan Upscale Cerdas (Standar Adobe Stock & Freepik Tanpa Perlu Pilih Skala Manual):**
-   - **Minimal 4 Megapiksel (WAJIB & Otomatis):** Sistem menghitung skala yang tepat secara otomatis agar output selalu $\ge$ **4 MP** ($\ge 4.000.000$ piksel) sesuai syarat minimum Adobe Stock & Shutterstock tanpa perlu memilih angka 2x/3x/4x secara manual.
-   - **Minimal 4 Megabyte (OPSIONAL):** Kotak centang khusus *"Wajibkan ukuran file fisik minimal 4 MB"*. Jika dicentang, file dipastikan berukuran $\ge 4$ MB di disk untuk memenuhi standar Freepik / Vecteezy. Jika tidak dicentang, kompresi normal dipertahankan agar hemat penyimpanan lokal Mac Anda.
-   - **Auto-Upscaler NCNN Lokal:** Ditenagai mesin AI Real-ESRGAN Vulkan langsung di GPU komputer Anda tanpa koneksi internet.
-
-3. **Hemat Memori Komputer (Smart Auto-Cleanup):**
-   - **Tanpa Upscale (Default):** Jika Anda hanya butuh metadata CSV dan tidak mencentang perbesaran, file gambar mentah hanya diproses di RAM dan **tidak disimpan ke disk**, menjaga harddisk Anda tetap bersih dan lega.
-   - **Dengan Upscale:** Gambar hasil upscale disimpan rapi bersama file `metadata.csv` di folder lokal `exports/batch_[timestamp]/`.
-
-4. **Inspeksi Visual & Metadata 50 Keywords Anti-Reject:**
-   - **Judul Komersial:** Ringkas, menjual, dan di bawah 100 karakter.
-   - **Tepat 50 Keywords SEO:** Diurutkan dari yang paling relevan, bebas nama merek, bebas istilah terlarang (*anti-rejection*).
-   - **Export Hub:** Ekspor langsung dalam bentuk file **CSV** siap impor atau paket arsip **ZIP**.
+### Tab 2: Pemeriksa Gambar, Upscale NCNN & Metadata XMP/IPTC (Gemini Vision)
+- **Kernel Event Folder Watcher (0% CPU Idle):** Memantau folder `Downloads` Mac/PC secara event-driven (FSEvents/watchdog) tanpa lonjakan CPU. Mendeteksi file gambar baru secara instan dan mengabaikan file download sementara (`.crdownload`, `.part`).
+- **Aturan Upscale Otomatis:**
+  - *Minimal 4 Megapiksel (Otomatis & Wajib):* Output resolusi dihitung otomatis $\ge 4$ MP sesuai syarat mutlak Adobe Stock & Shutterstock.
+  - *Minimal 4 Megabyte (Opsional):* Padding lossless agar ukuran fisik file $\ge 4$ MB untuk Freepik / Vecteezy.
+  - *Akselerasi Vulkan GPU Lokal:* Real-ESRGAN NCNN memproses gambar secara lokal tanpa koneksi internet.
+- **Injeksi Lossless Adobe XMP/IPTC (APP1):** Metadata *Title*, *Description*, *50 Keywords*, dan *Category* disuntikkan langsung ke segmen APP1 stream JPEG tanpa decode-reencode pixel. Saat diunggah ke Adobe Stock atau Shutterstock, metadata otomatis terbaca tanpa perlu upload CSV manual.
+- **Visual Duplicate Guard (64-bit dHash):** Menghitung Difference Hash gambar dan mengukur jarak Hamming dengan aset sebelumnya. Memberikan peringatan dini (*Risiko Duplikat: HIGH/MEDIUM*) guna melindungi akun kontributor dari sanksi spam.
+- **Klasifikasi Otomatis 21 Kategori Resmi Adobe Stock:** Memetakan aset secara deterministik ke ID 1–21 (Animals, Architecture, Business, Food, Lifestyle, Technology, dll.) dan kategori Shutterstock.
 
 ---
 
 ### Tab 3: Reverse Prompt Studio (Image to Prompt)
-
-Punya gambar referensi yang menarik dan ingin membuat prompt serupa untuk di-generate ulang?
-
-1. **Bedah Visual Otomatis (Gemini Vision):**
-   - Membedah objek, pencahayaan, sudut pandang kamera, tekstur, dan mendeteksi rasio aspek asli gambar (16:9, 1:1, 9:16, 4:3, dsb.).
-2. **Penyimpanan Lokal Otomatis (`*.txt`):**
-   - Hasil prompt otomatis disimpan ke komputer Anda di folder `exports/prompts/prompt_[nama_file].txt`. Prompt tidak akan hilang meskipun browser di-refresh!
-3. **Penyimpanan Bebas Beban (Zero Clutter):**
-   - Gambar referensi yang Anda unggah hanya dibaca saat proses analisis dan tidak disimpan ke harddisk, menghemat ruang penyimpanan secara maksimal.
+- **Bedah Visual Cerdas:** Gemini Vision membedah objek, pencahayaan, sudut kamera, tekstur, dan rasio aspek asli (16:9, 1:1, 9:16, 4:3, dsb.).
+- **Auto-Save Lokal (`*.txt`):** Prompt komersial tersimpan rapi di `exports/prompts/prompt_[nama_file].txt` sehingga tidak hilang saat halaman di-refresh.
+- **Zero Memory Clutter:** File referensi hanya dibaca sementara di memori tanpa membebani harddisk.
 
 ---
 
-## 7 Aturan Kepatuhan Mutlak (Universal Compliance Rules)
-
-Semua prompt yang dihasilkan oleh aplikasi ini (baik di Tab 1 maupun Tab 3) secara otomatis disterilkan dengan 7 aturan komersial universal:
-
-1. **Zero Female Characters (Universal Strict Prohibition):**
-   - Bersih tanpa pengecualian dari segala bentuk figur wanita/feminin (manusia, kartun, robot, maskot, maupun ilustrasi).
-   - Setiap prompt wajib memuat klausul pengaman universal:  
-     `"strictly no women, no female characters, no visible facial features, completely faceless and clean"`.
-   - Mengutamakan benda mati (*inanimate objects*), arsitektur, makanan, alam, dan peralatan.
-
-2. **Zero Text & Typography:**
-   - 100% bebas dari huruf, angka, kata, tipografi, logo, tanda tangan, watermark, atau kaligrafi di seluruh permukaan objek.
-
-3. **Mandatory Faceless Creatures & Characters (Zero Tolerance):**
-   - Semua makhluk hidup (manusia, hewan) maupun karakter/maskot dibuat **100% tanpa wajah** (*zero visible eyes, zero facial features, zero expressions*).
-   - Menggunakan teknik tampak belakang (*shot from behind*), siluet pekat, atau fokus pada tangan/benda.
-
-4. **Unbranded & Generic Props:**
-   - Seluruh gawai, teknologi, kendaraan, dan properti dibuat minimalis tanpa merek dagang terdaftar (*clean unbranded minimalist matte finish*).
-
-5. **Commercial Composition:**
-   - Mengatur penempatan *copy space* bersih atau susunan grid stiker yang simetris dan rapi.
-
-6. **Authentic Photographic Lighting:**
-   - Menggunakan pencahayaan natural atau studio nyata untuk menghindari kilau plastik waxy (*anti-plastic sheen*) khas AI murahan.
-
-7. **Physical Micro-Textures & Controlled Depth of Field:**
-   - Tekstur material nyata (serat kayu, kain linen, pantulan kaca bersih) dengan isolasi fokus lensa f/1.8 hingga f/2.8.
+### Tab 4: Distribusi Contributor & Database Studio
+- **Master Database SQLite WAL (`exports/data/studio.db`):** Menyimpan seluruh katalog aset lokal, resolusi, pHash, metadata SEO, dan riwayat kurasi agensi (Zero-Cloud lock-in, data 100% milik Anda).
+- **Direct Contributor Delivery Hub (FTP / FTPS / SFTP):**
+  - **Adobe Stock:** SFTP resmi (`sftp.contributor.adobestock.com:22`)
+  - **Shutterstock:** FTPS aman (`ftps.shutterstock.com:21`)
+  - **Freepik:** FTP resmi (`ftp.freepik.com:21`)
+  - Fitur *Tes Koneksi Server* langsung dari antarmuka pengguna.
+- **Enterprise Credential Security:** Kata sandi agensi dan API Key dikelola melalui **macOS Keychain** (`/usr/bin/security`) dengan fallback otomatis ke **Machine-Keyed Encrypted Local Vault** (PBKDF2 HMAC SHA-256 + permission `0600`). *Nol kata sandi plaintext di basis data atau log*.
 
 ---
 
-## Panduan Instalasi & Penggunaan
+## 🛡️ 7 Aturan Kepatuhan Mutlak (Universal Compliance Rules)
 
-### 1. Prasyarat
-- Komputer dengan **Python 3.9** ke atas.
+Semua prompt dan metadata yang dihasilkan secara otomatis memenuhi standar kurasi microstock internasional:
+
+1. **Zero Female Characters (Universal Strict Prohibition):** 100% bebas figur wanita/feminin (manusia, kartun, robot). Mengutamakan objek mati (*inanimate objects*), arsitektur, makanan, alam, dan peralatan.
+2. **Zero Text & Typography:** Bebas huruf, angka, tipografi, logo, watermark, dan kaligrafi.
+3. **Mandatory Faceless Creatures:** Semua makhluk hidup dibuat 100% tanpa fitur wajah (*shot from behind*, siluet, fokus tangan).
+4. **Unbranded & Generic Props:** Properti kendaraan, gawai, dan elektronik bersih tanpa merek dagang.
+5. **Commercial Composition:** Menyediakan *copy space* bersih atau susunan knolling simetris.
+6. **Authentic Photographic Lighting:** Cahaya alami atau studio nyata tanpa efek plastik waxy (*anti-plastic sheen*).
+7. **Physical Micro-Textures:** Tekstur material nyata (serat kayu, kain linen, pantulan kaca) dengan depth of field terkontrol.
+
+---
+
+## 💻 Panduan Antarmuka Terminal (CLI)
+
+Selain antarmuka web Streamlit, aplikasi menyediakan CLI lengkap untuk integrasi skrip dan otomatisasi:
+
+```bash
+# 1. Menampilkan ringkasan status master database SQLite
+python cli.py db
+
+# 2. Membuat prompt komersial dari ide teks
+python cli.py prompt "cangkir kopi espresso di meja kayu minimalis" --style "Fotografi (Photorealism)"
+
+# 3. Memproses folder gambar: Vision SEO + Injeksi XMP + dHash + Auto-Save DB
+python cli.py process ~/Downloads --upscale
+
+# 4. Reverse prompt dari file gambar referensi
+python cli.py reverse path/ke/gambar.jpg
+
+# 5. Pindai tren komersial teratas
+python cli.py trends
+
+# 6. Unggah langsung ke endpoint kontributor agensi via SFTP/FTP
+python cli.py upload adobe_stock exports/batch_20261110_103000/
+python cli.py upload shutterstock exports/batch_20261110_103000/
+python cli.py upload freepik exports/batch_20261110_103000/
+
+# 7. Menjalankan GUI Streamlit Pro
+python cli.py gui
+```
+
+---
+
+## ⚙️ Pemasangan & Persyaratan Sistem
+
+### Prasyarat
+- Komputer dengan **Python 3.9** atau lebih baru (macOS / Linux / Windows).
 - Kunci API gratis (**Gemini API Key**) dari [Google AI Studio](https://aistudio.google.com/).
 
-### 2. Pemasangan
-
-Buka **Terminal** (macOS/Linux) atau **Command Prompt / PowerShell** (Windows), lalu jalankan:
-
+### Langkah Instalasi
 ```bash
 # 1. Masuk ke direktori proyek
-cd /lokasi/folder/microstock-ai-studio
+cd microstock-ai-studio
 
-# 2. Buat virtual environment
+# 2. Buat dan aktifkan virtual environment
 python -m venv .venv
+source .venv/bin/activate  # macOS / Linux
+# .venv\Scripts\activate   # Windows
 
-# 3. Aktifkan virtual environment
-# Windows:
-.venv\Scripts\activate
-# macOS / Linux:
-source .venv/bin/activate
-
-# 4. Instal dependensi yang dibutuhkan
+# 3. Pasang dependensi
 pip install -r requirements.txt
-```
 
-### 3. Menjalankan Aplikasi
-
-Jalankan perintah berikut:
-```bash
+# 4. Jalankan aplikasi
 streamlit run app.py
 ```
-
-Aplikasi akan otomatis terbuka di browser Anda pada alamat `http://localhost:8501`.  
-Masukkan **Gemini API Key** Anda pada kolom di sidebar kiri, dan simpan agar otomatis digunakan setiap kali membuka aplikasi.
+Aplikasi akan terbuka otomatis di peramban Anda pada alamat `http://localhost:8501`.
 
 ---
 
-## Struktur Penyimpanan Lokal
+## 📂 Struktur Penyimpanan Lokal
 
-- `exports/prompts/` : Menyimpan file prompt hasil Reverse Prompt (format `*.txt`).
-- `exports/batch_[timestamp]/` : Menyimpan metadata `metadata.csv` (serta gambar hasil *upscale* jika diaktifkan).
-- `.env` : Menyimpan API Key Anda secara aman di komputer lokal (tidak diunggah ke internet).
-
----
-
-*Dibuat untuk memaksimalkan produktivitas kontributor microstock profesional.*
+- `exports/data/studio.db` : Basis data master SQLite WAL (aset, pHash, log pengiriman).
+- `exports/data/.vault.enc` : Brankas kredensial terenkripsi mesin (izin berkas `0600`).
+- `exports/prompts/` : Arsip teks prompt hasil bedah gambar reverse prompt (`*.txt`).
+- `exports/batch_[timestamp]/` : Folder paket hasil ekspor gambar ber-XMP dan file `metadata.csv`.
+- `.env` : Tempat penyimpanan lokal kunci API Gemini Anda.

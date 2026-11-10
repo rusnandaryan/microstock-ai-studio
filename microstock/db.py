@@ -12,6 +12,8 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional, Tuple
 
+from . import security
+
 
 def get_default_db_path() -> str:
     """Return default absolute path to local SQLite database in exports/data/."""
@@ -270,9 +272,12 @@ def save_agency_account(
     password: str,
     db_path: Optional[str] = None,
 ) -> str:
-    """Store or update agency contributor credentials."""
+    """Store or update agency contributor credentials securely."""
     uid = str(uuid.uuid4())
     now = datetime.utcnow().isoformat()
+    if password:
+        security.store_agency_password(agency_name, username, password)
+    safe_db_pwd = "[VAULT_ENCRYPTED]" if password else ""
     with get_connection(db_path) as conn:
         conn.execute(
             """
@@ -287,17 +292,23 @@ def save_agency_account(
                 password = excluded.password,
                 updated_at = excluded.updated_at
             """,
-            (uid, agency_name, host, port, protocol, username, password, now),
+            (uid, agency_name, host, port, protocol, username, safe_db_pwd, now),
         )
     return uid
 
 
 def get_agency_account(agency_name: str, db_path: Optional[str] = None) -> Optional[Dict[str, Any]]:
-    """Retrieve saved credentials for a stock agency."""
+    """Retrieve saved credentials for a stock agency with secured password."""
     with get_connection(db_path) as conn:
         cur = conn.execute("SELECT * FROM agency_accounts WHERE agency_name = ? AND is_active = 1", (agency_name,))
         row = cur.fetchone()
-        return dict(row) if row else None
+        if not row:
+            return None
+        data = dict(row)
+        sec_pwd = security.get_agency_password(agency_name, data["username"])
+        if sec_pwd:
+            data["password"] = sec_pwd
+        return data
 
 
 # Auto-initialize database schema on module load

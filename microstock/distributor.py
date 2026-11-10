@@ -13,7 +13,7 @@ import time
 from dataclasses import dataclass
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
-from . import db
+from . import db, security
 
 AGENCY_ENDPOINTS: Dict[str, Dict[str, Any]] = {
     "adobe_stock": {
@@ -158,7 +158,7 @@ def dispatch_batch_to_agency(
     port = int(creds.get("port", 21))
     proto = str(creds.get("protocol", "ftp")).lower()
     user = creds["username"]
-    pwd = creds["password"]
+    pwd = creds.get("password") or security.get_agency_password(agency_key, user) or ""
     is_tls = proto == "ftps"
 
     results = []
