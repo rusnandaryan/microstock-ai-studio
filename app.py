@@ -46,10 +46,11 @@ api_key = render_sidebar()
 render_header()
 
 # Workstation Tabs
-tab1, tab2, tab3 = st.tabs([
+tab1, tab2, tab3, tab4 = st.tabs([
     "1. Commercial Prompt Studio",
     "2. Inspeksi Gambar & Paket SEO (Gemini Vision)",
     "3. Reverse Prompt (Image to Prompt)",
+    "4. Distribusi Contributor & Database Studio",
 ])
 
 with tab1:
@@ -621,7 +622,16 @@ with tab2:
                         enforce_min_filesize=enforce_4mb,
                         max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS if (do_upscale and is_smart) else None,
                         jpeg_quality=95,
+                        metadata=md,
                     )
+
+                    from microstock import db
+                    from microstock.phash import compute_phash
+                    from microstock.reverse_prompt import _detect_ratio
+
+                    phash_val = compute_phash(exp_bytes)
+                    dups = db.find_near_duplicates_in_db(phash_val, max_hamming_distance=5)
+                    dup_risk = "HIGH" if (dups and dups[0][1] <= 3) else ("MEDIUM" if dups else None)
 
                     item = BatchItem(
                         index=idx,
@@ -634,8 +644,27 @@ with tab2:
                         width=w,
                         height=h,
                         metadata=md,
+                        phash=phash_val,
+                        is_xmp_injected=bool(md and md.title),
+                        duplicate_risk=dup_risk,
                     )
                     processed_items.append(item)
+
+                    db.save_asset(
+                        file_path=os.path.join(watch_path if os.path.isdir(watch_path) else os.getcwd(), filename),
+                        file_name=filename,
+                        file_size_bytes=len(exp_bytes),
+                        width=w,
+                        height=h,
+                        aspect_ratio=_detect_ratio(w, h),
+                        phash_hex=phash_val,
+                        title=md.title if md else "",
+                        description=md.description if md else "",
+                        keywords=md.keywords if md else [],
+                        adobe_category_id=md.adobe_category if md else 8,
+                        shutterstock_cats=md.shutterstock_categories if md else [],
+                        is_xmp_injected=bool(md and md.title),
+                    )
                     progress_bar.progress((idx + 1) / len(image_entries), text=f"Selesai {idx+1}/{len(image_entries)} gambar")
 
             with st.spinner("Gemini Vision sedang menginspeksi elemen visual nyata..."):
@@ -812,4 +841,145 @@ with tab3:
                         if st.button("Kirim ke Tab 1", key=f"send_tab1_{i}", use_container_width=True):
                             st.session_state.tab1_base_idea = item["prompt"]
                             st.toast("Prompt berhasil dikirim ke Tab 1!")
+
+
+with tab4:
+    st.markdown(
+        """
+        <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:800; margin:0 0 0.5rem; color:var(--text-primary);">
+          Studio Database & Contributor Distribution Hub
+        </h3>
+        <p style="color:var(--text-secondary); font-size:0.9rem; margin-bottom:1.2rem;">
+          Arsip aset lokal terenkripsi (SQLite WAL), proteksi duplikasi pHash, dan pengiriman batch via FTP/SFTP langsung ke Adobe Stock, Shutterstock, dan Freepik.
+        </p>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    from microstock import db, distributor
+
+    # 1. DATABASE ASSETS OVERVIEW
+    recent_assets = db.list_recent_assets(limit=50)
+    col_m1, col_m2, col_m3 = st.columns(3)
+    with col_m1:
+        st.metric("Total Aset Terindeks", len(recent_assets))
+    with col_m2:
+        injected_count = sum(1 for a in recent_assets if a.get("is_xmp_injected"))
+        st.metric("IPTC / XMP Embedded", f"{injected_count} Aset")
+    with col_m3:
+        st.metric("Mode Database", "SQLite WAL (Local-First)")
+
+    with st.expander("Tabel Aset Terindeks di Database Lokal", expanded=True):
+        if recent_assets:
+            import pandas as pd
+            display_rows = []
+            for a in recent_assets:
+                mp = (a.get("width", 0) * a.get("height", 0)) / 1_000_000
+                display_rows.append({
+                    "Nama File": a.get("file_name", ""),
+                    "Resolusi": f"{a.get('width', 0)}x{a.get('height', 0)} ({mp:.1f} MP)",
+                    "Rasio": a.get("aspect_ratio", ""),
+                    "pHash": a.get("phash_hex", "")[:8] + "...",
+                    "IPTC Embedded": "Ya" if a.get("is_xmp_injected") else "Tidak",
+                    "Judul": a.get("title", ""),
+                    "Tanggal": str(a.get("created_at", ""))[:19],
+                })
+            st.dataframe(pd.DataFrame(display_rows), hide_index=True, use_container_width=True)
+        else:
+            st.info("Belum ada aset gambar yang diproses. Jalankan Tab 2 untuk memproses gambar.")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    # 2. AGENCY CREDENTIALS & DIRECT SFTP/FTP DISPATCH
+    with st.container(border=True):
+        st.markdown(
+            """
+            <b style="font-size:1.05rem; color:var(--text-primary); font-family:'Space Grotesk',sans-serif;">
+              Pengaturan Endpoint & Kredensial Contributor
+            </b>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin:0.2rem 0 0.8rem;">
+              Masukkan akun kontributor FTP/SFTP resmi untuk mengunggah gambar langsung dari komputer Anda.
+            </p>
+            """,
+            unsafe_allow_html=True,
+        )
+
+        col_ag1, col_ag2 = st.columns([1.2, 2.8], gap="medium")
+        with col_ag1:
+            selected_agency_key = st.selectbox(
+                "Pilih Agensi Stok:",
+                options=list(distributor.AGENCY_ENDPOINTS.keys()),
+                format_func=lambda k: distributor.AGENCY_ENDPOINTS[k]["name"],
+            )
+            agency_meta = distributor.AGENCY_ENDPOINTS[selected_agency_key]
+            st.caption(f"Host Default: `{agency_meta['host']}`")
+            st.caption(f"Port / Protokol: `{agency_meta['port']}` ({agency_meta['protocol'].upper()})")
+
+        with col_ag2:
+            saved_cred = db.get_agency_account(selected_agency_key) or {}
+            c_host, c_port = st.columns([3, 1])
+            with c_host:
+                input_host = st.text_input("Server Host:", value=saved_cred.get("host", agency_meta["host"]))
+            with c_port:
+                input_port = st.number_input("Port:", value=int(saved_cred.get("port", agency_meta["port"])))
+
+            c_user, c_pass = st.columns(2)
+            with c_user:
+                input_user = st.text_input("Username / ID Kontributor:", value=saved_cred.get("username", ""))
+            with c_pass:
+                input_pass = st.text_input("Password / FTP Token:", value=saved_cred.get("password", ""), type="password")
+
+            c_act_save, c_act_test = st.columns(2)
+            with c_act_save:
+                if st.button("Simpan Kredensial Agensi", type="primary", use_container_width=True):
+                    if input_user and input_pass:
+                        db.save_agency_account(
+                            agency_name=selected_agency_key,
+                            host=input_host,
+                            port=int(input_port),
+                            protocol=agency_meta["protocol"],
+                            username=input_user,
+                            password=input_pass,
+                        )
+                        st.toast("Kredensial agensi berhasil disimpan di database lokal!")
+                    else:
+                        st.warning("Username dan Password tidak boleh kosong.")
+
+            with c_act_test:
+                if st.button("Tes Koneksi Server", use_container_width=True):
+                    if input_host and input_user and input_pass:
+                        with st.spinner("Menguji jabat tangan koneksi server..."):
+                            success, msg = distributor.test_agency_connection(
+                                host=input_host,
+                                port=int(input_port),
+                                protocol=agency_meta["protocol"],
+                                username=input_user,
+                                password=input_pass,
+                            )
+                            if success:
+                                st.success(msg)
+                            else:
+                                st.error(f"Gagal koneksi: {msg}")
+                    else:
+                        st.warning("Lengkapi parameter host, username, dan password terlebih dahulu.")
+
+    # 3. SUBMISSION LOGS
+    with st.expander("Log Riwayat Pengiriman & Upload (Submission Logs)", expanded=False):
+        sub_logs = db.list_recent_submissions(limit=30)
+        if sub_logs:
+            import pandas as pd
+            log_rows = []
+            for l in sub_logs:
+                log_rows.append({
+                    "Agensi": distributor.AGENCY_ENDPOINTS.get(l.get("agency_name", ""), {}).get("name", l.get("agency_name", "")),
+                    "Nama File": l.get("remote_filename", ""),
+                    "Status": l.get("status", ""),
+                    "Protokol": l.get("submission_type", "").upper(),
+                    "Waktu Upload": str(l.get("uploaded_at", ""))[:19],
+                    "Error": l.get("error_message") or "-",
+                })
+            st.dataframe(pd.DataFrame(log_rows), hide_index=True, use_container_width=True)
+        else:
+            st.info("Belum ada riwayat pengiriman via FTP/SFTP.")
+
 

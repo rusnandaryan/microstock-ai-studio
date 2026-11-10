@@ -1252,12 +1252,17 @@ def render_card(item: BatchItem, batch_id: str) -> None:
             st.image(item.preview_bytes)
             size_mb = len(item.image_bytes) / 1_048_576
             mp = (item.width * item.height) / 1_000_000
+            xmp_badge = '<span class="ms-step-badge ms-badge-accent" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem;">IPTC Injected</span>' if getattr(item, "is_xmp_injected", False) else ''
+            dup_risk = getattr(item, "duplicate_risk", None)
+            dup_badge = f'<span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem;">Duplikat: {dup_risk}</span>' if dup_risk else ''
             st.markdown(
                 f"""
                 <div style="margin: 0.5rem 0 0.2rem;">
                   <span class="ms-step-badge ms-badge-green" style="font-size:0.75rem; padding:0.2rem 0.5rem;">
                     {item.width}×{item.height}px ({mp:.1f} MP)
                   </span>
+                  {xmp_badge}
+                  {dup_badge}
                   <span style="font-size:0.8rem; color:var(--text-secondary); margin-left:0.4rem;">
                     {size_mb:.1f} MB · {item.filename}
                   </span>

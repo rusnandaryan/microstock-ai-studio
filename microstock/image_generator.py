@@ -32,6 +32,9 @@ class BatchItem:
     image_error: Optional[str] = None
     metadata_error: Optional[str] = None
     elapsed: float = 0.0
+    phash: str = ""
+    is_xmp_injected: bool = False
+    duplicate_risk: Optional[str] = None
 
     @property
     def ok(self) -> bool:
@@ -84,6 +87,7 @@ def finalize_image(
     enforce_min_filesize: bool = False,
     max_target_pixels: Optional[int] = None,
     jpeg_quality: int = 95,
+    metadata: Optional[ImageMetadata] = None,
 ) -> Tuple[bytes, bytes, str, int, int]:
     """Convert to export format and build preview.
 
@@ -91,6 +95,7 @@ def finalize_image(
     - enforce_min_filesize: Guarantees >= 4MB JPEG file size (Freepik / Vecteezy minimum).
     - max_target_pixels: Optional pixel cap (e.g. config.SMART_MICROSTOCK_TARGET_PIXELS for Smart Microstock).
     - jpeg_quality: JPEG compression quality (default 95: optimal size-to-fidelity ratio).
+    - metadata: Optional ImageMetadata for lossless Adobe XMP/IPTC direct injection.
     Returns (export_bytes, preview_bytes, mime_type, width, height).
     """
     with Image.open(io.BytesIO(raw)) as im:
@@ -146,6 +151,17 @@ def finalize_image(
         # Pad JPEG stream to satisfy Freepik minimum file size
         if enforce_min_filesize and len(export_bytes) < config.MIN_FILE_SIZE_BYTES:
             export_bytes = _pad_jpeg_to_min_size(export_bytes, config.MIN_FILE_SIZE_BYTES)
+
+        # Inject lossless Adobe XMP / IPTC metadata directly into JPEG stream
+        if metadata and metadata.title:
+            from .iptc import inject_xmp_into_jpeg
+            export_bytes = inject_xmp_into_jpeg(
+                export_bytes,
+                title=metadata.title,
+                description=metadata.description,
+                keywords=metadata.keywords,
+                adobe_category=metadata.adobe_category_name,
+            )
 
     preview = rgb.copy()
     preview.thumbnail((PREVIEW_MAX_SIDE, PREVIEW_MAX_SIDE), Image.Resampling.LANCZOS)

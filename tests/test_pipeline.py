@@ -525,5 +525,174 @@ class TestUiThemeSupport(unittest.TestCase):
         self.assertIn("--bg-page: #F8FAFC", light_css)
 
 
+class TestDatabaseEngine(unittest.TestCase):
+    def setUp(self):
+        import os
+        import tempfile
+        self.tmp_dir = tempfile.TemporaryDirectory()
+        self.db_path = os.path.join(self.tmp_dir.name, "test_studio.db")
+        from microstock import db
+        db.init_db(self.db_path)
+
+    def tearDown(self):
+        self.tmp_dir.cleanup()
+
+    def test_save_and_get_asset(self):
+        from microstock import db
+        uid = db.save_asset(
+            file_path="/tmp/sample.jpg",
+            file_name="sample.jpg",
+            file_size_bytes=1024,
+            width=2000,
+            height=2000,
+            aspect_ratio="1:1",
+            phash_hex="1234567890abcdef",
+            title="Sample Coffee Cup",
+            description="High quality coffee cup photography",
+            keywords=["coffee", "cup", "morning"],
+            adobe_category_id=7,
+            shutterstock_cats=["Food and drink"],
+            is_xmp_injected=True,
+            db_path=self.db_path,
+        )
+        self.assertIsNotNone(uid)
+        asset = db.get_asset(uid, db_path=self.db_path)
+        self.assertEqual(asset["file_name"], "sample.jpg")
+        self.assertEqual(asset["title"], "Sample Coffee Cup")
+        self.assertEqual(len(asset["keywords"]), 3)
+        self.assertEqual(asset["adobe_category_id"], 7)
+        self.assertEqual(asset["is_xmp_injected"], 1)
+
+    def test_find_near_duplicates_in_db(self):
+        from microstock import db
+        db.save_asset(
+            file_path="/tmp/img1.jpg",
+            file_name="img1.jpg",
+            file_size_bytes=1000,
+            width=1000,
+            height=1000,
+            aspect_ratio="1:1",
+            phash_hex="ffffffffffffffff",
+            title="Image 1",
+            description="Desc 1",
+            keywords=["tag1"],
+            db_path=self.db_path,
+        )
+        # Search with identical hash
+        matches = db.find_near_duplicates_in_db("ffffffffffffffff", max_hamming_distance=2, db_path=self.db_path)
+        self.assertEqual(len(matches), 1)
+        self.assertEqual(matches[0][1], 0)  # distance 0
+        self.assertEqual(matches[0][2], 100.0)  # 100% similarity
+
+        # Search with 1 bit difference
+        matches_1bit = db.find_near_duplicates_in_db("fffffffffffffffe", max_hamming_distance=2, db_path=self.db_path)
+        self.assertEqual(len(matches_1bit), 1)
+        self.assertEqual(matches_1bit[0][1], 1)
+
+        # Search with distant hash
+        matches_far = db.find_near_duplicates_in_db("0000000000000000", max_hamming_distance=2, db_path=self.db_path)
+        self.assertEqual(len(matches_far), 0)
+
+
+class TestXmpIptcInjector(unittest.TestCase):
+    def test_build_and_inject_xmp(self):
+        from microstock.iptc import build_adobe_xmp_packet, inject_xmp_into_jpeg
+        from PIL import Image
+
+        packet = build_adobe_xmp_packet(
+            title="Test Espresso Shot",
+            description="Rich crema espresso shot in porcelain cup",
+            keywords=["espresso", "coffee", "crema", "caffeine"],
+            adobe_category="Food",
+        )
+        self.assertIn(b"Test Espresso Shot", packet)
+        self.assertIn(b"espresso", packet)
+        self.assertIn(b"crema", packet)
+
+        sample = _create_sample_jpeg(100, 100)
+        injected = inject_xmp_into_jpeg(
+            sample,
+            title="Test Espresso Shot",
+            description="Rich crema espresso shot in porcelain cup",
+            keywords=["espresso", "coffee", "crema", "caffeine"],
+            adobe_category="Food",
+        )
+        self.assertTrue(injected.startswith(b"\xff\xd8"))
+        self.assertIn(b"http://ns.adobe.com/xap/1.0/", injected)
+        self.assertIn(b"Test Espresso Shot", injected)
+
+        # Ensure image is valid and readable by Pillow
+        with Image.open(io.BytesIO(injected)) as im:
+            im.load()
+            self.assertEqual(im.format, "JPEG")
+            self.assertEqual(im.size, (100, 100))
+
+
+class TestPerceptualHash(unittest.TestCase):
+    def test_phash_computation_and_similarity(self):
+        from microstock.phash import compute_phash, hamming_distance, similarity_percent
+        from PIL import Image, ImageDraw
+
+        im1 = Image.new("RGB", (200, 200), color="white")
+        draw = ImageDraw.Draw(im1)
+        draw.ellipse([20, 20, 180, 180], fill="black")
+
+        im2 = im1.copy().resize((100, 100))  # Scale variation
+
+        h1 = compute_phash(im1)
+        h2 = compute_phash(im2)
+
+        self.assertEqual(len(h1), 16)
+        self.assertEqual(len(h2), 16)
+
+        dist = hamming_distance(h1, h2)
+        self.assertLessEqual(dist, 2)
+        sim = similarity_percent(h1, h2)
+        self.assertGreaterEqual(sim, 95.0)
+
+
+class TestBackgroundQueue(unittest.TestCase):
+    def test_queue_execution(self):
+        from microstock.queue import BackgroundWorkerPool
+        pool = BackgroundWorkerPool(max_workers=1)
+
+        def simple_task(x, y):
+            return x + y
+
+        job_id = pool.submit("Math Task", simple_task, 10, 20)
+        self.assertIsNotNone(job_id)
+
+        import time
+        for _ in range(20):
+            job = pool.get_job(job_id)
+            if job and job.status == "completed":
+                break
+            time.sleep(0.05)
+
+        job = pool.get_job(job_id)
+        self.assertEqual(job.status, "completed")
+        self.assertEqual(job.result, 30)
+        pool.shutdown(wait=False)
+
+
+class TestDistributor(unittest.TestCase):
+    def test_agency_endpoints_defined(self):
+        from microstock.distributor import AGENCY_ENDPOINTS
+        self.assertIn("adobe_stock", AGENCY_ENDPOINTS)
+        self.assertIn("shutterstock", AGENCY_ENDPOINTS)
+        self.assertIn("freepik", AGENCY_ENDPOINTS)
+
+    def test_test_agency_connection_mocked(self):
+        from unittest.mock import patch, MagicMock
+        from microstock.distributor import test_agency_connection
+
+        with patch("ftplib.FTP") as mock_ftp_cls:
+            mock_inst = MagicMock()
+            mock_ftp_cls.return_value = mock_inst
+            success, msg = test_agency_connection("localhost", 21, "ftp", "user", "pass")
+            self.assertTrue(success)
+            self.assertIn("berhasil", msg)
+
+
 if __name__ == "__main__":
     unittest.main()

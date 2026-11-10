@@ -206,6 +206,34 @@ def cmd_process(args: argparse.Namespace) -> None:
                 enforce_min_filesize=args.freepik,
                 max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS if args.smart else None,
                 jpeg_quality=95,
+                metadata=md,
+            )
+
+            from microstock import db
+            from microstock.phash import compute_phash, similarity_percent
+            from microstock.reverse_prompt import _detect_ratio
+
+            phash_val = compute_phash(exp_bytes)
+            dups = db.find_near_duplicates_in_db(phash_val, max_hamming_distance=5)
+            dup_warning = ""
+            if dups:
+                top_match, dist, sim = dups[0]
+                dup_warning = f" [PERINGATAN: Mirip {sim}% dgn {top_match.get('file_name', 'arsip')}]"
+
+            db.save_asset(
+                file_path=os.path.join(args.source if os.path.isdir(args.source) else os.path.dirname(args.source), filename),
+                file_name=filename,
+                file_size_bytes=len(exp_bytes),
+                width=w,
+                height=h,
+                aspect_ratio=_detect_ratio(w, h),
+                phash_hex=phash_val,
+                title=md.title if md else "",
+                description=md.description if md else "",
+                keywords=md.keywords if md else [],
+                adobe_category_id=md.adobe_category if md else 8,
+                shutterstock_cats=md.shutterstock_categories if md else [],
+                is_xmp_injected=bool(md and md.title),
             )
 
             processed_items.append(BatchItem(
@@ -219,8 +247,11 @@ def cmd_process(args: argparse.Namespace) -> None:
                 width=w,
                 height=h,
                 metadata=md,
+                phash=phash_val,
+                is_xmp_injected=bool(md and md.title),
+                duplicate_risk="HIGH" if dups and dups[0][1] <= 3 else ("MEDIUM" if dups else None),
             ))
-            print(f"    [OK] Selesai: {w}x{h} px ({len(exp_bytes)/1024/1024:.2f} MB), {len(md.keywords)} keywords.")
+            print(f"    [OK] Selesai: {w}x{h} px ({len(exp_bytes)/1024/1024:.2f} MB), {len(md.keywords)} keywords (IPTC: Embedded, pHash: {phash_val[:8]}...){dup_warning}")
 
     asyncio.run(_process_all())
 
@@ -258,6 +289,61 @@ def cmd_gui(args: argparse.Namespace) -> None:
     print("[INFO] Menjalankan Microstock AI Studio di browser...")
     app_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "app.py")
     subprocess.run([sys.executable, "-m", "streamlit", "run", app_path])
+
+
+def cmd_db(args: argparse.Namespace) -> None:
+    """Inspect SQLite WAL database and recent indexed assets."""
+    from microstock import db
+    assets = db.list_recent_assets(limit=args.limit)
+    subs = db.list_recent_submissions(limit=10)
+    print("\n" + "=" * 60)
+    print("STATUS DATABASE MASTER (SQLite WAL):")
+    print("=" * 60)
+    print(f"Path Database       : {db.get_default_db_path()}")
+    print(f"Total Aset Terindeks: {len(assets)}")
+    print(f"Aset IPTC Injected  : {sum(1 for a in assets if a.get('is_xmp_injected'))}")
+    print("-" * 60)
+    for i, a in enumerate(assets[:15], 1):
+        xmp_str = "[IPTC OK]" if a.get("is_xmp_injected") else "[NO IPTC]"
+        print(f"{i}. {xmp_str} {a.get('file_name')} ({a.get('width')}x{a.get('height')}) - {a.get('title', '')[:30]}...")
+    if subs:
+        print("\nRiwayat Pengiriman Agensi:")
+        for s in subs[:5]:
+            print(f"- [{s.get('agency_name')}] {s.get('remote_filename')} -> {s.get('status')}")
+    print("=" * 60 + "\n")
+
+
+def cmd_upload(args: argparse.Namespace) -> None:
+    """Upload processed image files directly to stock agencies (FTP/SFTP)."""
+    from microstock import distributor
+    if args.agency not in distributor.AGENCY_ENDPOINTS:
+        print(f"[ERROR] Agensi '{args.agency}' tidak valid. Pilihan: {list(distributor.AGENCY_ENDPOINTS.keys())}")
+        sys.exit(1)
+
+    targets = []
+    if os.path.isdir(args.path):
+        for f in os.listdir(args.path):
+            if f.lower().endswith((".jpg", ".jpeg")):
+                targets.append(os.path.join(args.path, f))
+    elif os.path.isfile(args.path):
+        targets.append(args.path)
+
+    if not targets:
+        print(f"[ERROR] Tidak ada file JPEG yang ditemukan di: {args.path}")
+        sys.exit(1)
+
+    print(f"[INFO] Memulai pengiriman {len(targets)} file ke {distributor.AGENCY_ENDPOINTS[args.agency]['name']}...")
+    try:
+        results = distributor.dispatch_batch_to_agency(
+            agency_key=args.agency,
+            file_paths=targets,
+            progress_callback=lambda idx, tot, msg: print(f"[{idx}/{tot}] {msg}"),
+        )
+        success_count = sum(1 for r in results if r.success)
+        print(f"\n[SUKSES] {success_count}/{len(targets)} file berhasil diunggah.")
+    except Exception as e:
+        print(f"[ERROR] Gagal mengirim: {e}")
+        sys.exit(1)
 
 
 def main() -> None:
@@ -310,6 +396,17 @@ def main() -> None:
     # 5. Subcommand: gui
     p_gui = subparsers.add_parser("gui", parents=[api_parser], help="Buka antarmuka visual web (Streamlit)")
     p_gui.set_defaults(func=cmd_gui)
+
+    # 6. Subcommand: db
+    p_db = subparsers.add_parser("db", parents=[api_parser], help="Inspeksi ringkasan database SQLite dan arsip aset")
+    p_db.add_argument("--limit", type=int, default=30, help="Jumlah aset yang ditampilkan (default: 30)")
+    p_db.set_defaults(func=cmd_db)
+
+    # 7. Subcommand: upload
+    p_upload = subparsers.add_parser("upload", parents=[api_parser], help="Kirim aset gambar langsung ke server agensi via FTP/SFTP")
+    p_upload.add_argument("agency", choices=["adobe_stock", "shutterstock", "freepik"], help="Nama target agensi")
+    p_upload.add_argument("path", help="Path ke folder atau file gambar yang ingin diunggah")
+    p_upload.set_defaults(func=cmd_upload)
 
     if len(sys.argv) == 1:
         parser.print_help()
