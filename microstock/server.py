@@ -191,3 +191,4 @@ def start_desktop_server(host: str = "127.0.0.1", port: int = 8505) -> ThreadedH
     os.makedirs(WEB_DIR, exist_ok=True)
     server = ThreadedHTTPServer((host, port), DesktopAPIHandler)
     return server
+

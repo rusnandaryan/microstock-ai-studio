@@ -113,3 +113,4 @@ def evaluate_commercial_compliance(
         report.is_commercial_safe = False
 
     return report
+

@@ -25,3 +25,4 @@ cargo install tauri-cli --version "^2.0"
 cargo tauri build
 ```
 File biner executable mandiri akan dihasilkan di `desktop/src-tauri/target/release/bundle/`.
+
