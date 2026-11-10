@@ -172,3 +172,4 @@ def get_current_seasonal_opportunities(month: Optional[int] = None) -> List[Seas
 
     # Fallback to November-December cycle if edge case
     return SEASONAL_CALENDAR_DATA[-1]["opportunities"]
+

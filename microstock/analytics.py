@@ -54,3 +54,4 @@ def get_curation_analytics(db_path: Optional[str] = None) -> Dict[str, Any]:
         "agency_breakdown": agency_counts,
         "top_categories": top_categories,
     }
+

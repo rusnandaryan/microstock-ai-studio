@@ -73,3 +73,4 @@ def rank_keywords_by_buyer_intent(
     scored_list.sort(key=lambda x: (-x[0], x[1]))
 
     return [item[2] for item in scored_list]
+
