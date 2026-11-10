@@ -938,6 +938,27 @@ with tab4:
             st.caption(f"Host Default: `{agency_meta['host']}`")
             st.caption(f"Port / Protokol: `{agency_meta['port']}` ({agency_meta['protocol'].upper()})")
 
+            if selected_agency_key == "adobe_stock":
+                st.markdown(
+                    """
+                    <div style="background:rgba(245,158,11,0.08); border:1px solid rgba(245,158,11,0.25); border-radius:6px; padding:0.5rem 0.6rem; margin-top:0.5rem; font-size:0.75rem; color:var(--text-secondary);">
+                      ⚠️ <b>Kebijakan Adobe Stock:</b> SFTP kini hanya dibuka Adobe untuk akun terverifikasi. Untuk akun baru, unggah file langsung di web <code>contributor.stock.adobe.com</code>. Judul dan 50 kata kunci otomatis terisi dari metadata XMP JPEG tanpa butuh CSV!
+                    </div>
+                    """,
+                    unsafe_allow_html=True,
+                )
+
+            st.markdown("<div style='margin-top:0.8rem;'></div>", unsafe_allow_html=True)
+            if st.button("📂 Buka Folder Hasil di Finder", use_container_width=True):
+                export_base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exports")
+                import subprocess, sys
+                if sys.platform == "darwin":
+                    subprocess.run(["open", export_base])
+                elif sys.platform == "win32":
+                    os.startfile(export_base)
+                else:
+                    subprocess.run(["xdg-open", export_base])
+
         with col_ag2:
             saved_cred = db.get_agency_account(selected_agency_key) or {}
             c_host, c_port = st.columns([3, 1])
