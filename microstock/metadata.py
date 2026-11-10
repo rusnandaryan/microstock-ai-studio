@@ -206,11 +206,14 @@ class ImageMetadata:
     shutterstock_categories: List[str] = field(default_factory=list)
 
     def __post_init__(self):
+        from .keyword_ranker import rank_keywords_by_buyer_intent
         self.adobe_category = validate_adobe_category(self.adobe_category)
         if not self.shutterstock_categories:
             self.shutterstock_categories = classify_shutterstock_categories(
                 self.title, self.description, self.keywords
             )
+        if self.keywords:
+            self.keywords = rank_keywords_by_buyer_intent(self.keywords, self.title, self.description)
 
     @property
     def keywords_csv(self) -> str:

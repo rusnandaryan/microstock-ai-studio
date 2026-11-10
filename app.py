@@ -856,7 +856,7 @@ with tab4:
         unsafe_allow_html=True,
     )
 
-    from microstock import db, distributor, metadata, security
+    from microstock import analytics, db, distributor, metadata, security
 
     sec_info = security.get_security_status()
     kc_status = "macOS Keychain Native" if sec_info.get("keychain_supported") else "Encrypted Local Vault (PBKDF2 0600)"
@@ -872,16 +872,19 @@ with tab4:
         unsafe_allow_html=True,
     )
 
-    # 1. DATABASE ASSETS OVERVIEW
+    # 1. DATABASE ASSETS OVERVIEW & CURATION TELEMETRY
     recent_assets = db.list_recent_assets(limit=50)
-    col_m1, col_m2, col_m3 = st.columns(3)
+    cur_stats = analytics.get_curation_analytics()
+    col_m1, col_m2, col_m3, col_m4 = st.columns(4)
     with col_m1:
         st.metric("Total Aset Terindeks", len(recent_assets))
     with col_m2:
         injected_count = sum(1 for a in recent_assets if a.get("is_xmp_injected"))
         st.metric("IPTC / XMP Embedded", f"{injected_count} Aset")
     with col_m3:
-        st.metric("Mode Database", "SQLite WAL (Local-First)")
+        st.metric("Total Terkirim SFTP", f"{cur_stats.get('total_submissions', 0)} Batch")
+    with col_m4:
+        st.metric("Tingkat Sukses Pengiriman", f"{cur_stats.get('upload_success_rate', 100.0)}%")
 
     with st.expander("Tabel Aset Terindeks di Database Lokal", expanded=True):
         if recent_assets:

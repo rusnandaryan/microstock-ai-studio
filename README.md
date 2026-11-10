@@ -1,10 +1,111 @@
-# Microstock AI Studio Pro
+# 🚀 Microstock AI Studio Pro
 
-Workstation desktop lokal (*local-first*) bertenaga AI untuk kreator microstock profesional (**Adobe Stock**, **Shutterstock**, dan **Freepik**). Ditenagai oleh **Google Gemini AI**, **Real-ESRGAN Vulkan GPU**, **SQLite WAL Database**, injeksi metadata **Lossless Adobe XMP/IPTC**, proteksi akun **64-bit dHash (Perceptual Hash)**, dan **Direct SFTP/FTP Contributor Dispatcher**.
+Selamat datang di **Microstock AI Studio Pro**! 🎉  
+Aplikasi ini dirancang khusus untuk mempermudah siapa saja—bahkan yang **belum pernah jualan foto stok atau belum pernah coding sekalipun**—untuk memproduksi, memeriksa, memberi kata kunci (keywords), dan menjual karya visual AI ke agensi internasional seperti **Adobe Stock**, **Shutterstock**, dan **Freepik**.
 
 ---
 
-## 🏗️ Alur Kerja & Arsitektur Workstation (4 Modul Inti)
+## ✨ Apa Saja yang Bisa Dilakukan Aplikasi Ini?
+
+Bayangkan memiliki asisten profesional pribadi yang bekerja 24 jam di komputer Anda:
+1. 💡 **Membuat Prompt Siap Pakai:** Cukup ketik ide dalam bahasa Indonesia, AI akan meraciknya menjadi 5 variasi prompt bahasa Inggris komersial yang bebas dari penolakan (*anti-rejection*).
+2. 🏷️ **50 Keywords Otomatis & Cerdas:** AI menganalisis gambar Anda dan menyusun 50 kata kunci SEO terbaik, dengan 10 kata kunci teratas dioptimalkan khusus untuk mendatangkan pembeli (*Buyer Intent Ranking*).
+3. ⚡ **Injeksi Metadata Langsung ke File JPEG (Fitur Juara!):** Judul, deskripsi, dan 50 kata kunci **ditanam langsung ke dalam file gambar**. Saat Anda upload ke Adobe Stock atau Shutterstock, Anda **TIDAK PERLU LAGI** upload file CSV terpisah atau mengetik keyword satu per satu!
+4. 🔍 **Perbesar Gambar Otomatis (AI Upscale Vulkan GPU):** Memastikan resolusi gambar Anda selalu memenuhi syarat wajib agensi ($\ge 4$ Megapiksel dan $\ge 4$ MB) langsung menggunakan kartu grafis komputer tanpa internet.
+5. 🛡️ **Proteksi Akun (Anti-Banned Visual Hash):** Mendeteksi apakah gambar Anda terlalu mirip dengan gambar sebelumnya agar akun kontributor Anda aman dari sanksi spam agensi.
+6. 🚀 **Kirim Langsung ke Agensi (Direct SFTP/FTP):** Unggah puluhan gambar langsung ke server kontributor Adobe Stock, Shutterstock, dan Freepik dalam satu klik.
+7. 🔒 **Keamanan Kelas Enterprise:** Kata sandi agensi dan API Key Anda disimpan dengan aman di **Apple Keychain** (macOS) atau **Brankas Terenkripsi Lokal** (`chmod 0600`). Bebas risiko kebocoran data.
+
+---
+
+## 🎁 Langkah Awal: Dapatkan Google Gemini API Key Gratis (100% Gratis!)
+
+Aplikasi ini menggunakan kecerdasan buatan resmi Google Gemini. Kunci API (*API Key*) ini disediakan gratis oleh Google:
+
+1. Buka situs [Google AI Studio](https://aistudio.google.com/) di peramban Anda.
+2. Masuk (*Sign in*) menggunakan akun Google / Gmail Anda.
+3. Klik tombol biru **"Get API key"** di pojok kiri atas.
+4. Klik tombol **"Create API key"**.
+5. Salin kode yang muncul (panjangnya sekitar 39 karakter, berawalan `AIzaSy...`).
+6. Simpan kode ini, nanti akan kita masukkan ke dalam aplikasi.
+
+---
+
+## 💻 Panduan Instalasi (Pilih Sesuai Komputer Anda)
+
+### A. Panduan untuk Pengguna Windows
+
+#### 1. Pasang Python (Jika Belum Ada)
+- Buka situs resmi [python.org/downloads](https://www.python.org/downloads/) dan unduh installer Python terbaru (versi 3.10, 3.11, atau 3.12).
+- Saat membuka file installer, **PENTING: Centang kotak "Add python.exe to PATH"** di bagian paling bawah sebelum menekan tombol *Install Now*.
+
+#### 2. Buka Folder Proyek di Command Prompt
+- Buka folder `microstock-ai-studio` di File Explorer.
+- Klik pada bilah alamat (*address bar*) di bagian atas folder, ketik `cmd`, lalu tekan tombol **Enter**.
+- Jendela hitam Command Prompt akan terbuka langsung di folder tersebut.
+
+#### 3. Pasang Dependensi
+Salin dan tempel perintah berikut satu per satu ke jendela Command Prompt, lalu tekan Enter:
+
+```bat
+:: 1. Buat lingkungan virtual
+python -m venv .venv
+
+:: 2. Aktifkan lingkungan virtual
+.venv\Scripts\activate
+
+:: 3. Pasang semua kebutuhan aplikasi
+pip install -r requirements.txt
+```
+
+#### 4. Jalankan Aplikasi!
+Ketik perintah ini untuk membuka antarmuka visual:
+```bat
+streamlit run app.py
+```
+Peramban web Anda (Chrome/Edge) akan otomatis terbuka dan menampilkan aplikasi di alamat `http://localhost:8501`.
+
+---
+
+### B. Panduan untuk Pengguna macOS (MacBook / iMac / Mac mini)
+
+#### 1. Buka Terminal
+- Tekan tombol **Command (⌘) + Spasi** di keyboard Anda untuk membuka Spotlight.
+- Ketik `Terminal`, lalu tekan **Enter**.
+
+#### 2. Masuk ke Folder Aplikasi
+- Ketik `cd ` (tambahkan satu spasi setelah cd).
+- Seret (*drag and drop*) folder `microstock-ai-studio` dari Finder ke dalam jendela Terminal, lalu tekan **Enter**.
+
+#### 3. Pasang Dependensi
+Salin dan tempel perintah berikut ke Terminal, lalu tekan Enter:
+
+```bash
+# 1. Buat lingkungan virtual
+python3 -m venv .venv
+
+# 2. Aktifkan lingkungan virtual
+source .venv/bin/activate
+
+# 3. Pasang dependensi
+pip install -r requirements.txt
+```
+
+#### 4. Jalankan Aplikasi!
+Pilih cara yang Anda sukai:
+```bash
+# Pilihan 1: Antarmuka Web Lengkap (Streamlit)
+streamlit run app.py
+
+# Pilihan 2: Mode Aplikasi Desktop Super Ringan (< 35 MB RAM, Buka Instan)
+python cli.py desktop
+```
+
+---
+
+## 🎯 Panduan Praktis Pemakaian 4 Tab Workstation
+
+Setelah aplikasi terbuka, masukkan **Gemini API Key** Anda pada kolom di sidebar kiri, lalu klik **Simpan API Key**. Anda sudah siap berkreasi!
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -18,123 +119,110 @@ Workstation desktop lokal (*local-first*) bertenaga AI untuk kreator microstock 
 
 ---
 
-### Tab 1: Studio Pembuat Prompt (Text to Prompt)
-Ubah ide singkat menjadi **5 variasi prompt bahasa Inggris komersial** yang telah disterilkan dari risiko penolakan (*rejection-free*).
-- **Riset Tren Pasar Terkini:** Memindai 10 peluang momen komersial teratas Adobe Stock secara dinamis lengkap dengan tombol *1-Click Apply*.
-- **Katalog 5 Kategori Gaya Visual:** Fotografi (Commercial, Documentary, Macro, Faceless), Ilustrasi & Lukisan (Watercolor, Oil, Sketch), Animasi & Kartun (Kawaii, Anime, 3D CGI Pixar-like), 3D & Render (Diorama, Isometric, Claymation, Octane), serta Desain (Sticker Sheet, App Icons, Flat Vector).
-- **Framing Komersial:** *Negative Space for Copy* (30–40% area bersih), *Knolling Grid/Die-Cut*, dan *Full Frame*.
-- **Lensa & Pencahayaan:** Pilihan lensa 85mm prime, 100mm macro, 24mm wide, top-down flat lay, studio softbox, dan golden hour.
+### Tab 1: Commercial Prompt Studio (Meracik Prompt Bernilai Jual)
+Gunakan tab ini saat Anda ingin membuat gambar baru dari ide tulisan.
+1. **Ketik Ide Anda:** Tulis apa saja di kotak ide (contoh: *"cangkir kopi espresso di atas meja kayu kafe minimalis"*).
+2. **Pilih Gaya Visual:** Pilih kategori gaya yang diinginkan (Fotografi, 3D Render, Ilustrasi Stiker Die-Cut, Cat Air, atau Animasi).
+3. **Pilih Komposisi & Rasio:** Pilih rasio aspek (16:9 untuk banner web, 1:1 untuk postingan, atau 9:16 untuk story). Jika ingin gambar mudah ditambahi teks iklan oleh pembeli, pilih framing *Negative Space for Copy*.
+4. **Klik "Racik 5 Prompt Komersial":** Dalam 3 detik, Anda akan mendapatkan 5 variasi prompt bahasa Inggris profesional yang siap Anda salin ke alat generate gambar favorit Anda (Midjourney, Gemini, Flux, atau Stable Diffusion).
 
 ---
 
-### Tab 2: Pemeriksa Gambar, Upscale NCNN & Metadata XMP/IPTC (Gemini Vision)
-- **Kernel Event Folder Watcher (0% CPU Idle):** Memantau folder `Downloads` Mac/PC secara event-driven (FSEvents/watchdog) tanpa lonjakan CPU. Mendeteksi file gambar baru secara instan dan mengabaikan file download sementara (`.crdownload`, `.part`).
-- **Aturan Upscale Otomatis:**
-  - *Minimal 4 Megapiksel (Otomatis & Wajib):* Output resolusi dihitung otomatis $\ge 4$ MP sesuai syarat mutlak Adobe Stock & Shutterstock.
-  - *Minimal 4 Megabyte (Opsional):* Padding lossless agar ukuran fisik file $\ge 4$ MB untuk Freepik / Vecteezy.
-  - *Akselerasi Vulkan GPU Lokal:* Real-ESRGAN NCNN memproses gambar secara lokal tanpa koneksi internet.
-- **Injeksi Lossless Adobe XMP/IPTC (APP1):** Metadata *Title*, *Description*, *50 Keywords*, dan *Category* disuntikkan langsung ke segmen APP1 stream JPEG tanpa decode-reencode pixel. Saat diunggah ke Adobe Stock atau Shutterstock, metadata otomatis terbaca tanpa perlu upload CSV manual.
-- **Visual Duplicate Guard (64-bit dHash):** Menghitung Difference Hash gambar dan mengukur jarak Hamming dengan aset sebelumnya. Memberikan peringatan dini (*Risiko Duplikat: HIGH/MEDIUM*) guna melindungi akun kontributor dari sanksi spam.
-- **Klasifikasi Otomatis 21 Kategori Resmi Adobe Stock:** Memetakan aset secara deterministik ke ID 1–21 (Animals, Architecture, Business, Food, Lifestyle, Technology, dll.) dan kategori Shutterstock.
+### Tab 2: Pemeriksa Gambar, Upscale & Auto-Keywords
+Gunakan tab ini setelah Anda selesai men-generate gambar dan menyimpannya di komputer.
+1. **Otomatis Pantau Folder Download:** Aplikasi otomatis mendeteksi gambar yang baru saja Anda unduh di folder `Downloads` Mac/Windows Anda. Cukup pilih rentang waktu (*15 Menit Terakhir / Hari Ini*) lalu klik **Pindai Folder**.
+2. **Centang Opsi Upscale:**
+   - *Wajibkan minimal 4 MP:* Menjamin gambar Anda otomatis diperbesar ke $\ge 4$ Megapiksel agar tidak ditolak Adobe Stock.
+   - *Wajibkan minimal 4 MB:* Memastikan ukuran file cukup besar untuk standar Freepik.
+3. **Klik "Mulai Proses Batch":**
+   - AI akan melihat gambar Anda dan menyusun judul komersial serta **50 kata kunci SEO anti-reject**.
+   - 10 kata kunci teratas otomatis ditata berdasarkan kata kunci yang paling sering dicari pembeli (*Buyer Intent Ranking*).
+   - Seluruh metadata ini **ditanam langsung ke dalam file gambar JPEG**.
+   - File hasil proses tersimpan rapi di folder `exports/batch_[tanggal]/`.
 
 ---
 
-### Tab 3: Reverse Prompt Studio (Image to Prompt)
-- **Bedah Visual Cerdas:** Gemini Vision membedah objek, pencahayaan, sudut kamera, tekstur, dan rasio aspek asli (16:9, 1:1, 9:16, 4:3, dsb.).
-- **Auto-Save Lokal (`*.txt`):** Prompt komersial tersimpan rapi di `exports/prompts/prompt_[nama_file].txt` sehingga tidak hilang saat halaman di-refresh.
-- **Zero Memory Clutter:** File referensi hanya dibaca sementara di memori tanpa membebani harddisk.
+### Tab 3: Reverse Prompt Studio (Membongkar Estetika Gambar)
+Punya gambar referensi yang sangat bagus di internet dan ingin tahu cara membuat gambar dengan gaya serupa?
+1. Unggah gambar referensi Anda ke kotak unggah di Tab 3.
+2. AI Gemini Vision akan membedah komposisi, pencahayaan, tekstur, sudut kamera, dan rasio aspek aslinya.
+3. Hasil prompt bahasa Inggris otomatis tersimpan ke komputer Anda dalam format teks (`exports/prompts/prompt_[nama].txt`).
 
 ---
 
 ### Tab 4: Distribusi Contributor & Database Studio
-- **Master Database SQLite WAL (`exports/data/studio.db`):** Menyimpan seluruh katalog aset lokal, resolusi, pHash, metadata SEO, dan riwayat kurasi agensi (Zero-Cloud lock-in, data 100% milik Anda).
-- **Direct Contributor Delivery Hub (FTP / FTPS / SFTP):**
-  - **Adobe Stock:** SFTP resmi (`sftp.contributor.adobestock.com:22`)
-  - **Shutterstock:** FTPS aman (`ftps.shutterstock.com:21`)
-  - **Freepik:** FTP resmi (`ftp.freepik.com:21`)
-  - Fitur *Tes Koneksi Server* langsung dari antarmuka pengguna.
-- **Enterprise Credential Security:** Kata sandi agensi dan API Key dikelola melalui **macOS Keychain** (`/usr/bin/security`) dengan fallback otomatis ke **Machine-Keyed Encrypted Local Vault** (PBKDF2 HMAC SHA-256 + permission `0600`). *Nol kata sandi plaintext di basis data atau log*.
+Gunakan tab ini untuk melihat riwayat aset lokal dan mengirim gambar langsung ke agensi stok.
+1. **Katalog Aset Lokal:** Melihat seluruh gambar yang pernah Anda proses, lengkap dengan status resolusi, tanggal, dan kode hash duplikasi.
+2. **Kirim via FTP/SFTP Langsung:**
+   - Pilih agensi target (**Adobe Stock**, **Shutterstock**, atau **Freepik**).
+   - Masukkan ID/Username dan Password kontributor Anda (dapat dilihat di menu upload FTP pada akun kontributor resmi masing-masing agensi).
+   - Klik **Simpan Kredensial Agensi** (data tersimpan di brankas aman terenkripsi komputer Anda).
+   - Klik **Tes Koneksi Server** untuk memastikan komputer Anda terhubung ke server agensi.
+   - Masukkan nama folder hasil batch dari Tab 2, lalu klik **Kirim ke Agensi**. Gambar Anda akan terunggah otomatis di latar belakang!
 
 ---
 
-## 🛡️ 7 Aturan Kepatuhan Mutlak (Universal Compliance Rules)
+## ⚡ Perintah Cepat Lewat Terminal (CLI)
 
-Semua prompt dan metadata yang dihasilkan secara otomatis memenuhi standar kurasi microstock internasional:
-
-1. **Zero Female Characters (Universal Strict Prohibition):** 100% bebas figur wanita/feminin (manusia, kartun, robot). Mengutamakan objek mati (*inanimate objects*), arsitektur, makanan, alam, dan peralatan.
-2. **Zero Text & Typography:** Bebas huruf, angka, tipografi, logo, watermark, dan kaligrafi.
-3. **Mandatory Faceless Creatures:** Semua makhluk hidup dibuat 100% tanpa fitur wajah (*shot from behind*, siluet, fokus tangan).
-4. **Unbranded & Generic Props:** Properti kendaraan, gawai, dan elektronik bersih tanpa merek dagang.
-5. **Commercial Composition:** Menyediakan *copy space* bersih atau susunan knolling simetris.
-6. **Authentic Photographic Lighting:** Cahaya alami atau studio nyata tanpa efek plastik waxy (*anti-plastic sheen*).
-7. **Physical Micro-Textures:** Tekstur material nyata (serat kayu, kain linen, pantulan kaca) dengan depth of field terkontrol.
-
----
-
-## 💻 Panduan Antarmuka Terminal (CLI)
-
-Selain antarmuka web Streamlit, aplikasi menyediakan CLI lengkap untuk integrasi skrip dan otomatisasi:
+Bagi Anda yang menyukai efisiensi kerja tanpa membuka peramban web:
 
 ```bash
-# 1. Menampilkan ringkasan status master database SQLite
-python cli.py db
-
-# 2. Membuat prompt komersial dari ide teks
-python cli.py prompt "cangkir kopi espresso di meja kayu minimalis" --style "Fotografi (Photorealism)"
-
-# 3. Memproses folder gambar: Vision SEO + Injeksi XMP + dHash + Auto-Save DB
-python cli.py process ~/Downloads --upscale
-
-# 4. Reverse prompt dari file gambar referensi
-python cli.py reverse path/ke/gambar.jpg
-
-# 5. Pindai tren komersial teratas
-python cli.py trends
-
-# 6. Unggah langsung ke endpoint kontributor agensi via SFTP/FTP
-python cli.py upload adobe_stock exports/batch_20261110_103000/
-python cli.py upload shutterstock exports/batch_20261110_103000/
-python cli.py upload freepik exports/batch_20261110_103000/
-
-# 7. Menjalankan Desktop Native Workstation (< 35 MB RAM, cold start < 0.2 detik)
+# 1. Buka Workstation Desktop Native (Sangat ringan, RAM < 35 MB)
 python cli.py desktop
 
-# 8. Menjalankan GUI Streamlit Pro
+# 2. Buka Workstation Versi Web (Streamlit)
 python cli.py gui
+
+# 3. Buat prompt komersial kilat dari terminal
+python cli.py prompt "cangkir teh herbal hangat di meja kayu" --style "Fotografi (Photorealism)"
+
+# 4. Proses otomatis seluruh isi folder unduhan:
+python cli.py process ~/Downloads --upscale
+
+# 5. Cek ringkasan database aset yang tersimpan di komputer
+python cli.py db
+
+# 6. Kirim seluruh gambar di folder langsung ke Adobe Stock via SFTP
+python cli.py upload adobe_stock exports/batch_20261110_103000/
 ```
 
 ---
 
-## ⚙️ Pemasangan & Persyaratan Sistem
+## ❓ Tanya Jawab & Kendala Umum (FAQ)
 
-### Prasyarat
-- Komputer dengan **Python 3.9** atau lebih baru (macOS / Linux / Windows).
-- Kunci API gratis (**Gemini API Key**) dari [Google AI Studio](https://aistudio.google.com/).
+<details>
+<summary><b>1. Muncul pesan "'python' is not recognized as an internal or external command" di Windows?</b></summary>
+Ini terjadi jika Anda lupa mencentang kotak <i>"Add python.exe to PATH"</i> saat menginstal Python. Solusinya: buka kembali installer Python, pilih <b>Modify</b>, dan pastikan opsi <i>Add to PATH</i> dicentang, lalu restart Command Prompt Anda.
+</details>
 
-### Langkah Instalasi
-```bash
-# 1. Masuk ke direktori proyek
-cd microstock-ai-studio
+<details>
+<summary><b>2. Apakah gambar dan data saya aman?</b></summary>
+<b>100% Aman!</b> Aplikasi ini menganut filosofi <i>Local-First</i>. Seluruh data, basis data SQLite, gambar, dan kata sandi Anda tersimpan secara lokal di harddisk komputer Anda sendiri. Aplikasi tidak pernah mengirim data ke server pihak ketiga manapun selain endpoint resmi Google Gemini AI (hanya untuk analisis teks/metadata) dan server resmi agensi stok yang Anda tuju.
+</details>
 
-# 2. Buat dan aktifkan virtual environment
-python -m venv .venv
-source .venv/bin/activate  # macOS / Linux
-# .venv\Scripts\activate   # Windows
+<details>
+<summary><b>3. Mengapa saya tidak perlu lagi mengunggah file CSV ke Adobe Stock?</b></summary>
+Karena aplikasi ini memiliki modul <b>Lossless Adobe XMP Injector</b>. Judul, deskripsi, dan 50 kata kunci sudah tertanam di dalam segmen header file JPEG Anda. Begitu Anda mengunggah file gambar ke portal Adobe Stock Contributor atau Shutterstock, server mereka akan otomatis membaca data tersebut dari dalam file gambarnya secara instan!
+</details>
 
-# 3. Pasang dependensi
-pip install -r requirements.txt
-
-# 4. Jalankan aplikasi
-streamlit run app.py
-```
-Aplikasi akan terbuka otomatis di peramban Anda pada alamat `http://localhost:8501`.
+<details>
+<summary><b>4. Apakah ada biaya bulanan untuk menggunakan aplikasi ini?</b></summary>
+<b>Nol rupiah alias Gratis Selamanya!</b> Aplikasi ini adalah perangkat lunak sumber terbuka (open-source). Penggunaan Gemini AI API juga gratis dalam batas kuota harian dari Google AI Studio yang lebih dari cukup untuk memproses ratusan gambar setiap hari.
+</details>
 
 ---
 
-## 📂 Struktur Penyimpanan Lokal
+## 📜 7 Aturan Kepatuhan Komersial Microstock (Universal Commercial Rules)
 
-- `exports/data/studio.db` : Basis data master SQLite WAL (aset, pHash, log pengiriman).
-- `exports/data/.vault.enc` : Brankas kredensial terenkripsi mesin (izin berkas `0600`).
-- `exports/prompts/` : Arsip teks prompt hasil bedah gambar reverse prompt (`*.txt`).
-- `exports/batch_[timestamp]/` : Folder paket hasil ekspor gambar ber-XMP dan file `metadata.csv`.
-- `.env` : Tempat penyimpanan lokal kunci API Gemini Anda.
+Setiap prompt dan metadata yang dihasilkan oleh aplikasi ini secara otomatis disterilkan dari 7 penyebab penolakan kurator agensi:
+- ❌ **Zero Female Characters:** Bebas dari karakter wanita/feminin (fokus pada objek, kuliner, alam, arsitektur).
+- ❌ **Zero Text / Typography:** Bebas dari huruf, angka, kata, logo, dan watermark.
+- ❌ **Mandatory Faceless:** Makhluk hidup dibuat tanpa ekspresi wajah (*shot from behind*, siluet, fokus tangan).
+- ❌ **Unbranded Props:** Properti gawai, mobil, dan perlengkapan bersih dari merek dagang terdaftar.
+- ✅ **Negative Copy Space:** Komposisi lapang untuk penempatan materi iklan oleh pembeli.
+- ✅ **Authentic Photographic Lighting:** Pencahayaan alami foto asli tanpa kilau plastik waxy (*anti-plastic sheen*).
+- ✅ **Physical Micro-Textures:** Tekstur material nyata (serat kayu, kain linen, pantulan kaca bersih).
+
+---
+
+*Dibuat dengan cinta untuk kemerdekaan finansial kreator microstock di seluruh dunia.* 🌟

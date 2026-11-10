@@ -16,7 +16,18 @@ import threading
 import urllib.parse
 from typing import Any, Dict, List, Optional
 
-from . import config, db, distributor, folder_watcher, prompt_enhancer, security, compliance, metadata
+from . import (
+    analytics,
+    compliance,
+    config,
+    db,
+    distributor,
+    folder_watcher,
+    metadata,
+    prompt_enhancer,
+    seasonality,
+    security,
+)
 
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
@@ -88,6 +99,16 @@ class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
         elif path == "/api/submissions":
             logs = db.list_recent_submissions(limit=50)
             self._send_json(200, {"submissions": logs})
+            return
+
+        elif path == "/api/seasonality":
+            opps = seasonality.get_current_seasonal_opportunities()
+            self._send_json(200, {"seasonality": [o.to_dict() for o in opps]})
+            return
+
+        elif path == "/api/analytics":
+            stats = analytics.get_curation_analytics()
+            self._send_json(200, {"analytics": stats})
             return
 
         # Fallback to static files in WEB_DIR (SPA index.html)

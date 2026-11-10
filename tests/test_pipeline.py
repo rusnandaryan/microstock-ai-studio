@@ -916,3 +916,47 @@ class TestDesktopServer(unittest.TestCase):
         self.assertTrue(len(out_bytes) > 0)
         parsed = json.loads(out_bytes.decode("utf-8"))
         self.assertEqual(parsed["status"], "ok")
+
+
+class TestKeywordRanker(unittest.TestCase):
+    def test_buyer_intent_ordering(self):
+        from microstock.keyword_ranker import rank_keywords_by_buyer_intent
+        raw = ["indoor", "brown", "coffee", "cup", "beverage", "wood", "copy space", "table", "aromatic"]
+        ranked = rank_keywords_by_buyer_intent(raw, title="Minimalist Coffee Cup with Copy Space")
+        # Primary title words and high buyer intent terms must be boosted to the top
+        top_slice = ranked[:4]
+        self.assertTrue(any(w in top_slice for w in ("coffee", "cup", "copy space", "minimalist")))
+
+
+class TestSeasonalityEngine(unittest.TestCase):
+    def test_seasonal_calendar_lead_time(self):
+        from microstock.seasonality import get_current_seasonal_opportunities
+        opps_spring = get_current_seasonal_opportunities(month=1)
+        self.assertGreaterEqual(len(opps_spring), 1)
+        self.assertIn("Maret", opps_spring[0].target_event_month)
+
+        opps_xmas = get_current_seasonal_opportunities(month=9)
+        self.assertGreaterEqual(len(opps_xmas), 1)
+        self.assertTrue(any("Natal" in o.event_name or "Christmas" in o.event_name for o in opps_xmas))
+
+
+class TestAnalyticsEngine(unittest.TestCase):
+    def test_curation_analytics_computation(self):
+        from microstock.analytics import get_curation_analytics
+        import tempfile
+        import os
+        from microstock import db
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            test_db = os.path.join(tmpdir, "test_analytics.db")
+            db.init_db(test_db)
+
+            # Insert sample submission
+            db.log_submission(agency_name="adobe_stock", submission_type="sftp", remote_filename="test1.jpg", status="uploaded", db_path=test_db)
+            db.log_submission(agency_name="shutterstock", submission_type="ftps", remote_filename="test2.jpg", status="failed", error_message="auth error", db_path=test_db)
+
+            stats = get_curation_analytics(db_path=test_db)
+            self.assertEqual(stats["total_submissions"], 2)
+            self.assertEqual(stats["successful_uploads"], 1)
+            self.assertEqual(stats["failed_uploads"], 1)
+            self.assertEqual(stats["upload_success_rate"], 50.0)
