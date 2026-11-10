@@ -302,3 +302,4 @@ def get_agency_account(agency_name: str, db_path: Optional[str] = None) -> Optio
 
 # Auto-initialize database schema on module load
 init_db()
+

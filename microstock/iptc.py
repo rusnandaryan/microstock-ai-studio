@@ -120,3 +120,4 @@ def inject_xmp_into_jpeg(
         out = b"\xff\xd8" + app1_seg + out[2:]
 
     return bytes(out)
+

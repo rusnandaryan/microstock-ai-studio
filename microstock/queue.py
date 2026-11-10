@@ -126,3 +126,4 @@ def get_worker_pool() -> BackgroundWorkerPool:
     if _default_pool is None:
         _default_pool = BackgroundWorkerPool(max_workers=2)
     return _default_pool
+
