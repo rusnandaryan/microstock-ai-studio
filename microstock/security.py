@@ -293,3 +293,4 @@ def get_security_status() -> Dict[str, Any]:
         "vault_path": VAULT_FILE,
         "total_stored_secrets": len(vault),
     }
+

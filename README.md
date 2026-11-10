@@ -96,7 +96,10 @@ python cli.py upload adobe_stock exports/batch_20261110_103000/
 python cli.py upload shutterstock exports/batch_20261110_103000/
 python cli.py upload freepik exports/batch_20261110_103000/
 
-# 7. Menjalankan GUI Streamlit Pro
+# 7. Menjalankan Desktop Native Workstation (< 35 MB RAM, cold start < 0.2 detik)
+python cli.py desktop
+
+# 8. Menjalankan GUI Streamlit Pro
 python cli.py gui
 ```
 

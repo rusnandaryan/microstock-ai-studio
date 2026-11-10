@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Microstock AI Studio Pro — Desktop Workstation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-base: #090d16;
+      --bg-surface: #0f172a;
+      --bg-card: #131d35;
+      --bg-input: #0b1120;
+      --border-color: #1e293b;
+      --border-focus: #6366f1;
+      --accent-primary: #6366f1;
+      --accent-hover: #4f46e5;
+      --accent-glow: rgba(99, 102, 241, 0.25);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --green-500: #10b981;
+      --green-glow: rgba(16, 185, 129, 0.2);
+      --amber-500: #f59e0b;
+      --red-500: #ef4444;
+      --radius-sm: 6px;
+      --radius-md: 10px;
+      --radius-lg: 14px;
+      --font-heading: 'Space Grotesk', -apple-system, sans-serif;
+      --font-body: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg-base);
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      line-height: 1.5;
+      font-size: 14px;
+      overflow-x: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    /* TOPBAR */
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 1.5rem;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      user-select: none;
+    }
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      background: linear-gradient(135deg, #6366f1, #a855f7);
+      border-radius: var(--radius-sm);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-family: var(--font-heading);
+      color: white;
+    }
+    .brand-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .badge {
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.3);
+    }
+    .topbar-status {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--green-500);
+      box-shadow: 0 0 8px var(--green-500);
+      display: inline-block;
+      margin-right: 4px;
+    }
+
+    /* NAV TABS */
+    .tabs-nav {
+      display: flex;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-color);
+      padding: 0 1.5rem;
+      gap: 0.5rem;
+    }
+    .tab-btn {
+      padding: 0.85rem 1.2rem;
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-family: var(--font-body);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tab-btn:hover { color: var(--text-primary); }
+    .tab-btn.active {
+      color: var(--accent-primary);
+      border-bottom-color: var(--accent-primary);
+    }
+
+    /* MAIN CONTENT */
+    .main-container {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    /* CARDS & GRID */
+    .card {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1.5rem;
+    }
+    .card-title {
+      font-family: var(--font-heading);
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .card-desc {
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+      margin-bottom: 1.2rem;
+    }
+
+    /* FORMS */
+    .form-group { margin-bottom: 1rem; }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.82rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.4rem;
+    }
+    input, select, textarea {
+      width: 100%;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm);
+      padding: 0.6rem 0.8rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.88rem;
+      transition: border 0.15s ease;
+    }
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px var(--accent-glow);
+    }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; }
+
+    /* BUTTONS */
+    .btn {
+      padding: 0.65rem 1.25rem;
+      border-radius: var(--radius-sm);
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+    }
+    .btn-primary {
+      background: var(--accent-primary);
+      color: white;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-secondary {
+      background: var(--bg-card);
+      color: var(--text-primary);
+      border-color: var(--border-color);
+    }
+    .btn-secondary:hover { border-color: var(--accent-primary); }
+
+    /* TABLE */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    th, td {
+      padding: 0.65rem 0.8rem;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+    th {
+      color: var(--text-secondary);
+      font-weight: 600;
+      background: var(--bg-card);
+    }
+    tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+    /* CODE & TOKENS */
+    .mono { font-family: var(--font-mono); }
+    .tag-chip {
+      display: inline-block;
+      padding: 2px 6px;
+      font-size: 0.72rem;
+      border-radius: var(--radius-sm);
+      background: var(--bg-card);
+      color: #93c5fd;
+      border: 1px solid var(--border-color);
+      margin: 2px;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="topbar-brand">
+      <div class="brand-logo">M</div>
+      <div class="brand-title">Microstock AI Studio Pro</div>
+      <span class="badge">Desktop Native Shell</span>
+    </div>
+    <div class="topbar-status">
+      <div><span class="status-dot"></span> <span id="lbl-db-mode">SQLite WAL</span></div>
+      <div id="lbl-vault-status">🔒 Vault Aktif</div>
+      <div id="lbl-assets-count">0 Aset Terindeks</div>
+    </div>
+  </header>
+
+  <!-- NAV TABS -->
+  <nav class="tabs-nav">
+    <button class="tab-btn active" onclick="switchTab('tab-prompt')">1. Commercial Prompt Studio</button>
+    <button class="tab-btn" onclick="switchTab('tab-vision')">2. Visual & Metadata Inspector</button>
+    <button class="tab-btn" onclick="switchTab('tab-reverse')">3. Reverse Prompt</button>
+    <button class="tab-btn" onclick="switchTab('tab-distributor')">4. Contributor Distribution & DB</button>
+  </nav>
+
+  <!-- MAIN VIEW -->
+  <main class="main-container">
+
+    <!-- TAB 1: PROMPT STUDIO -->
+    <section id="tab-prompt" class="tab-pane active">
+      <div class="card">
+        <div class="card-title">Commercial Prompt Studio</div>
+        <div class="card-desc">Ubah ide singkat menjadi 5 variasi prompt bahasa Inggris komersial steril dari penolakan.</div>
+        <div class="form-group">
+          <label>Ide Dasar / Subjek Komersial:</label>
+          <input type="text" id="inp-idea" placeholder="Contoh: cangkir kopi espresso di meja kayu minimalis kafe pagi hari" />
+        </div>
+        <div class="grid-3">
+          <div class="form-group">
+            <label>Kategori Gaya:</label>
+            <select id="sel-style-cat">
+              <option>Fotografi (Photorealism)</option>
+              <option>Ilustrasi & Seni Lukis</option>
+              <option>Animasi & Kartun</option>
+              <option>3D & Render</option>
+              <option>Desain & Digital Art</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Sub-Gaya:</label>
+            <select id="sel-style">
+              <option>Foto Komersial Bersih (Commercial Advertising)</option>
+              <option>Food & Culinary Editorial</option>
+              <option>Arsitektur & Interior Minimalis</option>
+              <option>3D Miniature Diorama (Miniature World)</option>
+              <option>Flat Design Vector Minimalist</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Rasio Aspek:</label>
+            <select id="sel-ratio">
+              <option value="16:9">16:9 · Widescreen / Banner</option>
+              <option value="1:1">1:1 · Square</option>
+              <option value="9:16">9:16 · Vertical / Stories</option>
+              <option value="4:3">4:3 · Classic Landscape</option>
+            </select>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="generatePrompts()">⚡ Racik 5 Prompt Komersial</button>
+      </div>
+
+      <div id="prompt-results" style="display:none;">
+        <h4 style="margin-bottom:1rem; font-family:var(--font-heading);">Hasil Prompt Komersial:</h4>
+        <div id="prompt-cards-container"></div>
+      </div>
+    </section>
+
+    <!-- TAB 2: VISUAL & METADATA -->
+    <section id="tab-vision" class="tab-pane">
+      <div class="card">
+        <div class="card-title">Inspeksi Visual, XMP IPTC & Duplicate Guard</div>
+        <div class="card-desc">Evaluasi konten visual dengan Gemini Vision, kalkulasi 64-bit dHash, dan penyusunan 50 keyword anti-reject.</div>
+        <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); border-radius:var(--radius-sm); padding:0.8rem; margin-bottom:1rem;">
+          ⚡ <b>Kernel Folder Watcher:</b> Aktif memantau folder unduhan lokal secara event-driven (0% CPU).
+        </div>
+        <div class="form-group">
+          <label>Uji Kepatuhan Komersial (Compliance Shield):</label>
+          <input type="text" id="inp-comp-title" placeholder="Judul gambar..." style="margin-bottom:0.5rem;" />
+          <textarea id="inp-comp-desc" placeholder="Deskripsi gambar..." rows="2" style="margin-bottom:0.5rem;"></textarea>
+          <input type="text" id="inp-comp-kw" placeholder="Keywords (pisahkan dengan koma)..." style="margin-bottom:0.5rem;" />
+          <button class="btn btn-secondary" onclick="runComplianceCheck()">🛡️ Jalankan Compliance & Release Shield</button>
+        </div>
+        <div id="compliance-result" style="display:none; margin-top:1rem; padding:0.8rem; background:var(--bg-card); border-radius:var(--radius-sm); border:1px solid var(--border-color);"></div>
+      </div>
+    </section>
+
+    <!-- TAB 3: REVERSE PROMPT -->
+    <section id="tab-reverse" class="tab-pane">
+      <div class="card">
+        <div class="card-title">Reverse Prompt Studio</div>
+        <div class="card-desc">Analisis gambar referensi menjadi prompt siap generate komersial.</div>
+        <p style="color:var(--text-secondary);">Gunakan tab ini untuk merekayasa balik estetika visual, pencahayaan, tekstur, dan rasio aspek dari file gambar referensi.</p>
+      </div>
+    </section>
+
+    <!-- TAB 4: DISTRIBUTOR & DATABASE -->
+    <section id="tab-distributor" class="tab-pane">
+      <div class="card">
+        <div class="card-title">Katalog Aset Master (SQLite WAL)</div>
+        <div class="card-desc">Arsip aset lokal terenkripsi, status injeksi IPTC XMP, dan proteksi duplikasi dHash.</div>
+        <div style="overflow-x:auto;">
+          <table id="tbl-assets">
+            <thead>
+              <tr>
+                <th>Nama File</th>
+                <th>Resolusi</th>
+                <th>pHash</th>
+                <th>IPTC XMP</th>
+                <th>Kategori Adobe</th>
+                <th>Judul Komersial</th>
+                <th>Tanggal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Memuat aset...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+      if (tabId === 'tab-distributor') loadAssets();
+    }
+
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        const data = await res.json();
+        document.getElementById('lbl-db-mode').innerText = data.database_mode;
+        document.getElementById('lbl-assets-count').innerText = `${data.total_assets} Aset`;
+        document.getElementById('lbl-vault-status').innerText = data.security.keychain_supported ? '🔒 Keychain Aktif' : '🔒 Vault Aktif';
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function loadAssets() {
+      try {
+        const res = await fetch('/api/assets?limit=50');
+        const data = await res.json();
+        const tbody = document.querySelector('#tbl-assets tbody');
+        if (!data.assets || data.assets.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted);">Belum ada aset terindeks di database.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = data.assets.map(a => `
+          <tr>
+            <td class="mono">${a.file_name || '-'}</td>
+            <td>${a.width}×${a.height}</td>
+            <td class="mono">${(a.phash_hex || '').substring(0, 8)}...</td>
+            <td><span class="badge" style="background:${a.is_xmp_injected ? 'rgba(16,185,129,0.15)' : 'rgba(148,163,184,0.15)'}; color:${a.is_xmp_injected ? '#34d399' : '#94a3b8'};">${a.is_xmp_injected ? 'Embedded' : 'None'}</span></td>
+            <td>#${a.adobe_category_id || 12}</td>
+            <td>${a.title || '-'}</td>
+            <td class="mono" style="font-size:0.75rem;">${(a.created_at || '').substring(0, 16)}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function runComplianceCheck() {
+      const title = document.getElementById('inp-comp-title').value;
+      const desc = document.getElementById('inp-comp-desc').value;
+      const kw = document.getElementById('inp-comp-kw').value.split(',').map(s => s.trim()).filter(Boolean);
+      
+      const res = await fetch('/api/compliance/check', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({title, description: desc, keywords: kw}),
+      });
+      const data = await res.json();
+      const c = data.compliance;
+      const box = document.getElementById('compliance-result');
+      box.style.display = 'block';
+      box.innerHTML = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+          <b>Skor Keamanan Komersial:</b>
+          <span style="font-size:1.1rem; font-weight:700; color:${c.commercial_safety_score >= 80 ? 'var(--green-500)' : 'var(--amber-500)'};">${c.commercial_safety_score}/100</span>
+        </div>
+        <div>Model Release: <b>${c.requires_model_release ? '⚠️ WAJIB' : '✅ Tidak Perlu'}</b></div>
+        <div>Property Release: <b>${c.requires_property_release ? '⚠️ WAJIB' : '✅ Bebas'}</b></div>
+        <div>Status Komersial: <b>${c.is_commercial_safe ? '✅ Aman Komersial' : '⚠️ Hanya Editorial'}</b></div>
+        ${c.detected_risks.length ? '<p style="color:var(--amber-500); margin-top:0.4rem;">Risiko: ' + c.detected_risks.join(', ') + '</p>' : ''}
+      `;
+    }
+
+    async function generatePrompts() {
+      const idea = document.getElementById('inp-idea').value;
+      const styleCat = document.getElementById('sel-style-cat').value;
+      const styleName = document.getElementById('sel-style').value;
+      const ratio = document.getElementById('sel-ratio').value;
+
+      if (!idea) { alert('Silakan isi ide prompt terlebih dahulu.'); return; }
+
+      const cont = document.getElementById('prompt-cards-container');
+      document.getElementById('prompt-results').style.display = 'block';
+      cont.innerHTML = '<p style="color:var(--text-secondary);">Sedang meracik prompt dengan Gemini AI...</p>';
+
+      try {
+        const res = await fetch('/api/prompt/generate', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            idea, style_category: styleCat, style: styleName, aspect_ratio: ratio,
+          }),
+        });
+        const data = await res.json();
+        if (data.error) {
+          cont.innerHTML = `<p style="color:var(--red-500);">Error: ${data.error}</p>`;
+          return;
+        }
+        const r = data.result;
+        cont.innerHTML = (r.prompts || []).map((p, i) => `
+          <div class="card" style="margin-bottom:0.75rem;">
+            <div style="font-weight:700; color:var(--accent-primary); margin-bottom:0.3rem;">Variasi #${i+1}: ${p.theme || 'Commercial Variation'}</div>
+            <p style="font-size:0.85rem; margin-bottom:0.5rem;" class="mono">${p.prompt}</p>
+            <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${p.prompt.replace(/'/g, "\\'")}'); alert('Tersalin!');">Salin Prompt</button>
+          </div>
+        `).join('');
+      } catch (e) {
+        cont.innerHTML = `<p style="color:var(--red-500);">${e.message}</p>`;
+      }
+    }
+
+    // Init on load
+    loadStatus();
+  </script>
+</body>
+</html>

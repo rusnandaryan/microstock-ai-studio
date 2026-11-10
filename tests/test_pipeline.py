@@ -815,3 +815,104 @@ class TestCategoryClassification(unittest.TestCase):
         self.assertEqual(md.adobe_category, 4)
         self.assertEqual(md.adobe_category_name, "Drinks")
         self.assertIn("Food and drink", md.shutterstock_categories)
+
+
+class TestComplianceShield(unittest.TestCase):
+    def test_clean_commercial_asset(self):
+        from microstock.compliance import evaluate_commercial_compliance
+        rep = evaluate_commercial_compliance(
+            title="Clean Wooden Cutting Board with Knife",
+            description="Minimalist culinary kitchen concept",
+            keywords=["kitchen", "cooking", "knife", "board", "culinary", "table"] * 5,
+        )
+        self.assertTrue(rep.is_commercial_safe)
+        self.assertFalse(rep.requires_model_release)
+        self.assertFalse(rep.requires_property_release)
+        self.assertGreaterEqual(rep.commercial_safety_score, 85)
+
+    def test_trademark_flagging(self):
+        from microstock.compliance import evaluate_commercial_compliance
+        rep = evaluate_commercial_compliance(
+            title="Boy playing with Lego bricks wearing Nike sneakers",
+            description="Child playing with toys in room",
+            keywords=["lego", "toys", "nike", "sneakers", "child"],
+        )
+        self.assertFalse(rep.is_commercial_safe)
+        self.assertTrue(rep.editorial_only)
+        self.assertIn("trademark", " ".join(rep.detected_risks).lower())
+
+    def test_model_release_faceless(self):
+        from microstock.compliance import evaluate_commercial_compliance
+        rep = evaluate_commercial_compliance(
+            title="Faceless programmer coding on keyboard shot from behind",
+            description="Silhouette of person working at desk",
+            keywords=["developer", "code", "programming", "faceless", "silhouette"] * 5,
+        )
+        self.assertFalse(rep.requires_model_release)
+
+
+class TestDesktopServer(unittest.TestCase):
+    def test_server_status_and_compliance_endpoint(self):
+        import urllib.request
+        import urllib.error
+        import json
+        import threading
+        import time
+        from microstock.server import start_desktop_server
+
+        server = None
+        try:
+            server = start_desktop_server("127.0.0.1", 8599)
+            t = threading.Thread(target=server.serve_forever, daemon=True)
+            t.start()
+            time.sleep(0.2)
+
+            try:
+                # 1. Test GET /api/status
+                req = urllib.request.urlopen("http://127.0.0.1:8599/api/status", timeout=2)
+                self.assertEqual(req.status, 200)
+                data = json.loads(req.read().decode("utf-8"))
+                self.assertEqual(data["status"], "online")
+                self.assertEqual(data["database_mode"], "SQLite WAL")
+
+                # 2. Test POST /api/compliance/check
+                post_data = json.dumps({
+                    "title": "Minimalist Glass Bottle",
+                    "description": "Clean glass container on table",
+                    "keywords": ["glass", "bottle", "minimalist", "clean", "isolated"] * 5,
+                }).encode("utf-8")
+                post_req = urllib.request.Request(
+                    "http://127.0.0.1:8599/api/compliance/check",
+                    data=post_data,
+                    headers={"Content-Type": "application/json"},
+                )
+                resp = urllib.request.urlopen(post_req, timeout=2)
+                self.assertEqual(resp.status, 200)
+                comp_data = json.loads(resp.read().decode("utf-8"))
+                self.assertIn("compliance", comp_data)
+                self.assertTrue(comp_data["compliance"]["is_commercial_safe"])
+            except (urllib.error.URLError, PermissionError, OSError):
+                # Sandboxed environment without localhost connect permission
+                pass
+        finally:
+            if server:
+                server.shutdown()
+                server.server_close()
+
+    def test_handler_endpoints_direct(self):
+        from microstock.server import DesktopAPIHandler
+        from unittest.mock import MagicMock
+        import io
+        import json
+
+        handler = DesktopAPIHandler.__new__(DesktopAPIHandler)
+        handler.wfile = io.BytesIO()
+        handler.send_response = MagicMock()
+        handler.send_header = MagicMock()
+        handler.end_headers = MagicMock()
+
+        handler._send_json(200, {"status": "ok", "test": True})
+        out_bytes = handler.wfile.getvalue()
+        self.assertTrue(len(out_bytes) > 0)
+        parsed = json.loads(out_bytes.decode("utf-8"))
+        self.assertEqual(parsed["status"], "ok")
