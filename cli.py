@@ -457,7 +457,7 @@ def main() -> None:
     p_upload.set_defaults(func=cmd_upload)
 
     # 8. Subcommand: desktop
-    p_desktop = subparsers.add_parser("desktop", parents=[api_parser], help="Buka antarmuka desktop native (Ultra-fast SPA < 35 MB RAM)")
+    p_desktop = subparsers.add_parser("desktop", aliases=["dekstop"], parents=[api_parser], help="Buka antarmuka desktop native (Ultra-fast SPA < 35 MB RAM)")
     p_desktop.add_argument("--port", type=int, default=8505, help="Port local server (default: 8505)")
     p_desktop.set_defaults(func=cmd_desktop)
 
