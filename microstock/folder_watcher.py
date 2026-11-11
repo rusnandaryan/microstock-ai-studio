@@ -5,10 +5,12 @@ Downloads folder (or custom directory) and imports them directly into Tab 2.
 """
 from __future__ import annotations
 
+import collections
 import mimetypes
 import os
+import threading
 import time
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Callable, Deque, Dict, List, Optional, Tuple, Union
 
 VALID_IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".webp"}
 IGNORED_EXTENSIONS = {".crdownload", ".download", ".part", ".tmp"}
