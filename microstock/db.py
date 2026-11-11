@@ -224,6 +224,33 @@ def find_near_duplicates_in_db(
     return matches[:limit]
 
 
+def delete_asset(asset_id: str, db_path: Optional[str] = None) -> bool:
+    """Delete a specific asset and its metadata by id."""
+    with get_connection(db_path) as conn:
+        conn.execute("DELETE FROM assets WHERE id = ?", (asset_id,))
+    return True
+
+
+def clear_all_assets(db_path: Optional[str] = None) -> int:
+    """Delete all assets and metadata from database."""
+    with get_connection(db_path) as conn:
+        cur = conn.execute("DELETE FROM assets")
+        return cur.rowcount
+
+
+def prune_missing_assets(db_path: Optional[str] = None) -> int:
+    """Remove asset records whose physical files no longer exist on disk."""
+    removed = 0
+    with get_connection(db_path) as conn:
+        cur = conn.execute("SELECT id, file_path FROM assets")
+        for row in cur.fetchall():
+            fpath = row["file_path"]
+            if not fpath or not os.path.exists(fpath):
+                conn.execute("DELETE FROM assets WHERE id = ?", (row["id"],))
+                removed += 1
+    return removed
+
+
 def log_submission(
     agency_name: str,
     submission_type: str,

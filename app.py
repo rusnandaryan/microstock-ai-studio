@@ -20,7 +20,7 @@ import uuid
 from PIL import Image
 import streamlit as st
 
-from microstock import config, folder_watcher
+from microstock import analytics, config, db, distributor, folder_watcher, metadata, queue, security
 from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
 from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
@@ -49,6 +49,213 @@ st.session_state.setdefault("watch_dir", folder_watcher.get_default_downloads_di
 
 api_key = render_sidebar()
 render_header()
+
+
+def _run_batch_vision_job(
+    image_entries: list[tuple[str, bytes, str]],
+    api_key: str,
+    do_upscale: bool,
+    upscale_mode: str,
+    enforce_4mb: bool,
+    watch_path: str,
+    progress_callback=None,
+) -> dict:
+    import asyncio
+    import io
+    import os
+    import time
+    from PIL import Image
+    from microstock import config, db
+    from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
+    from microstock.image_generator import BatchItem, finalize_image
+    from microstock.metadata import create_fallback_metadata, generate_metadata_from_vision_async
+    from microstock.phash import compute_phash
+    from microstock.reverse_prompt import _detect_ratio
+    from microstock.upscaler import is_upscale_needed, upscale_bytes
+
+    client = config.get_client(api_key)
+    processed_items: list[BatchItem] = []
+    total = len(image_entries)
+
+    async def _async_worker():
+        for idx, (filename, raw_bytes, mime) in enumerate(image_entries):
+            step_pct = idx / total
+            if progress_callback:
+                progress_callback(step_pct, f"Menganalisis visual #{idx+1} dari {total}: {filename}...")
+
+            # Generate vision metadata
+            md = None
+            try:
+                md = await generate_metadata_from_vision_async(
+                    client=client,
+                    image_bytes=raw_bytes,
+                    mime_type=mime,
+                    label=f"Gambar #{idx+1}",
+                )
+            except Exception:
+                md = create_fallback_metadata(filename)
+
+            target_bytes = raw_bytes
+            if do_upscale:
+                try:
+                    with Image.open(io.BytesIO(raw_bytes)) as _tmp_im:
+                        orig_w, orig_h = _tmp_im.size
+                except Exception:
+                    orig_w, orig_h = 1024, 1024
+
+                if is_upscale_needed(orig_w, orig_h):
+                    if progress_callback:
+                        progress_callback(step_pct, f"AI Upscale #{idx+1} dari {total}: {filename}...")
+                    target_bytes, success, err_msg = await asyncio.to_thread(upscale_bytes, raw_bytes)
+                else:
+                    if progress_callback:
+                        progress_callback(step_pct, f"Gambar #{idx+1} sudah beresolusi tinggi (≥ 4 MP)...")
+
+            if progress_callback:
+                progress_callback(step_pct, f"Menyiapkan resolusi & preview #{idx+1}...")
+
+            is_smart = "Smart" in upscale_mode if do_upscale else False
+            exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
+                finalize_image,
+                target_bytes,
+                "JPEG",
+                enforce_microstock_res=do_upscale,
+                enforce_min_filesize=enforce_4mb,
+                max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS if (do_upscale and is_smart) else None,
+                jpeg_quality=95,
+                metadata=md,
+            )
+
+            phash_val = compute_phash(exp_bytes)
+            dups = db.find_near_duplicates_in_db(phash_val, max_hamming_distance=5)
+            dup_risk = "HIGH" if (dups and dups[0][1] <= 3) else ("MEDIUM" if dups else None)
+
+            item = BatchItem(
+                index=idx,
+                variation=f"Uploaded {filename}",
+                final_prompt="",
+                filename=filename,
+                image_bytes=exp_bytes,
+                preview_bytes=prev_bytes,
+                mime_type=f_mime,
+                width=w,
+                height=h,
+                metadata=md,
+                phash=phash_val,
+                is_xmp_injected=bool(md and md.title),
+                duplicate_risk=dup_risk,
+            )
+            processed_items.append(item)
+
+            resolved_path = os.path.join(watch_path if (watch_path and os.path.isdir(watch_path)) else os.getcwd(), filename)
+            db.save_asset(
+                file_path=resolved_path,
+                file_name=filename,
+                file_size_bytes=len(exp_bytes),
+                width=w,
+                height=h,
+                aspect_ratio=_detect_ratio(w, h),
+                phash_hex=phash_val,
+                title=md.title if md else "",
+                description=md.description if md else "",
+                keywords=md.keywords if md else [],
+                adobe_category_id=md.adobe_category if md else 8,
+                shutterstock_cats=md.shutterstock_categories if md else [],
+                is_xmp_injected=bool(md and md.title),
+            )
+            if progress_callback:
+                progress_callback((idx + 1) / total, f"Selesai #{idx+1}/{total} gambar")
+
+    asyncio.run(_async_worker())
+
+    df = build_metadata_dataframe(processed_items)
+    zip_bytes = build_zip(processed_items, None, df)
+    csv_bytes = dataframe_to_csv_bytes(df)
+
+    timestamp = time.strftime('%Y%m%d-%H%M%S')
+    local_export_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exports", f"batch_{timestamp}")
+    os.makedirs(local_export_dir, exist_ok=True)
+
+    if do_upscale:
+        for it in processed_items:
+            if it.image_bytes:
+                with open(os.path.join(local_export_dir, it.filename), "wb") as f_img:
+                    f_img.write(it.image_bytes)
+
+    with open(os.path.join(local_export_dir, "metadata.csv"), "wb") as f_csv:
+        f_csv.write(csv_bytes)
+
+    return {
+        "items": processed_items,
+        "df": df,
+        "zip": zip_bytes,
+        "zip_name": f"microstock-pack-{timestamp}.zip",
+        "csv": csv_bytes,
+        "local_dir": local_export_dir,
+        "do_upscale": do_upscale,
+        "upscale_mode": upscale_mode,
+        "enforce_4mb": enforce_4mb,
+    }
+
+
+# Persistent Background Batch Monitor (Visible across all tabs)
+@st.fragment(run_every="1.5s")
+def render_background_batch_monitor():
+    job_id = st.session_state.get("active_batch_job_id")
+    if not job_id:
+        return
+    pool = queue.get_worker_pool()
+    job = pool.get_job(job_id)
+    if not job:
+        st.session_state["active_batch_job_id"] = None
+        return
+
+    if job.status == "running":
+        c1, c2 = st.columns([4.2, 0.8])
+        with c1:
+            st.info(
+                f"⚡ **Background Process Berjalan di Tab 2**: {job.status_text} ({int(job.progress * 100)}%)\n\n"
+                "*Anda bebas membuka Tab 1, Tab 3, atau Tab 4. Proses batch tetap berjalan di latar belakang!*"
+            )
+            st.progress(job.progress)
+        with c2:
+            st.caption("Kontrol:")
+            if st.button("⏹️ Batalkan", key="btn_cancel_bg_job", use_container_width=True):
+                pool.cancel_job(job_id)
+                st.session_state["active_batch_job_id"] = None
+                st.toast("Proses background dibatalkan.")
+                st.rerun()
+    elif job.status == "completed":
+        res = job.result
+        if res:
+            st.session_state.vision_items = res["items"]
+            st.session_state.batch_package = {
+                "id": uuid.uuid4().hex[:8],
+                "items": res["items"],
+                "df": res["df"],
+                "zip": res["zip"],
+                "zip_name": res["zip_name"],
+                "csv": res["csv"],
+                "local_dir": res["local_dir"],
+            }
+            st.session_state["last_completed_job_info"] = {
+                "count": len(res["items"]),
+                "local_dir": res["local_dir"],
+                "do_upscale": res.get("do_upscale", False),
+                "upscale_mode": res.get("upscale_mode", "Off"),
+                "enforce_4mb": res.get("enforce_4mb", False),
+            }
+        st.session_state["active_batch_job_id"] = None
+        st.toast(f"🎉 Batch Vision Selesai! {len(res.get('items', []))} gambar telah diproses dan disimpan.", icon="✅")
+        st.rerun()
+    elif job.status == "failed":
+        st.error(f"❌ Background Batch Processing Gagal: {job.error}")
+        st.session_state["active_batch_job_id"] = None
+        if st.button("Tutup Notifikasi", key="btn_close_err"):
+            st.rerun()
+
+
+render_background_batch_monitor()
 
 # Workstation Tabs
 tab1, tab2, tab3, tab4 = st.tabs([
@@ -568,149 +775,48 @@ with tab2:
                         st.caption("Aktifkan jika mengirim ke agensi yang mewajibkan file minimal 4 MB.")
 
         st.markdown("<br>", unsafe_allow_html=True)
+        is_job_running = False
+        active_job_id = st.session_state.get("active_batch_job_id")
+        if active_job_id:
+            j = queue.get_worker_pool().get_job(active_job_id)
+            if j and j.status == "running":
+                is_job_running = True
+
+        if is_job_running:
+            st.info("⚡ **Pemrosesan sedang berlangsung di latar belakang.** Anda bebas berpindah tab sambil memantau bilah status di atas.")
+
         btn_analyze = st.button(
-            f"Mulai Analisis {len(image_entries)} Gambar & Susun Metadata SEO",
+            "⏳ Sedang Memproses di Background..." if is_job_running else f"Mulai Analisis {len(image_entries)} Gambar & Susun Metadata SEO",
             type="primary",
             use_container_width=True,
-            disabled=not api_key,
+            disabled=bool(is_job_running or not api_key),
         )
 
-        if btn_analyze:
-            client = config.get_client(api_key)
-            processed_items: list[BatchItem] = []
-            progress_bar = st.progress(0.0, text="Memulai analisis Gemini Vision...")
+        if btn_analyze and not is_job_running:
+            job_id = queue.get_worker_pool().submit(
+                f"Batch Vision ({len(image_entries)} gambar)",
+                _run_batch_vision_job,
+                image_entries,
+                api_key,
+                do_upscale,
+                upscale_mode,
+                enforce_4mb,
+                watch_path,
+            )
+            st.session_state["active_batch_job_id"] = job_id
+            st.toast("⚡ Analisis batch dimulai di background. Anda bebas berpindah tab!", icon="🚀")
+            st.rerun()
 
-            async def process_all_images():
-                for idx, (filename, raw_bytes, mime) in enumerate(image_entries):
-                    progress_bar.progress(idx / len(image_entries), text=f"Menganalisis visual #{idx+1} dari {len(image_entries)}: {filename}...")
-
-                    # Generate vision metadata
-                    md = None
-                    try:
-                        md = await generate_metadata_from_vision_async(
-                            client=client,
-                            image_bytes=raw_bytes,
-                            mime_type=mime,
-                            label=f"Gambar #{idx+1}",
-                        )
-                    except Exception as e:
-                        st.toast(f"Gagal menyusun metadata untuk {filename}: {e}")
-                        from microstock.metadata import create_fallback_metadata
-                        md = create_fallback_metadata(filename)
-
-                    target_bytes = raw_bytes
-                    if do_upscale:
-                        try:
-                            with Image.open(io.BytesIO(raw_bytes)) as _tmp_im:
-                                orig_w, orig_h = _tmp_im.size
-                        except Exception:
-                            orig_w, orig_h = 1024, 1024
-
-                        from microstock.upscaler import is_upscale_needed, upscale_bytes
-                        if is_upscale_needed(orig_w, orig_h):
-                            progress_bar.progress(idx / len(image_entries), text=f"Memperbesar (AI Upscale 4x Standar Microstock) #{idx+1} dari {len(image_entries)}: {filename}...")
-                            target_bytes, success, err_msg = await asyncio.to_thread(upscale_bytes, raw_bytes)
-                            if not success:
-                                err_detail = f" ({err_msg})" if err_msg else ""
-                                st.toast(f"Upscale lokal gagal untuk {filename}{err_detail}, beralih ke pembesaran Lanczos otomatis.")
-                        else:
-                            progress_bar.progress(idx / len(image_entries), text=f"Gambar #{idx+1} sudah beresolusi tinggi ({orig_w}x{orig_h} px ≥ 4 MP), melewati perbesaran AI...")
-
-                    progress_bar.progress(idx / len(image_entries), text=f"Menyiapkan resolusi & preview #{idx+1}...")
-                    # Finalize image & thumbnail (Enforces >= 4MP and optionally >= 4MB, Smart Microstock cap)
-                    is_smart = "Smart" in upscale_mode if do_upscale else False
-                    exp_bytes, prev_bytes, f_mime, w, h = await asyncio.to_thread(
-                        finalize_image,
-                        target_bytes,
-                        "JPEG",
-                        enforce_microstock_res=do_upscale,
-                        enforce_min_filesize=enforce_4mb,
-                        max_target_pixels=config.SMART_MICROSTOCK_TARGET_PIXELS if (do_upscale and is_smart) else None,
-                        jpeg_quality=95,
-                        metadata=md,
-                    )
-
-                    from microstock import db
-                    from microstock.phash import compute_phash
-                    from microstock.reverse_prompt import _detect_ratio
-
-                    phash_val = compute_phash(exp_bytes)
-                    dups = db.find_near_duplicates_in_db(phash_val, max_hamming_distance=5)
-                    dup_risk = "HIGH" if (dups and dups[0][1] <= 3) else ("MEDIUM" if dups else None)
-
-                    item = BatchItem(
-                        index=idx,
-                        variation=f"Uploaded {filename}",
-                        final_prompt="",
-                        filename=filename,
-                        image_bytes=exp_bytes,
-                        preview_bytes=prev_bytes,
-                        mime_type=f_mime,
-                        width=w,
-                        height=h,
-                        metadata=md,
-                        phash=phash_val,
-                        is_xmp_injected=bool(md and md.title),
-                        duplicate_risk=dup_risk,
-                    )
-                    processed_items.append(item)
-
-                    db.save_asset(
-                        file_path=os.path.join(watch_path if os.path.isdir(watch_path) else os.getcwd(), filename),
-                        file_name=filename,
-                        file_size_bytes=len(exp_bytes),
-                        width=w,
-                        height=h,
-                        aspect_ratio=_detect_ratio(w, h),
-                        phash_hex=phash_val,
-                        title=md.title if md else "",
-                        description=md.description if md else "",
-                        keywords=md.keywords if md else [],
-                        adobe_category_id=md.adobe_category if md else 8,
-                        shutterstock_cats=md.shutterstock_categories if md else [],
-                        is_xmp_injected=bool(md and md.title),
-                    )
-                    progress_bar.progress((idx + 1) / len(image_entries), text=f"Selesai {idx+1}/{len(image_entries)} gambar")
-
-            with st.spinner("Gemini Vision sedang menginspeksi elemen visual nyata..."):
-                asyncio.run(process_all_images())
-
-            # Package into master dataframe and zip
-            df = build_metadata_dataframe(processed_items)
-            zip_bytes = build_zip(processed_items, None, df)
-            csv_bytes = dataframe_to_csv_bytes(df)
-
-            # Auto-save to local folder on your Mac
-            timestamp = time.strftime('%Y%m%d-%H%M%S')
-            local_export_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exports", f"batch_{timestamp}")
-            os.makedirs(local_export_dir, exist_ok=True)
-
-            if do_upscale:
-                for it in processed_items:
-                    if it.image_bytes:
-                        with open(os.path.join(local_export_dir, it.filename), "wb") as f_img:
-                            f_img.write(it.image_bytes)
-
-            with open(os.path.join(local_export_dir, "metadata.csv"), "wb") as f_csv:
-                f_csv.write(csv_bytes)
-
-            st.session_state.vision_items = processed_items
-            st.session_state.batch_package = {
-                "id": uuid.uuid4().hex[:8],
-                "items": processed_items,
-                "df": df,
-                "zip": zip_bytes,
-                "zip_name": f"microstock-pack-{timestamp}.zip",
-                "csv": csv_bytes,
-                "local_dir": local_export_dir,
-            }
-            st.success(f"Berhasil menganalisis {len(processed_items)} gambar.")
-            if do_upscale:
-                mode_label = "Smart Microstock ~8 MP" if "Smart" in upscale_mode else "Ultra 4x Penuh"
-                rule_info = f"mode {mode_label}, resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if enforce_4mb else "")
-                st.info(f"Gambar hasil upscale ({rule_info}) dan file CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
+        # Last completed summary banner
+        last_info = st.session_state.get("last_completed_job_info")
+        if last_info and not is_job_running:
+            st.success(f"Berhasil menganalisis {last_info['count']} gambar.")
+            if last_info.get("do_upscale"):
+                mode_label = "Smart Microstock ~8 MP" if "Smart" in last_info.get("upscale_mode", "") else "Ultra 4x Penuh"
+                rule_info = f"mode {mode_label}, resolusi minimal 4 MP" + (" dan file fisik minimal 4 MB" if last_info.get("enforce_4mb") else "")
+                st.info(f"Gambar hasil upscale ({rule_info}) dan file CSV otomatis tersimpan di folder lokal:\n`{last_info['local_dir']}`")
             else:
-                st.info(f"File metadata CSV otomatis tersimpan di folder lokal:\n`{local_export_dir}`")
+                st.info(f"File metadata CSV otomatis tersimpan di folder lokal:\n`{last_info['local_dir']}`")
 
     # Display Results & Export Hub
     package = st.session_state.batch_package
@@ -895,9 +1001,15 @@ with tab4:
         if recent_assets:
             import pandas as pd
             display_rows = []
+            missing_on_disk = 0
             for a in recent_assets:
                 mp = (a.get("width", 0) * a.get("height", 0)) / 1_000_000
+                fpath = a.get("file_path", "")
+                exists = os.path.exists(fpath) if fpath else False
+                if not exists:
+                    missing_on_disk += 1
                 display_rows.append({
+                    "Status File": "✅ Ada di Komputer" if exists else "⚠️ Terhapus / Pindah",
                     "Nama File": a.get("file_name", ""),
                     "Resolusi": f"{a.get('width', 0)}x{a.get('height', 0)} ({mp:.1f} MP)",
                     "Rasio": a.get("aspect_ratio", ""),
@@ -907,9 +1019,25 @@ with tab4:
                     "Judul": a.get("title", ""),
                     "Tanggal": str(a.get("created_at", ""))[:19],
                 })
+
+            col_b1, col_b2, col_b3 = st.columns([1.5, 1.5, 3])
+            with col_b1:
+                if st.button("🧹 Bersihkan Aset Hilang", help="Hapus entri database yang file fisiknya sudah terhapus di folder komputer", use_container_width=True):
+                    removed = db.prune_missing_assets()
+                    st.toast(f"Berhasil membersihkan {removed} aset yang sudah tidak ada di komputer.", icon="🧹")
+                    st.rerun()
+            with col_b2:
+                if st.button("🗑️ Kosongkan Database Master", help="Hapus semua riwayat indeks database lokal", use_container_width=True):
+                    cleared = db.clear_all_assets()
+                    st.toast(f"Berhasil mengosongkan {cleared} aset dari database.", icon="🗑️")
+                    st.rerun()
+            with col_b3:
+                if missing_on_disk > 0:
+                    st.warning(f"⚠️ Terdeteksi {missing_on_disk} file yang sudah terhapus/berpindah dari folder komputer.")
+
             st.dataframe(pd.DataFrame(display_rows), hide_index=True, use_container_width=True)
         else:
-            st.info("Belum ada aset gambar yang diproses. Jalankan Tab 2 untuk memproses gambar.")
+            st.info("Database lokal masih kosong. Belum ada aset gambar yang terindeks.")
 
     st.markdown("<br>", unsafe_allow_html=True)
 

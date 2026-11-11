@@ -593,6 +593,72 @@ class TestDatabaseEngine(unittest.TestCase):
         matches_far = db.find_near_duplicates_in_db("0000000000000000", max_hamming_distance=2, db_path=self.db_path)
         self.assertEqual(len(matches_far), 0)
 
+    def test_delete_clear_and_prune_assets(self):
+        import os
+        from microstock import db
+        real_file = os.path.join(self.tmp_dir.name, "real.jpg")
+        with open(real_file, "wb") as f:
+            f.write(b"fake image content")
+        fake_file = os.path.join(self.tmp_dir.name, "nonexistent.jpg")
+
+        id1 = db.save_asset(
+            file_path=real_file,
+            file_name="real.jpg",
+            file_size_bytes=100,
+            width=100,
+            height=100,
+            aspect_ratio="1:1",
+            phash_hex="1111111111111111",
+            title="Real File",
+            description="Real Desc",
+            keywords=["real"],
+            db_path=self.db_path,
+        )
+        id2 = db.save_asset(
+            file_path=fake_file,
+            file_name="nonexistent.jpg",
+            file_size_bytes=100,
+            width=100,
+            height=100,
+            aspect_ratio="1:1",
+            phash_hex="2222222222222222",
+            title="Fake File",
+            description="Fake Desc",
+            keywords=["fake"],
+            db_path=self.db_path,
+        )
+        self.assertEqual(len(db.list_recent_assets(db_path=self.db_path)), 2)
+
+        # Test prune missing files
+        pruned = db.prune_missing_assets(db_path=self.db_path)
+        self.assertEqual(pruned, 1)
+        remaining = db.list_recent_assets(db_path=self.db_path)
+        self.assertEqual(len(remaining), 1)
+        self.assertEqual(remaining[0]["id"], id1)
+
+        # Test delete specific
+        deleted = db.delete_asset(id1, db_path=self.db_path)
+        self.assertTrue(deleted)
+        self.assertEqual(len(db.list_recent_assets(db_path=self.db_path)), 0)
+
+        # Test clear all
+        db.save_asset(
+            file_path=real_file,
+            file_name="real2.jpg",
+            file_size_bytes=100,
+            width=100,
+            height=100,
+            aspect_ratio="1:1",
+            phash_hex="3333333333333333",
+            title="Real 2",
+            description="Desc 2",
+            keywords=["real2"],
+            db_path=self.db_path,
+        )
+        cleared = db.clear_all_assets(db_path=self.db_path)
+        self.assertEqual(cleared, 1)
+        self.assertEqual(len(db.list_recent_assets(db_path=self.db_path)), 0)
+
 
 class TestXmpIptcInjector(unittest.TestCase):
     def test_build_and_inject_xmp(self):
