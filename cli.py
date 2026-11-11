@@ -413,7 +413,6 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command", help="Perintah yang tersedia:")
 
-    # 1. Subcommand: prompt
     p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik 1 prompt komersial profesional terstandarisasi")
     p_prompt.add_argument("idea", help="Konsep dasar / ide subjek gambar")
     p_prompt.add_argument("--style", default=config.DEFAULT_STYLE, help="Nama gaya preset estetika")
@@ -423,7 +422,6 @@ def main() -> None:
     p_prompt.add_argument("--composition", default=config.DEFAULT_COMPOSITION, help="Komposisi framing")
     p_prompt.set_defaults(func=cmd_prompt)
 
-    # 2. Subcommand: process
     p_process = subparsers.add_parser("process", parents=[api_parser], help="Analisis folder gambar, susun metadata SEO, AI upscale, dan buat ZIP")
     p_process.add_argument("source", nargs="?", default=folder_watcher.get_default_downloads_dir(), help="Path folder atau file gambar (default: Gemini Downloads)")
     p_process.add_argument("--limit", type=int, default=50, help="Batas maksimal gambar yang dipindai (default: 50)")
@@ -432,31 +430,25 @@ def main() -> None:
     p_process.add_argument("--freepik", action="store_true", help="Wajibkan ukuran file minimal 4 MB (standar Freepik)")
     p_process.set_defaults(func=cmd_process)
 
-    # 3. Subcommand: reverse
     p_reverse = subparsers.add_parser("reverse", parents=[api_parser], help="Bedah visual gambar menjadi prompt komersial (Image to Prompt)")
     p_reverse.add_argument("image_path", help="Path ke file gambar yang ingin dianalisis")
     p_reverse.set_defaults(func=cmd_reverse)
 
-    # 4. Subcommand: trends
     p_trends = subparsers.add_parser("trends", parents=[api_parser], help="Lihat 10 momen & hari besar mendatang yang berpotensi trending di microstock")
     p_trends.set_defaults(func=cmd_trends)
 
-    # 5. Subcommand: gui
     p_gui = subparsers.add_parser("gui", parents=[api_parser], help="Buka antarmuka visual web (Streamlit)")
     p_gui.set_defaults(func=cmd_gui)
 
-    # 6. Subcommand: db
     p_db = subparsers.add_parser("db", parents=[api_parser], help="Inspeksi ringkasan database SQLite dan arsip aset")
     p_db.add_argument("--limit", type=int, default=30, help="Jumlah aset yang ditampilkan (default: 30)")
     p_db.set_defaults(func=cmd_db)
 
-    # 7. Subcommand: upload
     p_upload = subparsers.add_parser("upload", parents=[api_parser], help="Kirim aset gambar langsung ke server agensi via FTP/SFTP")
     p_upload.add_argument("agency", choices=["adobe_stock", "shutterstock", "freepik"], help="Nama target agensi")
     p_upload.add_argument("path", help="Path ke folder atau file gambar yang ingin diunggah")
     p_upload.set_defaults(func=cmd_upload)
 
-    # 8. Subcommand: desktop
     p_desktop = subparsers.add_parser("desktop", aliases=["dekstop"], parents=[api_parser], help="Buka antarmuka desktop native (Ultra-fast SPA < 35 MB RAM)")
     p_desktop.add_argument("--port", type=int, default=8505, help="Port local server (default: 8505)")
     p_desktop.set_defaults(func=cmd_desktop)

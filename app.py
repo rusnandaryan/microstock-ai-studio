@@ -983,7 +983,7 @@ with tab4:
         unsafe_allow_html=True,
     )
 
-    # 1. DATABASE ASSETS OVERVIEW & CURATION TELEMETRY
+    # Database assets overview and curation telemetry
     recent_assets = db.list_recent_assets(limit=50)
     cur_stats = analytics.get_curation_analytics()
     col_m1, col_m2, col_m3, col_m4 = st.columns(4)
@@ -1041,7 +1041,7 @@ with tab4:
 
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # 2. AGENCY CREDENTIALS & DIRECT SFTP/FTP DISPATCH
+    # Agency credentials and distributor dispatch
     with st.container(border=True):
         st.markdown(
             """
@@ -1135,7 +1135,7 @@ with tab4:
                     else:
                         st.warning("Lengkapi parameter host, username, dan password terlebih dahulu.")
 
-    # 3. SUBMISSION LOGS
+    # Submission history logs
     with st.expander("Log Riwayat Pengiriman & Upload (Submission Logs)", expanded=False):
         sub_logs = db.list_recent_submissions(limit=30)
         if sub_logs:

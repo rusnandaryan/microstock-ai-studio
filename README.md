@@ -1,7 +1,7 @@
 # 🚀 Microstock AI Studio Pro
 
 Selamat datang di **Microstock AI Studio Pro**! 🎉  
-Aplikasi ini dirancang khusus untuk mempermudah siapa saja—bahkan yang **belum pernah jualan foto stok atau belum pernah coding sekalipun**—untuk memproduksi, memeriksa, memberi kata kunci (keywords), dan menjual karya visual AI ke agensi internasional seperti **Adobe Stock**, **Shutterstock**, dan **Freepik**.
+Aplikasi ini dirancang khusus untuk mempermudah siapa saja, bahkan yang **belum pernah jualan foto stok atau belum pernah coding sekalipun**, untuk memproduksi, memeriksa, memberi kata kunci (keywords), dan menjual karya visual AI ke agensi internasional seperti **Adobe Stock**, **Shutterstock**, dan **Freepik**.
 
 ---
 

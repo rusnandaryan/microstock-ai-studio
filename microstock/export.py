@@ -13,7 +13,7 @@ from .image_generator import BatchItem, BatchSettings
 
 
 def build_metadata_dataframe(items: List[BatchItem], s: Optional[BatchSettings] = None) -> pd.DataFrame:
-    """Master metadata table – one row per successfully processed image."""
+    """Master metadata table: one row per successfully processed image."""
     rows = []
     for it in items:
         if not it.ok:
@@ -95,7 +95,7 @@ def build_zip(items: List[BatchItem], s: Optional[BatchSettings] = None,
     with zipfile.ZipFile(buf, "w") as zf:
         for it in items:
             if it.ok:
-                # JPEG/PNG are already compressed – store, don't deflate (much faster)
+                # JPEG/PNG are already compressed: store, don't deflate (much faster)
                 zf.writestr(it.filename, it.image_bytes, compress_type=zipfile.ZIP_STORED)
         zf.writestr("metadata.csv", dataframe_to_csv_bytes(master),
                     compress_type=zipfile.ZIP_DEFLATED)

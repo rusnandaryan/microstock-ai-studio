@@ -131,13 +131,7 @@ def read_image_bytes(filepath: str) -> Optional[Tuple[str, bytes, str]]:
     return None
 
 
-# ==============================================================================
-# KERNEL EVENT-DRIVEN FOLDER WATCHER (0% CPU IDLE)
-# ==============================================================================
-
-import collections
-import threading
-from typing import Callable, Deque
+# Kernel event-driven folder watcher (low idle impact)
 
 
 class FolderMonitor:

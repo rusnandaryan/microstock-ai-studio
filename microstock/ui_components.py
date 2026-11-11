@@ -3,15 +3,13 @@ Modern Studio Design System with Light/Dark Mode toggle & WCAG AA contrast compl
 """
 from __future__ import annotations
 
-import time
-from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List, Optional
 
 import pandas as pd
 import streamlit as st
 
 from . import config
-from .image_generator import BatchItem, BatchSettings
+from .image_generator import BatchItem
 
 
 def get_modern_css(is_dark: bool = True) -> str:
@@ -1248,8 +1246,8 @@ def _copy_block(label: str, text: str) -> None:
 def render_card(item: BatchItem, batch_id: str) -> None:
     with st.container(border=True):
         n = item.index + 1
-        if item.ok:
-            st.image(item.preview_bytes)
+        if item.ok and item.preview_bytes:
+            st.image(item.preview_bytes, use_container_width=True)
             size_mb = len(item.image_bytes) / 1_048_576
             mp = (item.width * item.height) / 1_000_000
             xmp_badge = '<span class="ms-step-badge ms-badge-accent" style="font-size:0.72rem; padding:0.15rem 0.4rem; margin-left:0.3rem;">IPTC Injected</span>' if getattr(item, "is_xmp_injected", False) else ''
@@ -1363,4 +1361,4 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
             use_container_width=True,
         )
     with st.expander("Lihat Tabel Metadata Lengkap", expanded=False):
-        st.dataframe(df.drop(columns=["Prompt"], errors="ignore"), hide_index=True)
+        st.dataframe(df.drop(columns=["Prompt"], errors="ignore"), hide_index=True, use_container_width=True)

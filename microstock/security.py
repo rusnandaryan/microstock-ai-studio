@@ -26,9 +26,7 @@ SALT_FILE = os.path.join(VAULT_DIR, ".vault.salt")
 SERVICE_PREFIX = "microstock-ai-studio"
 
 
-# ==============================================================================
-# 1. NATIVE OS KEYCHAIN (macOS)
-# ==============================================================================
+# Native OS Keychain backend (macOS)
 
 def is_keychain_supported() -> bool:
     """Check if macOS security CLI is installed."""
@@ -91,9 +89,7 @@ def _keychain_delete(service: str, account: str) -> bool:
         return False
 
 
-# ==============================================================================
-# 2. MACHINE-KEYED ENCRYPTED LOCAL VAULT (PORTABLE / SANDBOX-SAFE FALLBACK)
-# ==============================================================================
+# Machine-keyed encrypted local vault fallback
 
 def _get_machine_fingerprint() -> bytes:
     """Generate deterministic machine and user fingerprint."""
@@ -213,9 +209,7 @@ def _save_vault(data: Dict[str, str]) -> bool:
         return False
 
 
-# ==============================================================================
-# 3. UNIFIED HIGH-LEVEL CREDENTIAL API
-# ==============================================================================
+# Unified high-level credential storage API
 
 def store_secret(service: str, account: str, secret: str) -> bool:
     """Store secret into Keychain first, falling back transparently to Encrypted Vault."""

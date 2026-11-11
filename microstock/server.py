@@ -6,15 +6,12 @@ Eliminates Streamlit's full-script re-execution and high memory consumption.
 """
 from __future__ import annotations
 
-import cgi
-import http.server
+from http.server import HTTPServer, SimpleHTTPRequestHandler
 import json
 import os
 import socketserver
-import sys
-import threading
-import urllib.parse
-from typing import Any, Dict, List, Optional
+from typing import Any
+from urllib.parse import parse_qs, urlparse
 
 from . import (
     analytics,
@@ -32,7 +29,7 @@ from . import (
 WEB_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "web")
 
 
-class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
+class DesktopAPIHandler(SimpleHTTPRequestHandler):
     """Custom HTTP handler serving the desktop SPA and REST API endpoints."""
 
     def __init__(self, *args, **kwargs):
@@ -64,7 +61,7 @@ class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_GET(self):
         """Route GET requests to API endpoints or static web assets."""
-        parsed = urllib.parse.urlparse(self.path)
+        parsed = urlparse(self.path)
         path = parsed.path
 
         if path == "/api/status":
@@ -83,7 +80,7 @@ class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
             return
 
         elif path == "/api/assets":
-            query = urllib.parse.parse_qs(parsed.query)
+            query = parse_qs(parsed.query)
             limit = int(query.get("limit", [50])[0])
             assets = db.list_recent_assets(limit=limit)
             self._send_json(200, {"assets": assets})
@@ -118,7 +115,7 @@ class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
 
     def do_POST(self):
         """Route POST requests to API action endpoints."""
-        parsed = urllib.parse.urlparse(self.path)
+        parsed = urlparse(self.path)
         path = parsed.path
 
         content_len = int(self.headers.get("Content-Length", 0))
@@ -202,7 +199,7 @@ class DesktopAPIHandler(http.server.SimpleHTTPRequestHandler):
         self._send_json(404, {"error": f"Endpoint '{path}' tidak ditemukan."})
 
 
-class ThreadedHTTPServer(socketserver.ThreadingMixIn, http.server.HTTPServer):
+class ThreadedHTTPServer(socketserver.ThreadingMixIn, HTTPServer):
     daemon_threads = True
     allow_reuse_address = True
 
