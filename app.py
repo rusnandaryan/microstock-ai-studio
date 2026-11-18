@@ -219,16 +219,16 @@ def render_background_batch_monitor():
         c1, c2 = st.columns([4.2, 0.8])
         with c1:
             st.info(
-                f"⚡ **Background Process Berjalan**: {job.status_text} ({int(job.progress * 100)}%)\n\n"
-                "*Proses batch tetap berjalan di latar belakang!*"
+                f"**Pemrosesan Latar Belakang**: {job.status_text} ({int(job.progress * 100)}%)\n\n"
+                "*Proses batch tetap berjalan di latar belakang.*"
             )
             st.progress(job.progress)
         with c2:
             st.caption("Kontrol:")
-            if st.button("⏹️ Batalkan", key="btn_cancel_bg_job", use_container_width=True):
+            if st.button("Batalkan", key="btn_cancel_bg_job", use_container_width=True):
                 pool.cancel_job(job_id)
                 st.session_state["active_batch_job_id"] = None
-                st.toast("Proses background dibatalkan.")
+                st.toast("Proses latar belakang dibatalkan.")
                 st.rerun()
     elif job.status == "completed":
         res = job.result
@@ -251,10 +251,10 @@ def render_background_batch_monitor():
                 "enforce_4mb": res.get("enforce_4mb", False),
             }
         st.session_state["active_batch_job_id"] = None
-        st.toast(f"🎉 Batch Vision Selesai! {len(res.get('items', []))} gambar telah diproses dan disimpan.", icon="✅")
+        st.toast(f"Batch vision selesai. {len(res.get('items', []))} gambar berhasil diproses.")
         st.rerun()
     elif job.status == "failed":
-        st.error(f"❌ Background Batch Processing Gagal: {job.error}")
+        st.error(f"Pemrosesan latar belakang gagal: {job.error}")
         st.session_state["active_batch_job_id"] = None
         if st.button("Tutup Notifikasi", key="btn_close_err"):
             st.rerun()
@@ -270,11 +270,10 @@ col_prompt, col_vision = st.columns([1, 1], gap="large")
 with col_prompt:
     st.markdown(
         """
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-          <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0; color:var(--text-primary);">
-            ✨ Prompt Studio
-          </h3>
-          <span class="ms-step-badge ms-badge-indigo" style="font-size:0.75rem;">32 Art Styles</span>
+        <div style="margin-bottom:0.6rem;">
+          <h2 style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1.15rem; font-weight:700; margin:0; color:var(--text-primary);">
+            Prompt Studio
+          </h2>
         </div>
         """,
         unsafe_allow_html=True,
@@ -297,25 +296,24 @@ with col_prompt:
         return sname
 
     selected_style = st.selectbox(
-        "Style Visual",
+        "Style Visual (32 Pilihan):",
         options=style_names,
         index=23,  # Foto Studio
         format_func=_format_style_choice,
         key="tab1_selected_style",
-        label_visibility="collapsed",
     )
 
     col_btn1, col_btn2 = st.columns(2)
     with col_btn1:
         btn_series = st.button(
-            "⚡ Racik 5 Sudut Seri",
+            "Racik 5 Sudut Seri",
             type="primary",
             use_container_width=True,
             disabled=not api_key,
         )
     with col_btn2:
         btn_restyle = st.button(
-            "🎨 Format Foto Restyle",
+            "Format Foto Restyle",
             type="secondary",
             use_container_width=True,
         )
@@ -334,7 +332,7 @@ with col_prompt:
                     )
                     st.session_state.thematic_series = series_results
                     st.session_state.tab1_output_mode = "series"
-                    st.toast("Koleksi Seri 5-Sudut berhasil diracik!")
+                    st.toast("Koleksi seri 5-sudut berhasil diracik.")
                 except Exception as e:
                     st.error(f"Gagal meracik koleksi seri: {e}")
 
@@ -342,7 +340,7 @@ with col_prompt:
         restyle_prompt_text = config.format_photo_restyle_prompt(selected_style)
         st.session_state.restyle_prompt = restyle_prompt_text
         st.session_state.tab1_output_mode = "restyle"
-        st.toast(f"Prompt Foto Restyle '{selected_style}' siap!")
+        st.toast(f"Prompt restyle '{selected_style}' siap.")
 
     # Output Area in Left Column
     st.markdown("<div style='margin-top:0.8rem;'></div>", unsafe_allow_html=True)
@@ -352,14 +350,14 @@ with col_prompt:
         with c_head1:
             st.markdown(
                 f"""
-                <span style="font-weight:700; color:var(--text-primary); font-size:0.95rem;">
+                <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">
                   Hasil Seri: {len(series)} Sudut Komersial
                 </span>
                 """,
                 unsafe_allow_html=True,
             )
         with c_head2:
-            st.link_button("🌐 Buka Gemini Web", "https://gemini.google.com", use_container_width=True, type="primary")
+            st.link_button("Buka Gemini Web", "https://gemini.google.com", use_container_width=True, type="primary")
 
         for idx, item in enumerate(series):
             shot_title = item.get("title", f"Shot #{idx+1}")
@@ -375,11 +373,10 @@ with col_prompt:
     elif st.session_state.get("tab1_output_mode") == "restyle" and st.session_state.get("restyle_prompt"):
         st.markdown(
             """
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-              <span style="font-weight:700; color:var(--text-primary); font-size:0.95rem;">
+            <div style="margin-bottom:0.4rem;">
+              <span style="font-weight:700; color:var(--text-primary); font-size:0.92rem;">
                 Formula Transformasi Foto
               </span>
-              <span class="ms-step-badge ms-badge-amber" style="font-size:0.72rem;">Image-to-Image</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -387,7 +384,7 @@ with col_prompt:
         st.code(st.session_state.restyle_prompt, language=None, wrap_lines=True)
         c_r1, c_r2 = st.columns(2)
         with c_r1:
-            st.link_button("🌐 Buka Gemini Web", "https://gemini.google.com", use_container_width=True, type="primary")
+            st.link_button("Buka Gemini Web", "https://gemini.google.com", use_container_width=True, type="primary")
         with c_r2:
             if st.button("Tutup Restyle", use_container_width=True):
                 st.session_state.restyle_prompt = ""
@@ -396,9 +393,9 @@ with col_prompt:
     else:
         st.markdown(
             """
-            <div class="ms-card-modern" style="border: 1px dashed var(--border-color); padding: 1.5rem 1rem; text-align: center; margin-top:0.4rem;">
-              <span style="font-size:0.92rem; font-weight:600; color:var(--text-secondary);">
-                Pilih style lalu klik tombol di atas untuk meracik prompt.
+            <div class="ms-card-modern" style="border: 1px dashed var(--border-color); padding: 1.2rem 1rem; text-align: center; margin-top:0.4rem;">
+              <span style="font-size:0.88rem; font-weight:500; color:var(--text-muted);">
+                Pilih style lalu klik tombol di atas untuk menyusun prompt.
               </span>
             </div>
             """,
@@ -409,17 +406,16 @@ with col_prompt:
 with col_vision:
     st.markdown(
         """
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-          <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0; color:var(--text-primary);">
-            👁️ Auto-Sync & Vision Studio
-          </h3>
-          <span class="ms-step-badge ms-badge-emerald" style="font-size:0.75rem;">Deteksi Otomatis</span>
+        <div style="margin-bottom:0.6rem;">
+          <h2 style="font-family:'Plus Jakarta Sans',sans-serif; font-size:1.15rem; font-weight:700; margin:0; color:var(--text-primary);">
+            Vision & Auto-Sync
+          </h2>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    col_w1, col_w2, col_w3 = st.columns([2.6, 1.4, 0.9])
+    col_w1, col_w2, col_w3 = st.columns([2.5, 1.5, 1.0])
     with col_w1:
         watch_path = st.text_input(
             "Folder Unduhan",
@@ -436,7 +432,7 @@ with col_vision:
             label_visibility="collapsed",
         )
     with col_w3:
-        btn_scan = st.button("🔄 Pindai", use_container_width=True)
+        btn_scan = st.button("Pindai Folder", use_container_width=True)
 
     pending_dl = folder_watcher.check_pending_downloads(watch_path)
     if pending_dl > 0:
@@ -459,7 +455,7 @@ with col_vision:
 
         c_imp1, c_imp2 = st.columns([2.5, 1.5])
         with c_imp1:
-            btn_add_label = f"📥 Masukkan {unimported_count} Gambar Baru" if unimported_count > 0 else "Semua Sudah di Antrean"
+            btn_add_label = f"Tambahkan {unimported_count} Gambar Baru" if unimported_count > 0 else "Semua Sudah di Antrean"
             if st.button(btn_add_label, type="primary", use_container_width=True, disabled=unimported_count == 0):
                 added_count = 0
                 for fn, fpath, mtime, fsize in found_files:
@@ -511,11 +507,10 @@ with col_vision:
     if image_entries:
         st.markdown(
             f"""
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); border-radius:8px; padding:0.4rem 0.8rem; margin:0.5rem 0;">
-              <span style="font-weight:700; color:var(--text-accent); font-size:0.9rem;">
-                Antrean: {len(image_entries)} Gambar Siap Dianalisis
+            <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.4rem 0.8rem; margin:0.5rem 0;">
+              <span style="font-weight:600; color:var(--text-primary); font-size:0.86rem;">
+                Antrean: {len(image_entries)} gambar siap dianalisis
               </span>
-              <span class="ms-step-badge ms-badge-indigo" style="font-size:0.72rem;">Gemini Vision</span>
             </div>
             """,
             unsafe_allow_html=True,
@@ -524,7 +519,7 @@ with col_vision:
         col_opt1, col_opt2 = st.columns(2)
         with col_opt1:
             do_upscale = st.checkbox(
-                "Upscale Standar (≥ 4 MP)",
+                "Upscale resolusi standar (≥ 4 MP)",
                 value=False,
                 key="chk_upscale",
             )
@@ -533,7 +528,7 @@ with col_vision:
             enforce_4mb = False
             if do_upscale:
                 enforce_4mb = st.checkbox(
-                    "Wajib File Fisik ≥ 4 MB",
+                    "Wajib file fisik ≥ 4 MB (Freepik/Vecteezy)",
                     value=False,
                     key="chk_4mb",
                 )
@@ -546,7 +541,7 @@ with col_vision:
                 is_job_running = True
 
         btn_analyze = st.button(
-            "⏳ Sedang Memproses..." if is_job_running else f"🚀 Analisis {len(image_entries)} Gambar & Buat 50 Keywords SEO",
+            "Sedang memproses di latar belakang..." if is_job_running else f"Analisis {len(image_entries)} Gambar & Susun Metadata",
             type="primary",
             use_container_width=True,
             disabled=bool(is_job_running or not api_key),
@@ -564,7 +559,7 @@ with col_vision:
                 watch_path,
             )
             st.session_state["active_batch_job_id"] = job_id
-            st.toast("⚡ Analisis batch dimulai di background!", icon="🚀")
+            st.toast("Analisis batch dimulai di latar belakang.")
             st.rerun()
 
     # Results & Export Hub
@@ -587,7 +582,7 @@ with col_vision:
 # ---------------------------------------------------------
 st.markdown("<div style='margin-top:1.5rem;'></div>", unsafe_allow_html=True)
 
-with st.expander("🛠️ Alat Tambahan 1: Reverse Prompt (Ekstrak Prompt dari Gambar Referensi)", expanded=False):
+with st.expander("Reverse Prompt (Ekstrak Prompt dari Gambar Referensi)", expanded=False):
     uploaded_ref_files = st.file_uploader(
         "Unggah gambar referensi:",
         type=["jpg", "jpeg", "png", "webp"],
@@ -649,7 +644,7 @@ with st.expander("🛠️ Alat Tambahan 1: Reverse Prompt (Ekstrak Prompt dari G
             asyncio.run(process_all_reverse())
             rev_progress.progress(1.0, text="Selesai!")
             st.session_state.reverse_results = results
-            st.toast("Reverse Prompt berhasil dibuat!")
+            st.toast("Reverse prompt berhasil dibuat.")
 
     if "reverse_results" in st.session_state and st.session_state.reverse_results:
         for i, item in enumerate(st.session_state.reverse_results):
@@ -662,11 +657,11 @@ with st.expander("🛠️ Alat Tambahan 1: Reverse Prompt (Ekstrak Prompt dari G
                     st.code(item["prompt"], language=None, wrap_lines=True)
                     if st.button("Kirim ke Prompt Studio", key=f"send_studio_{i}"):
                         st.session_state.tab1_base_idea = item["prompt"]
-                        st.toast("Prompt dikirim ke Prompt Studio!")
+                        st.toast("Prompt dikirim ke Prompt Studio.")
                         st.rerun()
 
 
-with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributor (FTP / SFTP)", expanded=False):
+with st.expander("Database Aset & Distribusi Kontributor (FTP / SFTP)", expanded=False):
     from microstock import analytics, db, distributor, metadata, security
 
     recent_assets = db.list_recent_assets(limit=50)
@@ -677,9 +672,9 @@ with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributo
         st.metric("Total Aset Terindeks", len(recent_assets))
     with m2:
         injected_count = sum(1 for a in recent_assets if a.get("is_xmp_injected"))
-        st.metric("IPTC / XMP Embedded", f"{injected_count} Aset")
+        st.metric("IPTC Embedded", f"{injected_count} Aset")
     with m3:
-        st.metric("Total Terkirim SFTP", f"{cur_stats.get('total_submissions', 0)} Batch")
+        st.metric("Terkirim SFTP", f"{cur_stats.get('total_submissions', 0)} Batch")
     with m4:
         st.metric("Tingkat Sukses", f"{cur_stats.get('upload_success_rate', 100.0)}%")
 
@@ -691,7 +686,7 @@ with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributo
             fpath = a.get("file_path", "")
             exists = os.path.exists(fpath) if fpath else False
             display_rows.append({
-                "Status": "✅ Ada" if exists else "⚠️ Terhapus",
+                "Status": "Tersedia" if exists else "Hilang",
                 "File": a.get("file_name", ""),
                 "Resolusi": f"{a.get('width', 0)}x{a.get('height', 0)} ({mp:.1f} MP)",
                 "Judul": a.get("title", ""),
@@ -700,14 +695,14 @@ with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributo
 
         c_b1, c_b2, _ = st.columns([1.5, 1.5, 3])
         with c_b1:
-            if st.button("🧹 Bersihkan Aset Hilang", use_container_width=True):
+            if st.button("Bersihkan File Hilang", use_container_width=True):
                 removed = db.prune_missing_assets()
-                st.toast(f"Dibersihkan {removed} aset.", icon="🧹")
+                st.toast(f"Dibersihkan {removed} aset.")
                 st.rerun()
         with c_b2:
-            if st.button("🗑️ Kosongkan Database", use_container_width=True):
+            if st.button("Kosongkan Database", use_container_width=True):
                 cleared = db.clear_all_assets()
-                st.toast(f"Dikosongkan {cleared} aset.", icon="🗑️")
+                st.toast(f"Dikosongkan {cleared} aset.")
                 st.rerun()
 
         st.dataframe(pd.DataFrame(display_rows), hide_index=True, use_container_width=True)
@@ -724,7 +719,7 @@ with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributo
             format_func=lambda k: distributor.AGENCY_ENDPOINTS[k]["name"],
         )
         agency_meta = distributor.AGENCY_ENDPOINTS[selected_agency_key]
-        if st.button("📂 Buka Folder Exports", use_container_width=True):
+        if st.button("Buka Folder Exports", use_container_width=True):
             export_base = os.path.join(os.path.dirname(os.path.abspath(__file__)), "exports")
             import subprocess, sys
             if sys.platform == "darwin":
@@ -760,7 +755,7 @@ with st.expander("🛠️ Alat Tambahan 2: Database Aset & Distribusi Kontributo
                         username=input_user,
                         password=input_pass,
                     )
-                    st.toast("Kredensial disimpan!")
+                    st.toast("Kredensial disimpan.")
                 else:
                     st.warning("Username dan Password tidak boleh kosong.")
         with ca2:

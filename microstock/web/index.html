@@ -291,7 +291,7 @@
     </div>
     <div class="topbar-status">
       <div><span class="status-dot"></span> <span id="lbl-db-mode">SQLite WAL</span></div>
-      <div id="lbl-vault-status">🔒 Vault Aktif</div>
+      <div id="lbl-vault-status">Vault Aktif</div>
       <div id="lbl-assets-count">0 Aset Terindeks</div>
     </div>
   </header>
@@ -354,8 +354,8 @@
           </select>
         </div>
         <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
-          <button class="btn btn-primary" onclick="generatePrompts('series')">⚡ Racik Seri 5-Sudut</button>
-          <button class="btn btn-secondary" onclick="generatePrompts('restyle')">🎨 Prompt Foto Restyle</button>
+          <button class="btn btn-primary" onclick="generatePrompts('series')">Racik Seri 5-Sudut</button>
+          <button class="btn btn-secondary" onclick="generatePrompts('restyle')">Prompt Foto Restyle</button>
         </div>
       </div>
 
@@ -371,14 +371,14 @@
         <div class="card-title">Inspeksi Visual, XMP IPTC & Duplicate Guard</div>
         <div class="card-desc">Evaluasi konten visual dengan Gemini Vision, kalkulasi 64-bit dHash, dan penyusunan 50 keyword anti-reject.</div>
         <div style="background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.25); border-radius:var(--radius-sm); padding:0.8rem; margin-bottom:1rem;">
-          ⚡ <b>Kernel Folder Watcher:</b> Aktif memantau folder unduhan lokal secara event-driven (0% CPU).
+          <b>Kernel Folder Watcher:</b> Aktif memantau folder unduhan lokal secara event-driven (0% CPU).
         </div>
         <div class="form-group">
           <label>Uji Kepatuhan Komersial (Compliance Shield):</label>
           <input type="text" id="inp-comp-title" placeholder="Judul gambar..." style="margin-bottom:0.5rem;" />
           <textarea id="inp-comp-desc" placeholder="Deskripsi gambar..." rows="2" style="margin-bottom:0.5rem;"></textarea>
           <input type="text" id="inp-comp-kw" placeholder="Keywords (pisahkan dengan koma)..." style="margin-bottom:0.5rem;" />
-          <button class="btn btn-secondary" onclick="runComplianceCheck()">🛡️ Jalankan Compliance & Release Shield</button>
+          <button class="btn btn-secondary" onclick="runComplianceCheck()">Jalankan Pemeriksaan Kepatuhan</button>
         </div>
         <div id="compliance-result" style="display:none; margin-top:1rem; padding:0.8rem; background:var(--bg-card); border-radius:var(--radius-sm); border:1px solid var(--border-color);"></div>
       </div>
@@ -436,7 +436,7 @@
         const data = await res.json();
         document.getElementById('lbl-db-mode').innerText = data.database_mode;
         document.getElementById('lbl-assets-count').innerText = `${data.total_assets} Aset`;
-        document.getElementById('lbl-vault-status').innerText = data.security.keychain_supported ? '🔒 Keychain Aktif' : '🔒 Vault Aktif';
+        document.getElementById('lbl-vault-status').innerText = data.security.keychain_supported ? 'Keychain Aktif' : 'Vault Aktif';
       } catch (e) {
         console.error(e);
       }
@@ -486,9 +486,9 @@
           <b>Skor Keamanan Komersial:</b>
           <span style="font-size:1.1rem; font-weight:700; color:${c.commercial_safety_score >= 80 ? 'var(--green-500)' : 'var(--amber-500)'};">${c.commercial_safety_score}/100</span>
         </div>
-        <div>Model Release: <b>${c.requires_model_release ? '⚠️ WAJIB' : '✅ Tidak Perlu'}</b></div>
-        <div>Property Release: <b>${c.requires_property_release ? '⚠️ WAJIB' : '✅ Bebas'}</b></div>
-        <div>Status Komersial: <b>${c.is_commercial_safe ? '✅ Aman Komersial' : '⚠️ Hanya Editorial'}</b></div>
+        <div>Model Release: <b>${c.requires_model_release ? 'Wajib' : 'Tidak Perlu'}</b></div>
+        <div>Property Release: <b>${c.requires_property_release ? 'Wajib' : 'Bebas'}</b></div>
+        <div>Status Komersial: <b>${c.is_commercial_safe ? 'Aman Komersial' : 'Hanya Editorial'}</b></div>
         ${c.detected_risks.length ? '<p style="color:var(--amber-500); margin-top:0.4rem;">Risiko: ' + c.detected_risks.join(', ') + '</p>' : ''}
       `;
     }

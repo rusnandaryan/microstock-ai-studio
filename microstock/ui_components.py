@@ -37,19 +37,19 @@ def get_modern_css(is_dark: bool = False) -> str:
         scheme = "light"
         bg_page = "#F8FAFC"
         bg_card = "#FFFFFF"
-        bg_sidebar = "#FFFFFF"
+        bg_sidebar = "#F8FAFC"
         bg_input = "#F1F5F9"
-        bg_elevated = "#EEF2FF"
+        bg_elevated = "#F8FAFC"
         border_color = "#E2E8F0"
-        border_focus = "#6366F1"
+        border_focus = "#2563EB"
         text_primary = "#0F172A"
-        text_secondary = "#334155"
+        text_secondary = "#475569"
         text_muted = "#64748B"
-        text_accent = "#4F46E5"
-        accent_blue = "#4F46E5"
-        accent_blue_hover = "#4338CA"
-        hero_bg = "linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #8B5CF6 100%)"
-        hero_border = "rgba(255, 255, 255, 0.25)"
+        text_accent = "#2563EB"
+        accent_blue = "#2563EB"
+        accent_blue_hover = "#1D4ED8"
+        hero_bg = "#FFFFFF"
+        hero_border = "#E2E8F0"
         code_bg = "#F8FAFC"
         scrollbar_thumb = "#CBD5E1"
 
@@ -1098,30 +1098,22 @@ def inject_css(is_dark: bool = False) -> None:
 
 
 def render_header() -> None:
-    """Render the vibrant modern Studio header."""
+    """Render clean, solid Studio Header without marketing gradients or floating blur pills."""
     st.markdown(
         """
-        <div style="background:linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #8B5CF6 100%); border-radius:16px; padding:1.2rem 1.6rem; margin-bottom:1.2rem; box-shadow:0 10px 25px -5px rgba(99, 102, 241, 0.25);">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
-            <div>
-              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.85rem; font-weight:800; color:#FFFFFF; letter-spacing:-0.5px;">
-                Microstock AI Studio
-              </h1>
-              <span style="font-size:0.88rem; color:#E0E7FF; font-weight:600; opacity:0.95;">
-                Creative Prompt Suite, 32 Visual Styles & Auto-SEO Batch Engine
-              </span>
-            </div>
-            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
-              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
-                Adobe Stock & SS
-              </span>
-              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
-                Min 4 MP
-              </span>
-              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
-                50 Keywords SEO
-              </span>
-            </div>
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:0.85rem 1.25rem; margin-bottom:1.1rem; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h1 style="margin:0; font-family:'Plus Jakarta Sans',sans-serif; font-size:1.35rem; font-weight:700; color:var(--text-primary); letter-spacing:-0.01em;">
+              Microstock Studio Pro
+            </h1>
+            <p style="margin:0.2rem 0 0; font-size:0.82rem; color:var(--text-secondary); font-weight:500;">
+              Workspace Kurasi Visual, Upscale Resolusi, dan Metadata Microstock
+            </p>
+          </div>
+          <div style="display:flex; align-items:center; gap:0.5rem;">
+            <span style="font-size:0.75rem; font-weight:600; color:var(--text-muted); background:var(--bg-input); padding:4px 8px; border-radius:6px; border:1px solid var(--border-color);">
+              v2.5
+            </span>
           </div>
         </div>
         """,
@@ -1133,9 +1125,9 @@ def render_sidebar() -> Optional[str]:
     with st.sidebar:
         st.markdown(
             """
-            <div style="padding:0.4rem 0 0.7rem; margin-bottom:0.6rem; border-bottom:1px solid var(--border-color);">
-              <span style="font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:0.85rem; color:var(--text-accent); letter-spacing:0.5px;">
-                STUDIO WORKSTATION
+            <div style="padding:0.35rem 0 0.65rem; margin-bottom:0.6rem; border-bottom:1px solid var(--border-color);">
+              <span style="font-family:'Plus Jakarta Sans',sans-serif; font-weight:700; font-size:0.82rem; color:var(--text-primary); letter-spacing:0.3px; text-transform:uppercase;">
+                Pengaturan Studio
               </span>
             </div>
             """,
@@ -1150,13 +1142,13 @@ def render_sidebar() -> Optional[str]:
                 f"""
                 <div class="ms-card-modern" style="padding:0.85rem; margin-bottom:0.8rem;">
                   <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:0.3rem;">
-                    <b style="font-size:0.9rem; color:var(--text-primary);">Gemini API Key</b>
-                    <span class="ms-step-badge ms-badge-green" style="font-size:0.68rem; padding:1px 6px;">Aktif</span>
+                    <b style="font-size:0.88rem; color:var(--text-primary);">Gemini API Key</b>
+                    <span class="ms-step-badge ms-badge-green" style="font-size:0.7rem; padding:1px 6px;">Siap</span>
                   </div>
-                  <p style="font-size:0.8rem; color:var(--text-secondary); margin:0 0 0.45rem;">
+                  <p style="font-size:0.78rem; color:var(--text-secondary); margin:0 0 0.45rem;">
                     Tersimpan di perangkat lokal.
                   </p>
-                  <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.8rem; font-weight:600; color:var(--text-accent); font-family:'Space Grotesk', monospace; display:inline-block;">
+                  <div style="background:var(--bg-input); border:1px solid var(--border-color); border-radius:6px; padding:0.25rem 0.55rem; font-size:0.8rem; font-weight:600; color:var(--text-primary); font-family:monospace; display:inline-block;">
                     {masked}
                   </div>
                 </div>
@@ -1173,11 +1165,11 @@ def render_sidebar() -> Optional[str]:
             st.markdown(
                 """
                 <div class="ms-card-modern" style="padding:0.85rem; margin-bottom:0.8rem;">
-                  <b style="font-size:0.9rem; color:var(--text-primary); display:block; margin-bottom:0.2rem;">
+                  <b style="font-size:0.88rem; color:var(--text-primary); display:block; margin-bottom:0.2rem;">
                     Gemini API Key
                   </b>
-                  <p style="font-size:0.8rem; color:var(--text-secondary); margin:0; line-height:1.4;">
-                    Dibutuhkan untuk analisis Vision & metadata. Dapatkan gratis di Google AI Studio.
+                  <p style="font-size:0.78rem; color:var(--text-secondary); margin:0; line-height:1.4;">
+                    Dibutuhkan untuk analisis Vision dan metadata. Tersedia di Google AI Studio.
                   </p>
                 </div>
                 """,
@@ -1186,7 +1178,6 @@ def render_sidebar() -> Optional[str]:
             typed = st.text_input(
                 "Gemini API Key:", type="password", key="api_key_input",
                 placeholder="Tempelkan API Key di sini",
-                help="Dapatkan API key gratis di aistudio.google.com",
             )
             api_key = typed.strip() if typed else None
 
@@ -1195,15 +1186,13 @@ def render_sidebar() -> Optional[str]:
                     config.save_api_key(api_key)
                     st.toast("API Key disimpan ke komputer lokal.")
                     st.rerun()
-            else:
-                st.caption("Dapatkan gratis di [aistudio.google.com](https://aistudio.google.com).")
 
         st.divider()
 
         st.markdown(
             """
-            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
-              Utilitas & Cache
+            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.5px; text-transform:uppercase; margin:0 0 0.5rem;">
+              Utilitas Sistem
             </p>
             """,
             unsafe_allow_html=True,
@@ -1211,10 +1200,10 @@ def render_sidebar() -> Optional[str]:
         if st.button("Bersihkan Cache", use_container_width=True, type="secondary"):
             st.cache_data.clear()
             st.cache_resource.clear()
-            st.toast("Cache berhasil dibersihkan.")
+            st.toast("Cache sistem dibersihkan.")
 
         st.divider()
-        st.caption("Microstock AI Studio v2.5")
+        st.caption("Microstock Studio v2.5")
 
     return api_key
 
@@ -1312,11 +1301,11 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
                       csv_bytes: bytes, batch_id: str) -> None:
     st.markdown(
         """
-        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:0.8rem 1rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
-          <b style="color:#166534; font-size:1.05rem; font-family:'Space Grotesk',sans-serif;">
-            📦 Paket Aset Siap Ekspor
+        <div style="background:var(--bg-card); border:1px solid var(--border-color); border-radius:10px; padding:0.8rem 1rem; margin-bottom:0.9rem; display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:var(--text-primary); font-size:0.95rem; font-family:'Plus Jakarta Sans',sans-serif;">
+            Paket Ekspor Siap Unduh
           </b>
-          <span class="ms-step-badge ms-badge-green">Format Resmi Agensi</span>
+          <span class="ms-step-badge ms-badge-green" style="font-size:0.72rem;">Standar Agensi</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1324,7 +1313,7 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
     c1, c2, c3 = st.columns([2, 1, 1], gap="medium")
     with c1:
         st.download_button(
-            f"📦 Download ZIP ({len(zip_bytes) / 1_048_576:.1f} MB)",
+            f"Unduh ZIP ({len(zip_bytes) / 1_048_576:.1f} MB)",
             data=zip_bytes, file_name=zip_name, mime="application/zip",
             type="primary", key=f"zip_{batch_id}",
             use_container_width=True,
@@ -1333,7 +1322,7 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
         st.metric("Total Gambar", len(df))
     with c3:
         st.download_button(
-            "📄 Download CSV",
+            "Unduh CSV",
             data=csv_bytes, file_name="metadata.csv",
             mime="text/csv", key=f"csv_{batch_id}",
             use_container_width=True,
