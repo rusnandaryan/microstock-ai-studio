@@ -1,7 +1,7 @@
 """Microstock AI Studio - Modern Streamlit Entry Point.
 
 Alur Kerja:
-Tab 1: Commercial Prompt Studio (Lighting, Lenses, Composition, Aspect Ratio)
+Tab 1: Commercial Prompt Studio (Pure Commercial Engine)
 Tab 2: Inspeksi Visual Gambar & Paket SEO Microstock (Gemini Vision 100% Akurat)
 """
 from __future__ import annotations
@@ -348,9 +348,7 @@ with tab1:
                           </div>
                           <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.3rem;">
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                            <b>Waktu:</b> {target_date} &nbsp;·&nbsp;
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                            <b>Rasio Target:</b> {rec_ratio}
+                            <b>Waktu:</b> {target_date}
                           </div>
                           <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.15rem 0; line-height:1.35;">
                             <i>"{active_trend.get('reason', '')}"</i>
@@ -385,8 +383,6 @@ with tab1:
 
                 def _apply_current_trend():
                     st.session_state.tab1_base_idea = active_concept
-                    if rec_ratio in config.ASPECT_RATIOS:
-                        st.session_state.tab1_ratio = rec_ratio
 
                 btn_col1, btn_col2 = st.columns(2)
                 with btn_col1:
@@ -412,7 +408,7 @@ with tab1:
         st.markdown(
             """
             <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:var(--text-primary);">
-              Parameter & Konsep Visual
+              Konsep Visual Komersial
             </h3>
             """,
             unsafe_allow_html=True,
@@ -422,51 +418,10 @@ with tab1:
         base_idea = st.text_area(
             "Konsep Utama",
             key="tab1_base_idea",
-            height=100,
-            placeholder="Contoh: Seorang arsitek tampak belakang mengamati maket gedung modern dengan pencahayaan alami jendela",
+            height=120,
+            placeholder="Contoh: Seorang barista menyeduh pour-over coffee di kafe modern minimalis pagi hari, uap hangat, pencahayaan alami jendela",
             label_visibility="collapsed",
         )
-
-        c_a, c_b = st.columns(2)
-        with c_a:
-            st.markdown("**Kondisi Pencahayaan (Lighting)**")
-            selected_lighting = st.selectbox(
-                "Pencahayaan",
-                options=list(config.LIGHTING_OPTIONS.keys()),
-                index=2,
-                key="tab1_lighting",
-                label_visibility="collapsed",
-            )
-        with c_b:
-            st.markdown("**Lensa & Sudut Kamera**")
-            selected_camera = st.selectbox(
-                "Lensa Kamera",
-                options=list(config.CAMERA_OPTIONS.keys()),
-                index=0,
-                key="tab1_camera",
-                label_visibility="collapsed",
-            )
-
-        c_c, c_d = st.columns(2)
-        with c_c:
-            st.markdown("**Komposisi Framing**")
-            selected_comp = st.selectbox(
-                "Komposisi",
-                options=list(config.COMPOSITION_OPTIONS.keys()),
-                index=0,
-                key="tab1_composition",
-                label_visibility="collapsed",
-            )
-        with c_d:
-            st.markdown("**Rasio Aspek (Aspect Ratio)**")
-            selected_ratio = st.selectbox(
-                "Rasio Aspek",
-                options=list(config.ASPECT_RATIOS.keys()),
-                format_func=lambda k: config.ASPECT_RATIO_LABELS[k],
-                index=2,  # 16:9
-                key="tab1_ratio",
-                label_visibility="collapsed",
-            )
 
         st.write("")
         btn_generate_prompt = st.button(
@@ -482,16 +437,12 @@ with tab1:
             if not base_idea.strip():
                 st.warning("Mohon tuliskan konsep utama gambar Anda terlebih dahulu.")
             else:
-                with st.spinner("Meracik prompt fotografi komersial profesional..."):
+                with st.spinner("Meracik prompt komersial profesional..."):
                     try:
                         client = config.get_client(api_key)
                         res_prompt = enhance_prompt(
                             client=client,
                             base_idea=base_idea,
-                            aspect_ratio=selected_ratio,
-                            lighting=selected_lighting,
-                            camera=selected_camera,
-                            composition=selected_comp,
                         )
                         st.session_state.enhanced_prompt = res_prompt
                         st.toast("Prompt komersial berhasil diracik.")

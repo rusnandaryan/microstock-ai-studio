@@ -316,16 +316,7 @@
           <label>Ide Dasar / Subjek Komersial:</label>
           <input type="text" id="inp-idea" placeholder="Contoh: cangkir kopi espresso di meja kayu minimalis kafe pagi hari" />
         </div>
-        <div class="form-group" style="max-width:320px;">
-          <label>Rasio Aspek:</label>
-          <select id="sel-ratio">
-            <option value="16:9">16:9 · Widescreen / Banner</option>
-            <option value="1:1">1:1 · Square</option>
-            <option value="9:16">9:16 · Vertical / Stories</option>
-            <option value="4:3">4:3 · Classic Landscape</option>
-          </select>
-        </div>
-        <button class="btn btn-primary" onclick="generatePrompts()">⚡ Racik 5 Prompt Komersial</button>
+        <button class="btn btn-primary" onclick="generatePrompts()">⚡ Racik Prompt Komersial</button>
       </div>
 
       <div id="prompt-results" style="display:none;">
@@ -464,7 +455,6 @@
 
     async function generatePrompts() {
       const idea = document.getElementById('inp-idea').value;
-      const ratio = document.getElementById('sel-ratio').value;
 
       if (!idea) { alert('Silakan isi ide prompt terlebih dahulu.'); return; }
 
@@ -476,9 +466,7 @@
         const res = await fetch('/api/prompt/generate', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({
-            idea, aspect_ratio: ratio,
-          }),
+          body: JSON.stringify({ idea }),
         });
         const data = await res.json();
         if (data.error) {

@@ -115,19 +115,20 @@ OUTPUT CONTRACT (mandatory for this pipeline):
 """
 
 
-def _format_with_aspect_ratio(raw_text: str, aspect_ratio: str) -> str:
-    """Ensure the prompt ends with the proper [Aspect Ratio: ...] tag."""
+def _format_with_aspect_ratio(raw_text: str, aspect_ratio: str = "") -> str:
+    """Ensure the prompt ends with the proper [Aspect Ratio: ...] tag if aspect_ratio is provided."""
     clean = (raw_text or "").strip().strip('"').strip()
     if not clean:
         return ""
-    if re.search(r"\[Aspect Ratio:\s*[^\]]+\]", clean, re.IGNORECASE):
-        clean = re.sub(r"\[Aspect Ratio:\s*[^\]]+\]", f"[Aspect Ratio: {aspect_ratio}]", clean, flags=re.IGNORECASE)
-    else:
-        clean = f"{clean} [Aspect Ratio: {aspect_ratio}]"
+    if aspect_ratio:
+        if re.search(r"\[Aspect Ratio:\s*[^\]]+\]", clean, re.IGNORECASE):
+            clean = re.sub(r"\[Aspect Ratio:\s*[^\]]+\]", f"[Aspect Ratio: {aspect_ratio}]", clean, flags=re.IGNORECASE)
+        else:
+            clean = f"{clean} [Aspect Ratio: {aspect_ratio}]"
     return clean
 
 
-def parse_enhancer_response(text: str, aspect_ratio: str) -> str:
+def parse_enhancer_response(text: str, aspect_ratio: str = "") -> str:
     """Parse Gemini response into a clean single prompt string."""
     clean_text = text.strip()
     if clean_text.startswith("```"):
@@ -163,7 +164,7 @@ def parse_enhancer_response(text: str, aspect_ratio: str) -> str:
 def build_enhancer_input(
     base_idea: str,
     style_name: str = "",
-    aspect_ratio: str = "16:9",
+    aspect_ratio: str = "",
     lighting: str = "",
     camera: str = "",
     composition: str = "",
@@ -172,14 +173,6 @@ def build_enhancer_input(
     cam_desc = config.CAMERA_OPTIONS.get(camera, "")
     comp_desc = config.COMPOSITION_OPTIONS.get(composition, "")
 
-    ratio_desc = {
-        "1:1": "1:1 square format",
-        "16:9": "16:9 widescreen horizontal format",
-        "9:16": "9:16 vertical stories/reels format",
-        "4:3": "4:3 classic landscape format",
-        "3:4": "3:4 classic portrait format",
-    }.get(aspect_ratio, f"{aspect_ratio} format")
-
     parts = [
         f"Base concept/subject: {base_idea.strip()}",
     ]
@@ -187,9 +180,17 @@ def build_enhancer_input(
         style = config.STYLES[style_name]
         parts.append(f"Aesthetic/Style: {style.name}: {style.directive}")
 
-    parts.append(
-        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt."
-    )
+    if aspect_ratio:
+        ratio_desc = {
+            "1:1": "1:1 square format",
+            "16:9": "16:9 widescreen horizontal format",
+            "9:16": "9:16 vertical stories/reels format",
+            "4:3": "4:3 classic landscape format",
+            "3:4": "3:4 classic portrait format",
+        }.get(aspect_ratio, f"{aspect_ratio} format")
+        parts.append(
+            f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt."
+        )
     if light_desc:
         parts.append(f"MANDATORY Lighting condition: {light_desc}")
     if cam_desc:
@@ -197,9 +198,14 @@ def build_enhancer_input(
     if comp_desc:
         parts.append(f"MANDATORY Composition framing: {comp_desc}")
 
-    parts.append(
-        f"Generate 1 high-quality commercial prompt blending all the above parameters naturally, ending with [Aspect Ratio: {aspect_ratio}]."
-    )
+    if aspect_ratio:
+        parts.append(
+            f"Generate 1 high-quality commercial prompt blending all the above parameters naturally, ending with [Aspect Ratio: {aspect_ratio}]."
+        )
+    else:
+        parts.append(
+            "Generate 1 high-quality commercial prompt blending all the above parameters naturally."
+        )
     return "\n".join(parts)
 
 
@@ -207,7 +213,7 @@ def enhance_prompt(
     client: genai.Client,
     base_idea: str,
     style_name: str = "",
-    aspect_ratio: str = "16:9",
+    aspect_ratio: str = "",
     lighting: str = "",
     camera: str = "",
     composition: str = "",

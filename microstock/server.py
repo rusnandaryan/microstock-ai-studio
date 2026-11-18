@@ -131,7 +131,7 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/prompt/generate":
             idea = payload.get("idea", "")
-            aspect_ratio = payload.get("aspect_ratio", "16:9")
+            aspect_ratio = payload.get("aspect_ratio", "")
             lighting = payload.get("lighting", "")
             camera = payload.get("camera", payload.get("lens", ""))
             composition = payload.get("composition", "")

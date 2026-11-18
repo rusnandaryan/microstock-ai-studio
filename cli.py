@@ -58,10 +58,10 @@ def cmd_prompt(args: argparse.Namespace) -> None:
             client=client,
             base_idea=args.idea,
             style_name=getattr(args, "style", "") or "",
-            aspect_ratio=args.ratio,
-            lighting=args.lighting,
-            camera=args.camera,
-            composition=args.composition,
+            aspect_ratio=getattr(args, "ratio", "") or "",
+            lighting=getattr(args, "lighting", "") or "",
+            camera=getattr(args, "camera", "") or "",
+            composition=getattr(args, "composition", "") or "",
         )
         print("\n" + "=" * 60)
         print("PROMPT KOMERSIAL SIAP PAKAI:")
@@ -415,10 +415,6 @@ def main() -> None:
 
     p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik 1 prompt komersial profesional terstandarisasi")
     p_prompt.add_argument("idea", help="Konsep dasar / ide subjek gambar")
-    p_prompt.add_argument("--ratio", default="16:9", choices=list(config.ASPECT_RATIOS.keys()), help="Target rasio aspek")
-    p_prompt.add_argument("--lighting", default=config.DEFAULT_LIGHTING, help="Kondisi pencahayaan")
-    p_prompt.add_argument("--camera", default=config.DEFAULT_CAMERA, help="Lensa & sudut kamera")
-    p_prompt.add_argument("--composition", default=config.DEFAULT_COMPOSITION, help="Komposisi framing")
     p_prompt.set_defaults(func=cmd_prompt)
 
     p_process = subparsers.add_parser("process", parents=[api_parser], help="Analisis folder gambar, susun metadata SEO, AI upscale, dan buat ZIP")
