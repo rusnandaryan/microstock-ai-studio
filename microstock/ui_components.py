@@ -12,45 +12,45 @@ from . import config
 from .image_generator import BatchItem
 
 
-def get_modern_css(is_dark: bool = True) -> str:
-    """Generate high-precision Studio workstation CSS for dark and light modes."""
+def get_modern_css(is_dark: bool = False) -> str:
+    """Generate high-precision Studio workstation CSS with vibrant colorful modern palette."""
     if is_dark:
         scheme = "dark"
         bg_page = "#06080D"
-        bg_card = "#0B0F19"
-        bg_sidebar = "#05070B"
-        bg_input = "#0E1424"
-        bg_elevated = "#131A2E"
-        border_color = "rgba(255, 255, 255, 0.08)"
-        border_focus = "#3B82F6"
+        bg_card = "#111827"
+        bg_sidebar = "#0B0F19"
+        bg_input = "#1E293B"
+        bg_elevated = "#1E293B"
+        border_color = "rgba(255, 255, 255, 0.12)"
+        border_focus = "#6366F1"
         text_primary = "#F8FAFC"
         text_secondary = "#94A3B8"
         text_muted = "#8898AA"
-        text_accent = "#60A5FA"
-        accent_blue = "#2563EB"
-        accent_blue_hover = "#1D4ED8"
-        hero_bg = "linear-gradient(135deg, #0B0F19 0%, #06080D 100%)"
-        hero_border = "rgba(255, 255, 255, 0.08)"
-        code_bg = "#05070B"
-        scrollbar_thumb = "#1E293B"
+        text_accent = "#818CF8"
+        accent_blue = "#6366F1"
+        accent_blue_hover = "#4F46E5"
+        hero_bg = "linear-gradient(135deg, #312E81 0%, #4338CA 50%, #6366F1 100%)"
+        hero_border = "rgba(255, 255, 255, 0.15)"
+        code_bg = "#0B0F19"
+        scrollbar_thumb = "#334155"
     else:
         scheme = "light"
         bg_page = "#F8FAFC"
         bg_card = "#FFFFFF"
-        bg_sidebar = "#F1F5F9"
-        bg_input = "#FFFFFF"
-        bg_elevated = "#E2E8F0"
-        border_color = "rgba(0, 0, 0, 0.1)"
-        border_focus = "#2563EB"
+        bg_sidebar = "#FFFFFF"
+        bg_input = "#F1F5F9"
+        bg_elevated = "#EEF2FF"
+        border_color = "#E2E8F0"
+        border_focus = "#6366F1"
         text_primary = "#0F172A"
-        text_secondary = "#475569"
+        text_secondary = "#334155"
         text_muted = "#64748B"
-        text_accent = "#2563EB"
-        accent_blue = "#2563EB"
-        accent_blue_hover = "#1D4ED8"
-        hero_bg = "linear-gradient(135deg, #FFFFFF 0%, #F1F5F9 100%)"
-        hero_border = "rgba(0, 0, 0, 0.1)"
-        code_bg = "#F1F5F9"
+        text_accent = "#4F46E5"
+        accent_blue = "#4F46E5"
+        accent_blue_hover = "#4338CA"
+        hero_bg = "linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #8B5CF6 100%)"
+        hero_border = "rgba(255, 255, 255, 0.25)"
+        code_bg = "#F8FAFC"
         scrollbar_thumb = "#CBD5E1"
 
     return f"""
@@ -1092,38 +1092,35 @@ summary,
 """
 
 
-def inject_css(is_dark: bool = True) -> None:
+def inject_css(is_dark: bool = False) -> None:
     """Inject dynamic high-contrast theme CSS."""
     st.markdown(get_modern_css(is_dark), unsafe_allow_html=True)
 
 
 def render_header() -> None:
-    """Render the top Modern Studio header."""
+    """Render the vibrant modern Studio header."""
     st.markdown(
         """
-        <div class="ms-hero-modern" style="padding:1.2rem 1.5rem; margin-bottom:1.1rem;">
-          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+        <div style="background:linear-gradient(135deg, #4338CA 0%, #6366F1 50%, #8B5CF6 100%); border-radius:16px; padding:1.2rem 1.6rem; margin-bottom:1.2rem; box-shadow:0 10px 25px -5px rgba(99, 102, 241, 0.25);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.8rem;">
             <div>
-              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.8rem; font-weight:800; color:#F8FAFC; letter-spacing:-0.5px;">
+              <h1 style="margin:0; font-family:'Space Grotesk',sans-serif; font-size:1.85rem; font-weight:800; color:#FFFFFF; letter-spacing:-0.5px;">
                 Microstock AI Studio
               </h1>
-              <p style="margin:0.25rem 0 0; font-size:0.9rem; color:#94A3B8; font-weight:500; line-height:1.4;">
-                Prompt Engineering Komersial, NCNN Upscaler, dan Gemini Vision SEO Metadata.
-              </p>
+              <span style="font-size:0.88rem; color:#E0E7FF; font-weight:600; opacity:0.95;">
+                Creative Prompt Suite, 32 Visual Styles & Auto-SEO Batch Engine
+              </span>
             </div>
-            <div style="display:flex; gap:0.6rem; flex-wrap:wrap; align-items:center;">
-              <div class="ms-stat-pill">
-                <span class="ms-stat-label">STANDAR KURASI</span>
-                <span class="ms-stat-val">Adobe Stock & SS</span>
-              </div>
-              <div class="ms-stat-pill">
-                <span class="ms-stat-label">MIN RESOLUSI</span>
-                <span class="ms-stat-val">≥ 4 MP</span>
-              </div>
-              <div class="ms-stat-pill">
-                <span class="ms-stat-label">PEMROSESAN</span>
-                <span class="ms-stat-val">RAM Lokal</span>
-              </div>
+            <div style="display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center;">
+              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
+                Adobe Stock & SS
+              </span>
+              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
+                Min 4 MP
+              </span>
+              <span style="background:rgba(255,255,255,0.2); backdrop-filter:blur(8px); color:#FFFFFF; padding:5px 12px; border-radius:20px; font-size:0.78rem; font-weight:700; border:1px solid rgba(255,255,255,0.3);">
+                50 Keywords SEO
+              </span>
             </div>
           </div>
         </div>
@@ -1202,22 +1199,6 @@ def render_sidebar() -> Optional[str]:
                 st.caption("Dapatkan gratis di [aistudio.google.com](https://aistudio.google.com).")
 
         st.divider()
-
-        st.markdown(
-            """
-            <p style="font-size:0.75rem; font-weight:700; color:var(--text-muted); letter-spacing:0.8px; text-transform:uppercase; margin:0 0 0.5rem;">
-              Panduan Alur Kerja
-            </p>
-            <div class="ms-card-modern" style="padding:0.9rem; margin-bottom:1rem;">
-              <ol style="margin: 0.2rem 0 0 1.1rem; padding: 0; font-size: 0.83rem; line-height: 1.55; color:var(--text-secondary);">
-                <li>Salin <b>Prompt Komersial</b> siap pakai (100% faceless & bebas hak cipta).</li>
-                <li>Tempel di generator gambar pilihan & download.</li>
-                <li>Buka <b>Tab 2 (Auto-Sync)</b> untuk otomatis deteksi file download, upscale NCNN, dan buat 50 keyword SEO.</li>
-              </ol>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
 
         st.markdown(
             """
@@ -1331,13 +1312,11 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
                       csv_bytes: bytes, batch_id: str) -> None:
     st.markdown(
         """
-        <div class="ms-card-modern" style="margin-bottom:1.2rem;">
-          <h3 style="margin:0 0 0.3rem; font-family:'Space Grotesk',sans-serif; font-size:1.35rem; font-weight:800; color:var(--text-primary);">
-            Export Hub Siap Upload
-          </h3>
-          <p style="margin:0; color:var(--text-secondary); font-size:0.92rem;">
-            Paket lengkap berisi seluruh foto resolusi tinggi beserta CSV metadata terstandarisasi untuk Adobe Stock dan Shutterstock.
-          </p>
+        <div style="background:#F0FDF4; border:1px solid #BBF7D0; border-radius:12px; padding:0.8rem 1rem; margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+          <b style="color:#166534; font-size:1.05rem; font-family:'Space Grotesk',sans-serif;">
+            📦 Paket Aset Siap Ekspor
+          </b>
+          <span class="ms-step-badge ms-badge-green">Format Resmi Agensi</span>
         </div>
         """,
         unsafe_allow_html=True,
@@ -1345,20 +1324,19 @@ def render_export_hub(df: pd.DataFrame, zip_bytes: bytes, zip_name: str,
     c1, c2, c3 = st.columns([2, 1, 1], gap="medium")
     with c1:
         st.download_button(
-            f"Download Paket Lengkap ZIP ({len(zip_bytes) / 1_048_576:.1f} MB)",
+            f"📦 Download ZIP ({len(zip_bytes) / 1_048_576:.1f} MB)",
             data=zip_bytes, file_name=zip_name, mime="application/zip",
             type="primary", key=f"zip_{batch_id}",
             use_container_width=True,
         )
-        st.caption("Berisi file gambar + `metadata.csv`, `adobe_stock.csv`, `shutterstock.csv`.")
     with c2:
         st.metric("Total Gambar", len(df))
     with c3:
         st.download_button(
-            "Download metadata.csv",
+            "📄 Download CSV",
             data=csv_bytes, file_name="metadata.csv",
             mime="text/csv", key=f"csv_{batch_id}",
             use_container_width=True,
         )
-    with st.expander("Lihat Tabel Metadata Lengkap", expanded=False):
+    with st.expander("Tabel Metadata Agensi", expanded=False):
         st.dataframe(df.drop(columns=["Prompt"], errors="ignore"), hide_index=True, use_container_width=True)
