@@ -57,7 +57,7 @@ def cmd_prompt(args: argparse.Namespace) -> None:
         result = enhance_prompt(
             client=client,
             base_idea=args.idea,
-            style_name=args.style,
+            style_name=getattr(args, "style", "") or "",
             aspect_ratio=args.ratio,
             lighting=args.lighting,
             camera=args.camera,
@@ -415,7 +415,6 @@ def main() -> None:
 
     p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik 1 prompt komersial profesional terstandarisasi")
     p_prompt.add_argument("idea", help="Konsep dasar / ide subjek gambar")
-    p_prompt.add_argument("--style", default=config.DEFAULT_STYLE, help="Nama gaya preset estetika")
     p_prompt.add_argument("--ratio", default="16:9", choices=list(config.ASPECT_RATIOS.keys()), help="Target rasio aspek")
     p_prompt.add_argument("--lighting", default=config.DEFAULT_LIGHTING, help="Kondisi pencahayaan")
     p_prompt.add_argument("--camera", default=config.DEFAULT_CAMERA, help="Lensa & sudut kamera")

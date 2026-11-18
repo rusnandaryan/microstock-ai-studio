@@ -162,13 +162,12 @@ def parse_enhancer_response(text: str, aspect_ratio: str) -> str:
 
 def build_enhancer_input(
     base_idea: str,
-    style_name: str,
-    aspect_ratio: str,
+    style_name: str = "",
+    aspect_ratio: str = "16:9",
     lighting: str = "",
     camera: str = "",
     composition: str = "",
 ) -> str:
-    style = config.STYLES.get(style_name, config.STYLES[config.DEFAULT_STYLE])
     light_desc = config.LIGHTING_OPTIONS.get(lighting, "")
     cam_desc = config.CAMERA_OPTIONS.get(camera, "")
     comp_desc = config.COMPOSITION_OPTIONS.get(composition, "")
@@ -183,9 +182,14 @@ def build_enhancer_input(
 
     parts = [
         f"Base concept/subject: {base_idea.strip()}",
-        f"Aesthetic/Style: {style.name}: {style.directive}",
-        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt.",
     ]
+    if style_name and style_name in config.STYLES:
+        style = config.STYLES[style_name]
+        parts.append(f"Aesthetic/Style: {style.name}: {style.directive}")
+
+    parts.append(
+        f"Target Aspect Ratio: {aspect_ratio} ({ratio_desc}), append '[Aspect Ratio: {aspect_ratio}]' at the end of the prompt."
+    )
     if light_desc:
         parts.append(f"MANDATORY Lighting condition: {light_desc}")
     if cam_desc:
@@ -202,8 +206,8 @@ def build_enhancer_input(
 def enhance_prompt(
     client: genai.Client,
     base_idea: str,
-    style_name: str,
-    aspect_ratio: str,
+    style_name: str = "",
+    aspect_ratio: str = "16:9",
     lighting: str = "",
     camera: str = "",
     composition: str = "",

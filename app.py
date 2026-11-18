@@ -1,7 +1,7 @@
 """Microstock AI Studio - Modern Streamlit Entry Point.
 
 Alur Kerja:
-Tab 1: Commercial Prompt Studio (18 Styles, Lighting, Lenses, Composition, Aspect Ratio)
+Tab 1: Commercial Prompt Studio (Lighting, Lenses, Composition, Aspect Ratio)
 Tab 2: Inspeksi Visual Gambar & Paket SEO Microstock (Gemini Vision 100% Akurat)
 """
 from __future__ import annotations
@@ -350,7 +350,7 @@ with tab1:
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
                             <b>Waktu:</b> {target_date} &nbsp;·&nbsp;
                             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px; margin-right:3px;"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
-                            <b>Rekomendasi:</b> {rec_cat} · {rec_style or 'Standar'} ({rec_ratio})
+                            <b>Rasio Target:</b> {rec_ratio}
                           </div>
                           <p style="font-size:0.82rem; color:var(--text-secondary); margin:0.15rem 0; line-height:1.35;">
                             <i>"{active_trend.get('reason', '')}"</i>
@@ -385,12 +385,6 @@ with tab1:
 
                 def _apply_current_trend():
                     st.session_state.tab1_base_idea = active_concept
-                    if rec_cat in config.STYLE_CATEGORIES:
-                        st.session_state.tab1_style_cat = rec_cat
-                        if rec_style in config.STYLE_CATEGORIES[rec_cat]:
-                            st.session_state.tab1_style_sub = rec_style
-                        else:
-                            st.session_state.tab1_style_sub = config.STYLE_CATEGORIES[rec_cat][0]
                     if rec_ratio in config.ASPECT_RATIOS:
                         st.session_state.tab1_ratio = rec_ratio
 
@@ -432,34 +426,6 @@ with tab1:
             placeholder="Contoh: Seorang arsitek tampak belakang mengamati maket gedung modern dengan pencahayaan alami jendela",
             label_visibility="collapsed",
         )
-
-        st.markdown("**Pilihan Gaya & Estetika Visual**")
-        col_cat1, col_cat2 = st.columns(2)
-        with col_cat1:
-            st.caption("Kategori Utama:")
-            style_cat_list = list(config.STYLE_CATEGORIES.keys())
-            if "tab1_style_cat" not in st.session_state or st.session_state.tab1_style_cat not in style_cat_list:
-                st.session_state.tab1_style_cat = config.DEFAULT_STYLE_CATEGORY
-
-            selected_category = st.selectbox(
-                "Kategori Utama Gaya",
-                options=style_cat_list,
-                key="tab1_style_cat",
-                label_visibility="collapsed",
-            )
-
-        with col_cat2:
-            st.caption("Sub-Gaya Spesifik:")
-            sub_styles = config.STYLE_CATEGORIES.get(selected_category, config.STYLE_CATEGORIES[config.DEFAULT_STYLE_CATEGORY])
-            if "tab1_style_sub" not in st.session_state or st.session_state.tab1_style_sub not in sub_styles:
-                st.session_state.tab1_style_sub = sub_styles[0]
-
-            selected_style = st.selectbox(
-                "Sub-Gaya Spesifik",
-                options=sub_styles,
-                key="tab1_style_sub",
-                label_visibility="collapsed",
-            )
 
         c_a, c_b = st.columns(2)
         with c_a:
@@ -522,7 +488,6 @@ with tab1:
                         res_prompt = enhance_prompt(
                             client=client,
                             base_idea=base_idea,
-                            style_name=selected_style,
                             aspect_ratio=selected_ratio,
                             lighting=selected_lighting,
                             camera=selected_camera,
@@ -583,7 +548,7 @@ with tab1:
                 <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 2rem 1.5rem; text-align: center;">
                   <b style="font-size: 1.05rem; display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Prompt Anda Akan Muncul Di Sini</b>
                   <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0; font-weight: 500;">
-                    Tuliskan konsep dasar di panel kiri, pilih gaya & lensa, lalu klik <b>Generate Prompt Komersial</b>.
+                    Tuliskan konsep dasar di panel kiri, tentukan parameter teknis, lalu klik <b>Generate Prompt Komersial</b>.
                   </p>
                 </div>
                 """,

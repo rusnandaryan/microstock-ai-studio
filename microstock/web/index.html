@@ -316,36 +316,14 @@
           <label>Ide Dasar / Subjek Komersial:</label>
           <input type="text" id="inp-idea" placeholder="Contoh: cangkir kopi espresso di meja kayu minimalis kafe pagi hari" />
         </div>
-        <div class="grid-3">
-          <div class="form-group">
-            <label>Kategori Gaya:</label>
-            <select id="sel-style-cat">
-              <option>Fotografi (Photorealism)</option>
-              <option>Ilustrasi & Seni Lukis</option>
-              <option>Animasi & Kartun</option>
-              <option>3D & Render</option>
-              <option>Desain & Digital Art</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Sub-Gaya:</label>
-            <select id="sel-style">
-              <option>Foto Komersial Bersih (Commercial Advertising)</option>
-              <option>Food & Culinary Editorial</option>
-              <option>Arsitektur & Interior Minimalis</option>
-              <option>3D Miniature Diorama (Miniature World)</option>
-              <option>Flat Design Vector Minimalist</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Rasio Aspek:</label>
-            <select id="sel-ratio">
-              <option value="16:9">16:9 · Widescreen / Banner</option>
-              <option value="1:1">1:1 · Square</option>
-              <option value="9:16">9:16 · Vertical / Stories</option>
-              <option value="4:3">4:3 · Classic Landscape</option>
-            </select>
-          </div>
+        <div class="form-group" style="max-width:320px;">
+          <label>Rasio Aspek:</label>
+          <select id="sel-ratio">
+            <option value="16:9">16:9 · Widescreen / Banner</option>
+            <option value="1:1">1:1 · Square</option>
+            <option value="9:16">9:16 · Vertical / Stories</option>
+            <option value="4:3">4:3 · Classic Landscape</option>
+          </select>
         </div>
         <button class="btn btn-primary" onclick="generatePrompts()">⚡ Racik 5 Prompt Komersial</button>
       </div>
@@ -486,8 +464,6 @@
 
     async function generatePrompts() {
       const idea = document.getElementById('inp-idea').value;
-      const styleCat = document.getElementById('sel-style-cat').value;
-      const styleName = document.getElementById('sel-style').value;
       const ratio = document.getElementById('sel-ratio').value;
 
       if (!idea) { alert('Silakan isi ide prompt terlebih dahulu.'); return; }
@@ -501,7 +477,7 @@
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
-            idea, style_category: styleCat, style: styleName, aspect_ratio: ratio,
+            idea, aspect_ratio: ratio,
           }),
         });
         const data = await res.json();
@@ -510,9 +486,19 @@
           return;
         }
         const r = data.result;
-        cont.innerHTML = (r.prompts || []).map((p, i) => `
+        let prompts = [];
+        if (typeof r === 'string') {
+          prompts = [{ prompt: r, theme: 'Commercial Prompt' }];
+        } else if (Array.isArray(r)) {
+          prompts = r.map(p => typeof p === 'string' ? { prompt: p, theme: 'Commercial Prompt' } : p);
+        } else if (r && Array.isArray(r.prompts)) {
+          prompts = r.prompts;
+        } else if (r && r.prompt) {
+          prompts = [{ prompt: r.prompt, theme: r.theme || 'Commercial Prompt' }];
+        }
+        cont.innerHTML = prompts.map((p, i) => `
           <div class="card" style="margin-bottom:0.75rem;">
-            <div style="font-weight:700; color:var(--accent-primary); margin-bottom:0.3rem;">Variasi #${i+1}: ${p.theme || 'Commercial Variation'}</div>
+            <div style="font-weight:700; color:var(--accent-primary); margin-bottom:0.3rem;">${p.theme || 'Commercial Prompt'}</div>
             <p style="font-size:0.85rem; margin-bottom:0.5rem;" class="mono">${p.prompt}</p>
             <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${p.prompt.replace(/'/g, "\\'")}'); alert('Tersalin!');">Salin Prompt</button>
           </div>

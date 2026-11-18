@@ -131,11 +131,10 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/prompt/generate":
             idea = payload.get("idea", "")
-            style_cat = payload.get("style_category", config.DEFAULT_STYLE_CATEGORY)
-            style_name = payload.get("style", config.DEFAULT_STYLE)
             aspect_ratio = payload.get("aspect_ratio", "16:9")
-            lighting = payload.get("lighting")
-            lens = payload.get("lens")
+            lighting = payload.get("lighting", "")
+            camera = payload.get("camera", payload.get("lens", ""))
+            composition = payload.get("composition", "")
 
             if not idea:
                 self._send_json(400, {"error": "Ide prompt tidak boleh kosong."})
@@ -145,16 +144,16 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
                 return
 
             try:
-                result = prompt_enhancer.enhance_prompt(
+                client = config.get_client(api_key)
+                prompt_res = prompt_enhancer.enhance_prompt(
+                    client=client,
                     base_idea=idea,
-                    api_key=api_key,
-                    style_category=style_cat,
-                    style=style_name,
                     aspect_ratio=aspect_ratio,
                     lighting=lighting,
-                    lens=lens,
+                    camera=camera,
+                    composition=composition,
                 )
-                self._send_json(200, {"result": result.to_dict()})
+                self._send_json(200, {"result": {"prompts": [{"prompt": prompt_res, "theme": "Commercial Prompt"}]}})
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
             return
