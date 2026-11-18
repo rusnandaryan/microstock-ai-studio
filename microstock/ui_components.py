@@ -103,7 +103,7 @@ html, body, .stApp {{
   border-radius: 4px;
 }}
 
-/* Top Header Bar */
+/* Top Header Bar & Streamlit Chrome Clean */
 header[data-testid="stHeader"],
 header[data-testid="stHeader"] > div {{
   background-color: var(--bg-page) !important;
@@ -129,6 +129,48 @@ header[data-testid="stHeader"] button svg {{
   stroke: var(--text-primary) !important;
 }}
 
+/* Hide Streamlit Default UI Chrome */
+footer {{
+  display: none !important;
+  visibility: hidden !important;
+}}
+
+#MainMenu {{
+  visibility: hidden !important;
+}}
+
+div[data-testid="stAppDeployButton"],
+.stAppDeployButton {{
+  display: none !important;
+  visibility: hidden !important;
+}}
+
+/* Sidebar Header & Toggle Buttons */
+[data-testid="stSidebarHeader"] {{
+  background: var(--bg-sidebar) !important;
+  background-color: var(--bg-sidebar) !important;
+}}
+
+button[data-testid="stSidebarCollapseButton"],
+button[data-testid="stSidebarExpandButton"],
+button[data-testid="baseButton-headerNoPadding"],
+[data-testid="stSidebarHeader"] button {{
+  background-color: transparent !important;
+  background: transparent !important;
+  color: var(--text-primary) !important;
+  border: none !important;
+  box-shadow: none !important;
+}}
+
+button[data-testid="stSidebarCollapseButton"] svg,
+button[data-testid="stSidebarExpandButton"] svg,
+button[data-testid="baseButton-headerNoPadding"] svg,
+[data-testid="stSidebarHeader"] button svg {{
+  fill: var(--text-primary) !important;
+  color: var(--text-primary) !important;
+  stroke: var(--text-primary) !important;
+}}
+
 div[data-testid="stDecoration"] {{
   display: none !important;
   height: 0 !important;
@@ -145,7 +187,7 @@ h1, h2, h3, h4, h5, h6,
 [data-testid="stHeadingWithActionElements"] h3 {{
   color: var(--text-primary) !important;
   -webkit-text-fill-color: var(--text-primary) !important;
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
 }}
 
 p, span, li, label, b, strong {{
@@ -195,7 +237,7 @@ p, span, li, label, b, strong {{
   border-radius: 16px !important;
   padding: 1.5rem 1.8rem !important;
   margin-bottom: 1.4rem !important;
-  box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05) !important;
   position: relative !important;
   overflow: hidden !important;
 }}
@@ -203,7 +245,7 @@ p, span, li, label, b, strong {{
 .ms-stat-pill {{
   display: flex !important;
   flex-direction: column !important;
-  background: rgba(20, 29, 45, 0.85) !important;
+  background: var(--bg-input) !important;
   border: 1px solid var(--border-color) !important;
   border-radius: 8px !important;
   padding: 0.35rem 0.75rem !important;
@@ -222,13 +264,13 @@ p, span, li, label, b, strong {{
   font-size: 0.84rem !important;
   font-weight: 700 !important;
   color: var(--text-accent) !important;
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   margin-top: 2px !important;
 }}
 
 .ms-hero-modern h1 {{
   margin: 0 !important;
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-size: 2.1rem !important;
   font-weight: 800 !important;
   letter-spacing: -0.5px !important;
@@ -305,7 +347,7 @@ div[data-testid="stTabs"] div[data-baseweb="tab-list"] {{
 div[data-testid="stTabs"] button[role="tab"],
 div[data-testid="stTabs"] button[data-baseweb="tab"],
 div[data-testid="stTabs"] button {{
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
   font-size: 1rem !important;
   font-weight: 600 !important;
   border-radius: 10px 10px 0 0 !important;
@@ -483,33 +525,50 @@ section[data-testid="stFileUploadDropzone"] svg {{
   stroke: var(--accent-blue) !important;
 }}
 
-/* Browse files button inside uploader dropzone */
+/* Browse files button inside uploader dropzone and secondary buttons */
 div[data-testid="stFileUploader"] button,
 section[data-testid="stFileUploadDropzone"] button,
 button[data-testid="baseButton-secondary"] {{
-  background-color: #0E1424 !important;
-  background: #0E1424 !important;
-  color: #F8FAFC !important;
-  -webkit-text-fill-color: #F8FAFC !important;
-  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  background-color: var(--bg-card) !important;
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  border: 1.5px solid var(--border-color) !important;
   border-radius: 8px !important;
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
   font-weight: 600 !important;
   padding: 0.5rem 1.25rem !important;
   min-height: 40px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
   transition: all 0.15s ease !important;
 }}
 
 div[data-testid="stFileUploader"] button:hover,
 section[data-testid="stFileUploadDropzone"] button:hover,
 button[data-testid="baseButton-secondary"]:hover {{
-  background-color: #2563EB !important;
-  background: #2563EB !important;
-  color: #FFFFFF !important;
-  -webkit-text-fill-color: #FFFFFF !important;
-  border-color: #3B82F6 !important;
+  background-color: var(--bg-input) !important;
+  background: var(--bg-input) !important;
+  color: var(--accent-blue) !important;
+  -webkit-text-fill-color: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
   transform: translateY(-1px) !important;
+}}
+
+div[data-testid="stFileUploader"] button p,
+div[data-testid="stFileUploader"] button span,
+button[data-testid="baseButton-secondary"] p,
+button[data-testid="baseButton-secondary"] span {{
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+  font-weight: 600 !important;
+}}
+
+div[data-testid="stFileUploader"] button:hover p,
+div[data-testid="stFileUploader"] button:hover span,
+button[data-testid="baseButton-secondary"]:hover p,
+button[data-testid="baseButton-secondary"]:hover span {{
+  color: var(--accent-blue) !important;
+  -webkit-text-fill-color: var(--accent-blue) !important;
 }}
 
 div[data-testid="stFileUploaderFileData"] {{
@@ -522,7 +581,7 @@ div[data-testid="stFileUploaderFileData"] {{
 div.stButton > button,
 div[data-testid="stDownloadButton"] > button,
 div[data-testid="stLinkButton"] > a {{
-  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
   font-weight: 600 !important;
   border-radius: 10px !important;
   padding: 0.55rem 1.3rem !important;
@@ -589,7 +648,7 @@ div.stButton > button[kind="secondary"] span {{
 
 /* Link Button */
 div[data-testid="stLinkButton"] > a {{
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
   font-weight: 600 !important;
   border-radius: 10px !important;
   border: 1.5px solid var(--accent-blue) !important;
@@ -611,7 +670,7 @@ div[data-testid="stLinkButton"] > a span {{
 
 /* Download Button */
 div[data-testid="stDownloadButton"] > button {{
-  font-family: 'Space Grotesk', sans-serif !important;
+  font-family: 'Plus Jakarta Sans', -apple-system, sans-serif !important;
   font-weight: 600 !important;
   border-radius: 10px !important;
   border: 1.5px solid var(--border-color) !important;
@@ -653,12 +712,13 @@ div[data-baseweb="select"] svg {{
 }}
 
 div[data-baseweb="popover"],
+div[data-baseweb="menu"],
 ul[role="listbox"] {{
   background-color: var(--bg-card) !important;
   background: var(--bg-card) !important;
   border: 1.5px solid var(--border-color) !important;
   border-radius: 10px !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08) !important;
 }}
 
 li[role="option"] {{
@@ -671,7 +731,7 @@ li[role="option"] {{
 
 li[role="option"]:hover,
 li[role="option"][aria-selected="true"] {{
-  background-color: rgba(59, 130, 246, 0.2) !important;
+  background-color: rgba(37, 99, 235, 0.12) !important;
   color: var(--text-accent) !important;
   -webkit-text-fill-color: var(--text-accent) !important;
   font-weight: 700 !important;
@@ -680,10 +740,10 @@ li[role="option"][aria-selected="true"] {{
 /* Code Blocks & Copy Button */
 div[data-testid="stCode"] {{
   position: relative !important;
-  border: 1px solid var(--border-color) !important;
+  border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
   background-color: var(--code-bg) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }}
 
 div[data-testid="stCode"] pre {{
@@ -725,38 +785,38 @@ div[data-testid="stCode"] button[title*="copy" i] {{
   height: 34px !important;
   min-height: 34px !important;
   padding: 0 !important;
-  background-color: #0E1424 !important;
-  background: #0E1424 !important;
-  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  background-color: var(--bg-card) !important;
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 6px !important;
-  color: #F8FAFC !important;
-  -webkit-text-fill-color: #F8FAFC !important;
+  color: var(--text-secondary) !important;
+  -webkit-text-fill-color: var(--text-secondary) !important;
   cursor: pointer !important;
   opacity: 1 !important;
   visibility: visible !important;
   transition: all 0.15s ease !important;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
 }}
 
 div[data-testid="stCodeCopyButton"] button:hover,
 div[data-testid="stCode"] button[aria-label*="copy" i]:hover,
 div[data-testid="stCode"] button[title*="copy" i]:hover {{
-  background-color: #2563EB !important;
-  background: #2563EB !important;
-  border-color: #3B82F6 !important;
+  background-color: var(--accent-blue) !important;
+  background: var(--accent-blue) !important;
+  border-color: var(--accent-blue) !important;
   color: #FFFFFF !important;
   -webkit-text-fill-color: #FFFFFF !important;
   transform: scale(1.05) !important;
 }}
 
-/* Copy button SVG icon: ensure stroke-based Lucide icons render visibly */
+/* Copy button SVG icon */
 div[data-testid="stCodeCopyButton"] button svg,
 div[data-testid="stCode"] button[aria-label*="copy" i] svg,
 div[data-testid="stCode"] button[title*="copy" i] svg {{
   width: 17px !important;
   height: 17px !important;
-  color: #F8FAFC !important;
-  stroke: #F8FAFC !important;
+  color: var(--text-secondary) !important;
+  stroke: var(--text-secondary) !important;
   fill: none !important;
   display: block !important;
 }}
@@ -779,7 +839,7 @@ li code {{
   border: 1px solid var(--border-color) !important;
   border-radius: 6px !important;
   padding: 0.15rem 0.45rem !important;
-  font-family: 'Space Grotesk', monospace !important;
+  font-family: 'JetBrains Mono', monospace !important;
   font-weight: 600 !important;
 }}
 
@@ -788,7 +848,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {{
   border: 1.5px solid var(--border-color) !important;
   border-radius: 14px !important;
   background-color: var(--bg-card) !important;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
 }}
 
 div[data-testid="stExpander"] {{
@@ -820,6 +880,72 @@ div[data-testid="stExpander"] details summary svg {{
   color: var(--text-secondary) !important;
 }}
 
+div[data-testid="stExpanderDetails"] {{
+  background-color: var(--bg-card) !important;
+  border-top: 1px solid var(--border-color) !important;
+  padding: 0.9rem !important;
+}}
+
+/* Radio Buttons */
+div[data-testid="stRadio"] {{
+  margin: 0.45rem 0 !important;
+}}
+
+div[data-testid="stRadio"] label {{
+  cursor: pointer !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.5rem !important;
+  color: var(--text-primary) !important;
+  -webkit-text-fill-color: var(--text-primary) !important;
+}}
+
+div[data-testid="stRadio"] div[role="radiogroup"] {{
+  gap: 0.6rem !important;
+}}
+
+div[data-testid="stRadio"] div[data-baseweb="radio"] > div:first-child {{
+  background-color: var(--bg-input) !important;
+  border: 1.5px solid var(--border-color) !important;
+  transition: all 0.15s ease !important;
+}}
+
+div[data-testid="stRadio"] div[data-baseweb="radio"]:hover > div:first-child {{
+  border-color: var(--accent-blue) !important;
+}}
+
+div[data-testid="stRadio"] input[type="radio"]:checked + div,
+div[data-testid="stRadio"] div[aria-checked="true"] > div:first-child {{
+  border-color: var(--accent-blue) !important;
+  background-color: var(--bg-card) !important;
+}}
+
+div[data-testid="stRadio"] div[aria-checked="true"] > div:first-child > div {{
+  background-color: var(--accent-blue) !important;
+}}
+
+/* Number Inputs */
+div[data-testid="stNumberInput"] div[data-baseweb="input"] {{
+  background-color: var(--bg-input) !important;
+  border: 1.5px solid var(--border-color) !important;
+  border-radius: 10px !important;
+}}
+
+div[data-testid="stNumberInput"] button {{
+  background-color: var(--bg-input) !important;
+  border: none !important;
+  color: var(--text-secondary) !important;
+}}
+
+div[data-testid="stNumberInput"] button:hover {{
+  background-color: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}}
+
+div[data-testid="stNumberInput"] button svg {{
+  fill: var(--text-secondary) !important;
+}}
+
 /* Alerts & Notifications */
 div[data-testid="stAlert"] {{
   border: 1.5px solid var(--border-color) !important;
@@ -841,8 +967,8 @@ div[data-testid="stAlert"]:has([data-testid="stNotificationContentSuccess"]) {{
 
 div[data-testid="stNotificationContentInfo"],
 div[data-testid="stAlert"]:has([data-testid="stNotificationContentInfo"]) {{
-  background-color: rgba(59, 130, 246, 0.12) !important;
-  border-color: rgba(59, 130, 246, 0.4) !important;
+  background-color: rgba(37, 99, 235, 0.12) !important;
+  border-color: rgba(37, 99, 235, 0.4) !important;
 }}
 
 div[data-testid="stNotificationContentWarning"],
@@ -885,7 +1011,7 @@ div[data-testid="stToast"],
   border: 1.5px solid var(--border-color) !important;
   border-radius: 12px !important;
   color: var(--text-primary) !important;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.6) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12) !important;
 }}
 
 div[data-testid="stToast"] * {{
@@ -900,7 +1026,7 @@ div[data-testid="stToast"] * {{
   border-radius: 14px;
   padding: 1.2rem;
   margin-bottom: 1rem;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   transition: border-color 0.15s ease;
 }}
 
