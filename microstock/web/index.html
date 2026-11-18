@@ -310,13 +310,53 @@
     <!-- TAB 1: PROMPT STUDIO -->
     <section id="tab-prompt" class="tab-pane active">
       <div class="card">
-        <div class="card-title">Commercial Prompt Studio</div>
-        <div class="card-desc">Ubah ide singkat menjadi 5 variasi prompt bahasa Inggris komersial steril dari penolakan.</div>
+        <div class="card-title">Thematic Stock Series & 32 Visual Styles</div>
+        <div class="card-desc">Ubah konsep singkat menjadi 5 variasi seri komersial terpadu atau formula transformasi foto Image-to-Image.</div>
         <div class="form-group">
           <label>Ide Dasar / Subjek Komersial:</label>
           <input type="text" id="inp-idea" placeholder="Contoh: cangkir kopi espresso di meja kayu minimalis kafe pagi hari" />
         </div>
-        <button class="btn btn-primary" onclick="generatePrompts()">⚡ Racik Prompt Komersial</button>
+        <div class="form-group" style="max-width:540px;">
+          <label>Pilihan Style Visual (32 Gaya Terkurasi):</label>
+          <select id="sel-style">
+            <option value="Foto Studio" selected>Foto Studio (potret rapi, cahaya lembut) · Fotografi</option>
+            <option value="Polaroid">Polaroid (foto instan pudar, bingkai putih) · Fotografi</option>
+            <option value="Film Noir">Film Noir (hitam putih, bayangan dramatis) · Fotografi</option>
+            <option value="Lukisan Cat Minyak">Lukisan Cat Minyak (tekstur kuas tebal, klasik) · Seni Lukis</option>
+            <option value="Cat Air">Cat Air (warna lembut, pinggiran luntur) · Seni Lukis</option>
+            <option value="Sketsa Pensil">Sketsa Pensil (garis arsir hitam putih) · Seni Lukis</option>
+            <option value="Impresionis">Impresionis (sapuan kuas, cahaya berkilau) · Seni Lukis</option>
+            <option value="Ukiyo-e">Ukiyo-e (cetak kayu Jepang klasik) · Seni Lukis</option>
+            <option value="Lukisan Tinta Cina">Lukisan Tinta Cina (sapuan tinta, banyak ruang kosong) · Seni Lukis</option>
+            <option value="Kaca Patri">Kaca Patri (potongan kaca berwarna) · Seni Lukis</option>
+            <option value="Batik">Batik (motif dan isen-isen batik) · Nusantara & Heritage</option>
+            <option value="Wayang">Wayang (siluet dan ornamen wayang kulit) · Nusantara & Heritage</option>
+            <option value="Animasi 3D Keluarga">Animasi 3D Keluarga (karakter bulat, lembut) · Animasi & 3D</option>
+            <option value="Anime">Anime (garis bersih, mata ekspresif) · Animasi & 3D</option>
+            <option value="Claymation">Claymation (seperti boneka plastisin) · Animasi & 3D</option>
+            <option value="Boneka Rajut">Boneka Rajut (tekstur benang rajutan) · Animasi & 3D</option>
+            <option value="Mainan Balok">Mainan Balok (dari kepingan balok plastik) · Animasi & 3D</option>
+            <option value="Low-Poly">Low-Poly (bidang-bidang segitiga) · Animasi & 3D</option>
+            <option value="Vector Flat">Vector Flat (bentuk datar, warna solid) · Desain & Grafis</option>
+            <option value="Pop Art">Pop Art (warna kontras, titik halftone) · Desain & Grafis</option>
+            <option value="Komik Lawas">Komik Lawas (garis tegas, warna pudar) · Desain & Grafis</option>
+            <option value="Pixel Art">Pixel Art (kotak-kotak ala game 8-bit) · Desain & Grafis</option>
+            <option value="Mural Jalanan">Mural Jalanan (graffiti warna cerah) · Desain & Grafis</option>
+            <option value="Neon Line">Neon Line (garis menyala di latar gelap) · Desain & Grafis</option>
+            <option value="Glitch">Glitch (efek rusak digital) · Desain & Grafis</option>
+            <option value="Cyberpunk">Cyberpunk (neon, kota malam futuristis) · Tema Khusus</option>
+            <option value="Steampunk">Steampunk (mesin kuningan era Victoria) · Tema Khusus</option>
+            <option value="Gotik">Gotik (gelap, arsitektur katedral) · Tema Khusus</option>
+            <option value="Dongeng">Dongeng (ilustrasi buku cerita) · Tema Khusus</option>
+            <option value="Kubisme">Kubisme (bentuk geometris terpecah) · Tema Khusus</option>
+            <option value="Surealis">Surealis (dunia mimpi, objek meleleh) · Tema Khusus</option>
+            <option value="Mesir Kuno">Mesir Kuno (gaya relief dinding piramida) · Tema Khusus</option>
+          </select>
+        </div>
+        <div style="display:flex; gap:0.5rem; margin-top:0.75rem;">
+          <button class="btn btn-primary" onclick="generatePrompts('series')">⚡ Racik Seri 5-Sudut</button>
+          <button class="btn btn-secondary" onclick="generatePrompts('restyle')">🎨 Prompt Foto Restyle</button>
+        </div>
       </div>
 
       <div id="prompt-results" style="display:none;">
@@ -453,10 +493,11 @@
       `;
     }
 
-    async function generatePrompts() {
+    async function generatePrompts(mode = 'series') {
       const idea = document.getElementById('inp-idea').value;
+      const styleName = document.getElementById('sel-style').value;
 
-      if (!idea) { alert('Silakan isi ide prompt terlebih dahulu.'); return; }
+      if (mode !== 'restyle' && !idea) { alert('Silakan isi ide prompt terlebih dahulu.'); return; }
 
       const cont = document.getElementById('prompt-cards-container');
       document.getElementById('prompt-results').style.display = 'block';
@@ -466,7 +507,7 @@
         const res = await fetch('/api/prompt/generate', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ idea }),
+          body: JSON.stringify({ idea, style: styleName, mode }),
         });
         const data = await res.json();
         if (data.error) {
@@ -486,7 +527,10 @@
         }
         cont.innerHTML = prompts.map((p, i) => `
           <div class="card" style="margin-bottom:0.75rem;">
-            <div style="font-weight:700; color:var(--accent-primary); margin-bottom:0.3rem;">${p.theme || 'Commercial Prompt'}</div>
+            <div style="font-weight:700; color:var(--accent-primary); margin-bottom:0.3rem;">
+              ${p.title || p.theme || 'Shot #' + (i+1)}
+              ${p.badge ? ' <span style="font-size:0.75rem; color:var(--text-muted); font-weight:normal;">(' + p.badge + ')</span>' : ''}
+            </div>
             <p style="font-size:0.85rem; margin-bottom:0.5rem;" class="mono">${p.prompt}</p>
             <button class="btn btn-secondary" onclick="navigator.clipboard.writeText('${p.prompt.replace(/'/g, "\\'")}'); alert('Tersalin!');">Salin Prompt</button>
           </div>

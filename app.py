@@ -24,7 +24,7 @@ from microstock import analytics, config, db, distributor, folder_watcher, metad
 from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
 from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
-from microstock.prompt_enhancer import enhance_prompt
+from microstock.prompt_enhancer import enhance_prompt, generate_thematic_series
 from microstock.ui_components import (
     inject_css,
     render_export_hub,
@@ -42,6 +42,9 @@ inject_css()
 
 # Session State Initialization
 st.session_state.setdefault("enhanced_prompt", "")
+st.session_state.setdefault("thematic_series", [])
+st.session_state.setdefault("restyle_prompt", "")
+st.session_state.setdefault("tab1_output_mode", "")
 st.session_state.setdefault("vision_items", [])
 st.session_state.setdefault("batch_package", None)
 st.session_state.setdefault("imported_from_watcher", [])
@@ -408,68 +411,118 @@ with tab1:
         st.markdown(
             """
             <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:var(--text-primary);">
-              Konsep Visual Komersial
+              Konsep Visual & Style Studio
             </h3>
             """,
             unsafe_allow_html=True,
         )
 
-        st.markdown("**Konsep Utama / Subjek Gambar**")
+        st.markdown("**1. Konsep Utama / Subjek Gambar**")
         base_idea = st.text_area(
             "Konsep Utama",
             key="tab1_base_idea",
-            height=120,
-            placeholder="Contoh: Seorang barista menyeduh pour-over coffee di kafe modern minimalis pagi hari, uap hangat, pencahayaan alami jendela",
+            height=110,
+            placeholder="Contoh: Barista menyeduh pour-over coffee di kafe modern minimalis pagi hari, uap hangat, cangkir keramik estetik",
+            label_visibility="collapsed",
+        )
+
+        st.markdown("**2. Pilihan Style Visual (32 Gaya Terkurasi)**")
+        style_names = [vs.name for vs in config.VISUAL_STYLES_32]
+
+        def _format_style_choice(sname: str) -> str:
+            vs = config.VISUAL_STYLES_MAP.get(sname)
+            if vs:
+                return f"{vs.name} ({vs.characteristic_id}) · {vs.category}"
+            return sname
+
+        selected_style = st.selectbox(
+            "Style Visual",
+            options=style_names,
+            index=23,  # Foto Studio
+            format_func=_format_style_choice,
+            key="tab1_selected_style",
             label_visibility="collapsed",
         )
 
         st.write("")
-        btn_generate_prompt = st.button(
-            "Generate Prompt Komersial",
-            type="primary",
-            use_container_width=True,
-            disabled=not api_key,
-        )
+        col_btn1, col_btn2 = st.columns(2)
+        with col_btn1:
+            btn_series = st.button(
+                "⚡ Racik Seri 5-Sudut",
+                type="primary",
+                use_container_width=True,
+                disabled=not api_key,
+                help="Racik 5 variasi prompt terpadu: Hero, Detail/Macro, Copy Space, Flatlay, Atmospheric.",
+            )
+        with col_btn2:
+            btn_restyle = st.button(
+                "🎨 Prompt Foto Restyle",
+                type="secondary",
+                use_container_width=True,
+                help="Format prompt transformasi foto Image-to-Image (unggah foto asli ke Gemini lalu tempelkan prompt ini).",
+            )
+
         if not api_key:
             st.info("Masukkan Google Gemini API Key gratis di sidebar kiri terlebih dahulu.")
 
-        if btn_generate_prompt:
+        if btn_series:
             if not base_idea.strip():
                 st.warning("Mohon tuliskan konsep utama gambar Anda terlebih dahulu.")
             else:
-                with st.spinner("Meracik prompt komersial profesional..."):
+                with st.spinner(f"Meracik 5 sudut seri komersial dengan style '{selected_style}'..."):
                     try:
                         client = config.get_client(api_key)
-                        res_prompt = enhance_prompt(
+                        series_results = generate_thematic_series(
                             client=client,
                             base_idea=base_idea,
+                            style_name=selected_style,
                         )
-                        st.session_state.enhanced_prompt = res_prompt
-                        st.toast("Prompt komersial berhasil diracik.")
+                        st.session_state.thematic_series = series_results
+                        st.session_state.tab1_output_mode = "series"
+                        st.toast("Koleksi Seri 5-Sudut berhasil diracik!")
                     except Exception as e:
-                        st.error(f"Gagal membuat prompt: {e}")
+                        st.error(f"Gagal meracik koleksi seri: {e}")
+
+        if btn_restyle:
+            restyle_prompt_text = config.format_photo_restyle_prompt(selected_style)
+            st.session_state.restyle_prompt = restyle_prompt_text
+            st.session_state.tab1_output_mode = "restyle"
+            st.toast(f"Prompt Foto Restyle '{selected_style}' siap!")
 
     with col_right:
-        st.markdown(
-            """
-            <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0 0 0.8rem; color:var(--text-primary);">
-              Output Prompt Siap Salin
-            </h3>
-            """,
-            unsafe_allow_html=True,
-        )
+        if st.session_state.get("tab1_output_mode") == "series" and st.session_state.get("thematic_series"):
+            series = st.session_state.thematic_series
+            st.markdown(
+                """
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                  <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0; color:var(--text-primary);">
+                    Koleksi Seri Komersial (5 Sudut)
+                  </h3>
+                  <span class="ms-step-badge ms-badge-emerald" style="font-size:0.75rem;">5 Prompts Ready</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
-        prompt_val = st.session_state.enhanced_prompt
-        if prompt_val:
-            # Handle string and legacy list gracefully
-            if isinstance(prompt_val, list):
-                prompt_text = prompt_val[0] if prompt_val else ""
-            else:
-                prompt_text = str(prompt_val)
-            if isinstance(prompt_text, dict):
-                prompt_text = prompt_text.get("prompt", "")
+            shot_tabs = st.tabs([
+                "🎯 1. Hero Shot",
+                "🔍 2. Detail Action",
+                "📐 3. Copy Space",
+                "📦 4. Flatlay",
+                "☕ 5. Atmospheric",
+            ])
 
-            st.code(prompt_text, language=None, wrap_lines=True)
+            for idx, tab_shot in enumerate(shot_tabs):
+                if idx < len(series):
+                    item = series[idx]
+                    with tab_shot:
+                        st.markdown(
+                            f"**{item.get('title', f'Shot #{idx+1}')}** &nbsp; "
+                            f"<span style='font-size:0.75rem; color:var(--text-muted); background:rgba(255,255,255,0.06); padding:2px 7px; border-radius:4px; font-weight:600;'>"
+                            f"{item.get('badge', 'Commercial')}</span>",
+                            unsafe_allow_html=True,
+                        )
+                        st.code(item.get("prompt", ""), language=None, wrap_lines=True)
 
             c_btn1, c_btn2 = st.columns(2)
             with c_btn1:
@@ -480,26 +533,67 @@ with tab1:
                     type="primary",
                 )
             with c_btn2:
-                if st.button("Bersihkan Prompt", use_container_width=True):
-                    st.session_state.enhanced_prompt = ""
+                if st.button("Bersihkan Koleksi", use_container_width=True):
+                    st.session_state.thematic_series = []
+                    st.session_state.tab1_output_mode = ""
                     st.rerun()
 
-            with st.expander("Panduan Alur Kerja Auto-Sync:", expanded=True):
+            with st.expander("Alur Kerja Koleksi Seri di Microstock:", expanded=False):
                 st.markdown(
                     """
-                    1. **Salin Prompt**: Klik tombol salin di sudut kanan atas kotak prompt.
-                    2. **Tempel di Gemini Web**: Buka `gemini.google.com` dan tempelkan prompt.
-                    3. **Download Gambar**: Unduh gambar pilihan Anda di web Gemini.
-                    4. **Buka Tab 2**: Gambar yang baru diunduh otomatis terdeteksi via Auto-Sync, siap di-upscale dan disusun 50 keywords SEO.
+                    1. **Salin Prompt**: Pilih tab sudut pengambilan di atas lalu klik ikon salin pada kotak kode.
+                    2. **Tempel di Gemini Web**: Buka `gemini.google.com` dan tempelkan prompt untuk generate gambar.
+                    3. **Download Seri Lengkap**: Unduh seluruh sudut variasi gambar tersebut.
+                    4. **Buka Tab 2**: Seluruh gambar otomatis terdeteksi via Auto-Sync folder unduhan, siap di-upscale dan disusun 50 keywords microstock sekaligus.
+                    """
+                )
+
+        elif st.session_state.get("tab1_output_mode") == "restyle" and st.session_state.get("restyle_prompt"):
+            st.markdown(
+                """
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                  <h3 style="font-family:'Space Grotesk',sans-serif; font-size:1.25rem; font-weight:800; margin:0; color:var(--text-primary);">
+                    Prompt Transformasi Foto (Image-to-Image)
+                  </h3>
+                  <span class="ms-step-badge ms-badge-amber" style="font-size:0.75rem;">Formula Siap Pakai</span>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
+
+            st.code(st.session_state.restyle_prompt, language=None, wrap_lines=True)
+
+            c_btn1, c_btn2 = st.columns(2)
+            with c_btn1:
+                st.link_button(
+                    "Buka Gemini Web & Upload Foto",
+                    "https://gemini.google.com",
+                    use_container_width=True,
+                    type="primary",
+                )
+            with c_btn2:
+                if st.button("Tutup Restyle", use_container_width=True):
+                    st.session_state.restyle_prompt = ""
+                    st.session_state.tab1_output_mode = ""
+                    st.rerun()
+
+            with st.expander("Cara Pakai Formula Restyle Foto (Panduan Dokumen):", expanded=True):
+                st.markdown(
+                    """
+                    1. **Salin Prompt** di atas (klik ikon salin di sudut kanan atas kotak).
+                    2. **Buka Gemini Web** (`gemini.google.com`).
+                    3. **Unggah Foto Anda** menggunakan tombol ikon lampiran (+) di Gemini Web.
+                    4. **Tempelkan Prompt** ini dan tekan Kirim.
+                    5. Gemini akan mentransformasikan foto Anda ke gaya visual yang dipilih dengan tetap mempertahankan wajah, pose, jumlah orang, dan komposisi aslinya.
                     """
                 )
         else:
             st.markdown(
                 """
-                <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 2rem 1.5rem; text-align: center;">
-                  <b style="font-size: 1.05rem; display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Prompt Anda Akan Muncul Di Sini</b>
-                  <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0; font-weight: 500;">
-                    Tuliskan konsep dasar di panel kiri, tentukan parameter teknis, lalu klik <b>Generate Prompt Komersial</b>.
+                <div class="ms-card-modern" style="border: 2px dashed var(--border-color); padding: 2.2rem 1.5rem; text-align: center;">
+                  <b style="font-size: 1.05rem; display: block; margin-bottom: 0.5rem; color: var(--text-primary);">Hasil Koleksi Prompt Akan Muncul Di Sini</b>
+                  <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0; font-weight: 500; line-height: 1.5;">
+                    Tuliskan konsep subjek di panel kiri, pilih salah satu dari <b>32 Visual Art Styles</b>, lalu klik <b>⚡ Racik Seri 5-Sudut</b> untuk seri komersial terpadu, atau <b>🎨 Prompt Foto Restyle</b> untuk formula ubah foto asli.
                   </p>
                 </div>
                 """,

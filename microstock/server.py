@@ -131,10 +131,13 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
 
         if path == "/api/prompt/generate":
             idea = payload.get("idea", "")
-            aspect_ratio = payload.get("aspect_ratio", "")
-            lighting = payload.get("lighting", "")
-            camera = payload.get("camera", payload.get("lens", ""))
-            composition = payload.get("composition", "")
+            style_name = payload.get("style", payload.get("style_name", "Foto Studio"))
+            mode = payload.get("mode", "series")
+
+            if mode == "restyle":
+                restyle_p = config.format_photo_restyle_prompt(style_name)
+                self._send_json(200, {"result": {"prompts": [{"prompt": restyle_p, "theme": f"Restyle: {style_name}"}]}})
+                return
 
             if not idea:
                 self._send_json(400, {"error": "Ide prompt tidak boleh kosong."})
@@ -145,15 +148,20 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
 
             try:
                 client = config.get_client(api_key)
-                prompt_res = prompt_enhancer.enhance_prompt(
-                    client=client,
-                    base_idea=idea,
-                    aspect_ratio=aspect_ratio,
-                    lighting=lighting,
-                    camera=camera,
-                    composition=composition,
-                )
-                self._send_json(200, {"result": {"prompts": [{"prompt": prompt_res, "theme": "Commercial Prompt"}]}})
+                if mode == "series":
+                    series = prompt_enhancer.generate_thematic_series(
+                        client=client,
+                        base_idea=idea,
+                        style_name=style_name,
+                    )
+                    self._send_json(200, {"result": {"prompts": series}})
+                else:
+                    prompt_res = prompt_enhancer.enhance_prompt(
+                        client=client,
+                        base_idea=idea,
+                        style_name=style_name,
+                    )
+                    self._send_json(200, {"result": {"prompts": [{"prompt": prompt_res, "theme": "Commercial Prompt"}]}})
             except Exception as e:
                 self._send_json(500, {"error": str(e)})
             return

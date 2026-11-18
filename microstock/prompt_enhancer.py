@@ -259,3 +259,156 @@ def enhance_prompt(
         raise TransientError("Empty response from prompt enhancer")
 
     return retry_sync(_call, label="Prompt enhancement", on_retry=on_retry)
+
+
+SERIES_SYSTEM_INSTRUCTION = """You are an elite commercial stock photographer and prompt director for Adobe Stock, Freepik, and Shutterstock.
+Given a base subject concept and an artistic/photographic visual style, generate a cohesive 5-shot commercial stock collection.
+
+The 5 mandatory shots are:
+1. hero: Wide establishing hero shot, capturing the complete subject in full commercial context.
+2. detail: Close-up macro shot focusing on hands, fine tactile textures, micro-craftsmanship, or intimate operational action.
+3. copy_space: Commercial composition with generous clean negative space (copy space) on one side for advertising typography.
+4. flatlay: Top-down 90-degree knolling flatlay, neatly organized elements with balanced geometry and clean shadows.
+5. atmospheric: Atmospheric lifestyle storytelling shot with rich ambient lighting, authentic warmth, and contextual depth.
+
+Output format contract:
+Return ONLY valid JSON with key "shots", containing an array of 5 objects:
+{
+  "shots": [
+    {"id": "hero", "title": "Hero / Establishing Shot", "prompt": "..."},
+    {"id": "detail", "title": "Detail / Macro Action", "prompt": "..."},
+    {"id": "copy_space", "title": "Copy Space / Editorial", "prompt": "..."},
+    {"id": "flatlay", "title": "Flatlay / Top-Down View", "prompt": "..."},
+    {"id": "atmospheric", "title": "Atmospheric / Storytelling", "prompt": "..."}
+  ]
+}
+Each prompt must be 60-120 words in English, copy-ready, descriptive, professional, without generic hype words.
+"""
+
+
+def _build_fallback_series(base_idea: str, style_name: str) -> List[Dict[str, str]]:
+    style_dir = ""
+    if style_name in config.VISUAL_STYLES_MAP:
+        style_dir = config.VISUAL_STYLES_MAP[style_name].prompt_directive_en
+    elif style_name in config.STYLES:
+        style_dir = config.STYLES[style_name].directive
+
+    results = []
+    for shot in config.THEMATIC_SERIES_SHOTS:
+        prompt_parts = [
+            f"Commercial stock visual of {base_idea.strip()}.",
+            shot["prompt_suffix"],
+        ]
+        if style_dir:
+            prompt_parts.append(f"Aesthetic visual style: {style_dir}.")
+        prompt_parts.append("Clean commercial lighting, tack-sharp focus, pristine microstock asset.")
+        results.append({
+            "id": shot["id"],
+            "title": shot["title"],
+            "badge": shot["badge"],
+            "prompt": " ".join(prompt_parts),
+        })
+    return results
+
+
+def parse_series_response(text: str, base_idea: str, style_name: str) -> List[Dict[str, str]]:
+    clean_text = text.strip()
+    if clean_text.startswith("```"):
+        clean_text = re.sub(r"^```(?:json)?\n?", "", clean_text)
+        clean_text = re.sub(r"\n?```$", "", clean_text).strip()
+
+    try:
+        data = json.loads(clean_text)
+        shots = data.get("shots", []) if isinstance(data, dict) else (data if isinstance(data, list) else [])
+        if isinstance(shots, list) and len(shots) >= 3:
+            shot_meta = {s["id"]: s for s in config.THEMATIC_SERIES_SHOTS}
+            output = []
+            for item in shots:
+                if isinstance(item, dict) and "prompt" in item:
+                    sid = item.get("id", f"shot_{len(output)+1}")
+                    meta = shot_meta.get(sid, {})
+                    output.append({
+                        "id": sid,
+                        "title": item.get("title") or meta.get("title", f"Shot {len(output)+1}"),
+                        "badge": meta.get("badge", "Commercial"),
+                        "prompt": item["prompt"].strip(),
+                    })
+            if len(output) >= 3:
+                return output
+    except Exception:
+        pass
+
+    return _build_fallback_series(base_idea, style_name)
+
+
+def generate_thematic_series(
+    client: genai.Client,
+    base_idea: str,
+    style_name: str = "Foto Studio",
+    on_retry: Optional[Callable[[str], None]] = None,
+) -> List[Dict[str, str]]:
+    """Generate a cohesive 5-shot commercial stock collection from base idea and visual style."""
+    if not base_idea or not base_idea.strip():
+        raise ValueError("Mohon tuliskan konsep utama gambar terlebih dahulu.")
+
+    style_directive = ""
+    if style_name in config.VISUAL_STYLES_MAP:
+        style_directive = config.VISUAL_STYLES_MAP[style_name].prompt_directive_en
+    elif style_name in config.STYLES:
+        style_directive = config.STYLES[style_name].directive
+
+    user_input = (
+        f"Base Commercial Subject: {base_idea.strip()}\n"
+        f"Selected Visual Style: {style_name}\n"
+        f"Style Directive: {style_directive}\n\n"
+        "Generate the complete 5-shot commercial stock collection (hero, detail, copy_space, flatlay, atmospheric) in valid JSON."
+    )
+
+    def _call() -> List[Dict[str, str]]:
+        last_err = None
+        for model_name in config.TEXT_MODEL_FALLBACKS:
+            try:
+                if hasattr(client, "models") and hasattr(client.models, "generate_content"):
+                    from google.genai import types
+                    try:
+                        config_obj = types.GenerateContentConfig(
+                            system_instruction=SERIES_SYSTEM_INSTRUCTION,
+                            temperature=0.75,
+                            max_output_tokens=2000,
+                            response_mime_type="application/json",
+                        )
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=user_input,
+                            config=config_obj,
+                        )
+                    except Exception:
+                        config_obj = types.GenerateContentConfig(
+                            system_instruction=SERIES_SYSTEM_INSTRUCTION,
+                            temperature=0.75,
+                            max_output_tokens=2000,
+                        )
+                        response = client.models.generate_content(
+                            model=model_name,
+                            contents=user_input,
+                            config=config_obj,
+                        )
+                    text = (response.text or "").strip()
+                    if text:
+                        return parse_series_response(text, base_idea, style_name)
+            except Exception as e:
+                last_err = e
+                err_str = str(e).lower()
+                if any(term in err_str for term in (
+                    "503", "unavailable", "high demand", "404", "not found",
+                    "400", "invalid_argument", "invalid argument",
+                    "429", "quota", "resource_exhausted", "rate limit",
+                )):
+                    continue
+                raise
+
+        if last_err:
+            return _build_fallback_series(base_idea, style_name)
+        return _build_fallback_series(base_idea, style_name)
+
+    return retry_sync(_call, label="Thematic series generation", on_retry=on_retry)

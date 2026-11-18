@@ -52,6 +52,106 @@ class StylePreset:
     is_illustration: bool
 
 
+@dataclass(frozen=True)
+class VisualStyle:
+    id: int
+    name: str                   # e.g. "Lukisan Cat Minyak"
+    category: str               # e.g. "Seni Lukis & Klasik"
+    characteristic_id: str      # e.g. "tekstur kuas tebal, klasik"
+    prompt_directive_en: str    # e.g. "classic oil painting, impasto brushstrokes, rich canvas texture..."
+    is_illustration: bool       # True for non-photographic
+
+
+# 32 Visual Styles from Jerry Swn Bonus Document
+VISUAL_STYLES_32: List[VisualStyle] = [
+    VisualStyle(1, "Lukisan Cat Minyak", "Seni Lukis & Klasik", "tekstur kuas tebal, klasik", "classic oil painting style, visible thick impasto brushstrokes, rich textured canvas, timeless traditional oil art", True),
+    VisualStyle(2, "Cat Air", "Seni Lukis & Klasik", "warna lembut, pinggiran luntur", "delicate watercolor painting, soft translucent washes, bleeding paint edges, textured cold-press watercolor paper", True),
+    VisualStyle(3, "Sketsa Pensil", "Seni Lukis & Klasik", "garis arsir hitam putih", "fine graphite pencil sketch, expressive monochrome hatching and cross-hatching, raw hand-drawn fine line art", True),
+    VisualStyle(4, "Impresionis", "Seni Lukis & Klasik", "sapuan kuas, cahaya berkilau", "impressionist painterly style, visible energetic brush marks, sparkling dappled natural sunlight, vibrant luminous palette", True),
+    VisualStyle(5, "Ukiyo-e", "Seni Lukis & Klasik", "cetak kayu Jepang klasik", "traditional Japanese ukiyo-e woodblock print style, clean delicate line work, flat decorative colors, classic Edo aesthetic", True),
+    VisualStyle(6, "Lukisan Tinta Cina", "Seni Lukis & Klasik", "sapuan tinta, banyak ruang kosong", "traditional Chinese ink wash painting (sumi-e / shan shui), poetic empty negative space, fluid black ink wash brushwork", True),
+    VisualStyle(7, "Pop Art", "Desain & Grafis", "warna kontras, titik halftone", "bold retro pop art aesthetic, high-contrast vibrant saturated colors, classic Ben-Day dots halftone screen print texture", True),
+    VisualStyle(8, "Komik Lawas", "Desain & Grafis", "garis tegas, warna pudar", "vintage classic comic book illustration, crisp dark ink outlines, muted retro halftone CMYK print colors", True),
+    VisualStyle(9, "Anime", "Animasi & 3D", "garis bersih, mata ekspresif", "modern Japanese anime aesthetic, razor-sharp clean line art, vibrant cel-shaded color palette, emotive cinematic composition", True),
+    VisualStyle(10, "Animasi 3D Keluarga", "Animasi & 3D", "karakter bulat, lembut", "heartwarming stylized 3D family animation CGI, soft rounded shapes, warm subsurface scattering lighting, charming appealing forms", True),
+    VisualStyle(11, "Claymation", "Animasi & 3D", "seperti boneka plastisin", "stop-motion claymation style, authentic handmade plasticine modeling clay texture, soft tactile thumbprint indentations", True),
+    VisualStyle(12, "Boneka Rajut", "Animasi & 3D", "tekstur benang rajutan", "handmade knitted yarn doll (amigurumi), realistic woolen yarn texture, intricate woven stitches and fiber fuzz", True),
+    VisualStyle(13, "Mainan Balok", "Animasi & 3D", "dari kepingan balok plastik", "interlocking plastic toy bricks build, glossy modular plastic blocks with circular studs, vibrant toy construction look", True),
+    VisualStyle(14, "Low-Poly", "Animasi & 3D", "bidang-bidang segitiga", "geometric low-poly 3D art, crisp faceted triangular polygons, modern minimalist ambient occlusion lighting", True),
+    VisualStyle(15, "Pixel Art", "Desain & Grafis", "kotak-kotak ala game 8-bit", "authentic retro 8-bit pixel art, crisp square pixel grid, nostalgic arcade color palette, handcrafted retro game asset", True),
+    VisualStyle(16, "Vector Flat", "Desain & Grafis", "bentuk datar, warna solid", "clean flat vector illustration, smooth minimal geometric shapes, solid bold modern corporate palette, scalable commercial graphics", True),
+    VisualStyle(17, "Cyberpunk", "Tema Khusus", "neon, kota malam futuristis", "futuristic cyberpunk aesthetic, vivid neon cyan and magenta glow, dark rain-slicked nocturnal metropolis ambiance", True),
+    VisualStyle(18, "Neon Line", "Desain & Grafis", "garis menyala di latar gelap", "radiant neon line art, luminous glowing linear contours on deep dark background, sleek modern minimalist glow", True),
+    VisualStyle(19, "Glitch", "Desain & Grafis", "efek rusak digital", "digital glitch art, chromatic aberration, RGB channel shifts, scanlines, data-moshing and artifact distortions", True),
+    VisualStyle(20, "Steampunk", "Tema Khusus", "mesin kuningan era Victoria", "Victorian steampunk aesthetic, polished brass gears, copper pipes, pressure gauges, steam-powered mechanical detailing", True),
+    VisualStyle(21, "Film Noir", "Fotografi & Studio", "hitam putih, bayangan dramatis", "classic 1940s film noir photography, dramatic high-contrast chiaroscuro shadows, venetian blind light beams, rich monochrome grain", False),
+    VisualStyle(22, "Gotik", "Tema Khusus", "gelap, arsitektur katedral", "moody gothic style, ornate cathedral architecture, dark somber palette, dramatic shadowy atmosphere, stained stone textures", True),
+    VisualStyle(23, "Polaroid", "Fotografi & Studio", "foto instan pudar, bingkai putih", "vintage nostalgic polaroid instant film, washed-out warm tones, soft flash lighting, iconic white square photo border", False),
+    VisualStyle(24, "Foto Studio", "Fotografi & Studio", "potret rapi, cahaya lembut", "clean professional commercial studio photography, seamless neutral cyclorama backdrop, soft diffused key lighting, razor-sharp focus", False),
+    VisualStyle(25, "Mesir Kuno", "Tema Khusus", "gaya relief dinding piramida", "ancient Egyptian hieroglyphic wall relief style, textured sandstone carved profile, earthy ceremonial pigments and gold leaf accents", True),
+    VisualStyle(26, "Dongeng", "Tema Khusus", "ilustrasi buku cerita", "whimsical children's fairytale storybook illustration, soft warm gouache and pencil painting, dreamy magical storybook feel", True),
+    VisualStyle(27, "Kubisme", "Tema Khusus", "bentuk geometris terpecah", "cubist modern art style, fragmented geometric perspectives, overlapping multi-angle planes, bold abstracted forms", True),
+    VisualStyle(28, "Surealis", "Tema Khusus", "dunia mimpi, objek meleleh", "surrealist dreamscape art, melting dreamlike forms, impossible physics, ethereal uncanny atmosphere, Salvador Dali inspired", True),
+    VisualStyle(29, "Wayang", "Nusantara & Heritage", "siluet dan ornamen wayang kulit", "traditional Indonesian shadow puppet (wayang kulit) style, intricate leather cutout silhouette, ornate gold and batik filigree motifs", True),
+    VisualStyle(30, "Batik", "Nusantara & Heritage", "motif dan isen-isen batik", "traditional Indonesian batik textile art, intricate canting wax-resist patterns, classic isen-isen floral and geometric motifs, fabric texture", True),
+    VisualStyle(31, "Mural Jalanan", "Desain & Grafis", "graffiti warna cerah", "vivid urban street art graffiti mural, bold aerosol spray textures, dynamic colorful street lettering and stencil art", True),
+    VisualStyle(32, "Kaca Patri", "Seni Lukis & Klasik", "potongan kaca berwarna", "luminous stained glass window art, vibrant translucent colored glass panes, dark lead came borders, glowing backlit illumination", True),
+]
+
+VISUAL_STYLES_MAP: Dict[str, VisualStyle] = {s.name: s for s in VISUAL_STYLES_32}
+
+VISUAL_STYLE_CATEGORIES_32: Dict[str, List[str]] = {}
+for _vs in VISUAL_STYLES_32:
+    VISUAL_STYLE_CATEGORIES_32.setdefault(_vs.category, []).append(_vs.name)
+
+THEMATIC_SERIES_SHOTS = [
+    {
+        "id": "hero",
+        "title": "Hero / Establishing Shot",
+        "badge": "Cover & Banner",
+        "prompt_suffix": "Wide establishing hero shot, capturing the complete subject in its full commercial context, captivating centerpiece composition suitable for hero banners and website headers.",
+    },
+    {
+        "id": "detail",
+        "title": "Detail / Macro Action",
+        "badge": "Extreme Detail",
+        "prompt_suffix": "Macro close-up shot focusing on hands, fine tactile textures, micro-craftsmanship, or intimate operational action with crisp optical depth of field.",
+    },
+    {
+        "id": "copy_space",
+        "title": "Copy Space / Editorial",
+        "badge": "Design Ready",
+        "prompt_suffix": "Commercial composition intentionally framed with generous clean negative space (copy space) on one side, perfect for advertising typography, headlines, and graphic overlays.",
+    },
+    {
+        "id": "flatlay",
+        "title": "Flatlay / Top-Down View",
+        "badge": "Product & Catalog",
+        "prompt_suffix": "Knolling flatlay top-down 90-degree bird's eye view, meticulously arranged elements with balanced geometry, clean shadows, ideal for product catalogs and social media.",
+    },
+    {
+        "id": "atmospheric",
+        "title": "Atmospheric / Storytelling",
+        "badge": "Lifestyle & Mood",
+        "prompt_suffix": "Atmospheric lifestyle storytelling shot, rich ambient mood lighting, cinematic environment depth, authentic human warmth and natural environmental context.",
+    },
+]
+
+def format_photo_restyle_prompt(style_name: str) -> str:
+    """Generate image-to-image restyle prompt following Jerry Swn formula."""
+    style = VISUAL_STYLES_MAP.get(style_name)
+    if style:
+        char_desc = style.characteristic_id
+        return (
+            f"Ubah foto ini ke style {style.name.lower()} ({char_desc}). "
+            f"Pertahankan wajah, pose, jumlah orang, dan komposisi aslinya."
+        )
+    return (
+        f"Ubah foto ini ke style {style_name}. "
+        f"Pertahankan wajah, pose, jumlah orang, dan komposisi aslinya."
+    )
+
+
 STYLE_CATEGORIES: Dict[str, List[str]] = {
     "Fotografi (Photorealism)": [
         "Foto Komersial Bersih (Commercial Advertising)",
@@ -430,6 +530,15 @@ STYLES: Dict[str, StylePreset] = {
         is_illustration=True,
     ),
 }
+
+# Ensure all 32 curated visual styles are accessible in STYLES
+for _vs in VISUAL_STYLES_32:
+    if _vs.name not in STYLES:
+        STYLES[_vs.name] = StylePreset(
+            name=_vs.name,
+            directive=_vs.prompt_directive_en,
+            is_illustration=_vs.is_illustration,
+        )
 
 DEFAULT_STYLE_CATEGORY = "Fotografi (Photorealism)"
 DEFAULT_STYLE = "Foto Komersial Bersih (Commercial Advertising)"

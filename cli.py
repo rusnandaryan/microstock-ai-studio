@@ -34,7 +34,7 @@ from microstock import config, folder_watcher
 from microstock.export import build_metadata_dataframe, build_zip, dataframe_to_csv_bytes
 from microstock.image_generator import BatchItem, finalize_image
 from microstock.metadata import generate_metadata_from_vision_async
-from microstock.prompt_enhancer import enhance_prompt
+from microstock.prompt_enhancer import enhance_prompt, generate_thematic_series
 from microstock.reverse_prompt import _detect_ratio, generate_reverse_prompt_async, save_prompt_to_file
 from microstock.trend_analyzer import get_trending_ideas
 from microstock.upscaler import is_upscale_needed, upscale_bytes
@@ -51,23 +51,47 @@ def get_authenticated_client(api_key: str | None = None):
 
 def cmd_prompt(args: argparse.Namespace) -> None:
     """Generate commercial image prompt matching stock criteria."""
-    client = get_authenticated_client(args.api_key)
-    print(f"[INFO] Meracik prompt komersial untuk: '{args.idea}'...")
-    try:
-        result = enhance_prompt(
-            client=client,
-            base_idea=args.idea,
-            style_name=getattr(args, "style", "") or "",
-            aspect_ratio=getattr(args, "ratio", "") or "",
-            lighting=getattr(args, "lighting", "") or "",
-            camera=getattr(args, "camera", "") or "",
-            composition=getattr(args, "composition", "") or "",
-        )
+    style_name = getattr(args, "style", "Foto Studio") or "Foto Studio"
+    if getattr(args, "restyle", False):
+        prompt = config.format_photo_restyle_prompt(style_name)
         print("\n" + "=" * 60)
-        print("PROMPT KOMERSIAL SIAP PAKAI:")
+        print(f"PROMPT FOTO RESTYLE ({style_name}):")
         print("=" * 60)
-        print(result)
+        print(prompt)
         print("=" * 60 + "\n")
+        return
+
+    client = get_authenticated_client(args.api_key)
+    print(f"[INFO] Meracik prompt komersial untuk: '{args.idea}' (Style: {style_name})...")
+    try:
+        if getattr(args, "series", False):
+            shots = generate_thematic_series(
+                client=client,
+                base_idea=args.idea,
+                style_name=style_name,
+            )
+            print("\n" + "=" * 60)
+            print(f"KOLEKSI SERI KOMERSIAL 5-SUDUT ({style_name}):")
+            print("=" * 60)
+            for idx, s in enumerate(shots, 1):
+                print(f"\n[{idx}] {s.get('title', 'Shot')} ({s.get('badge', 'Commercial')}):")
+                print(s.get("prompt", ""))
+            print("\n" + "=" * 60 + "\n")
+        else:
+            result = enhance_prompt(
+                client=client,
+                base_idea=args.idea,
+                style_name=style_name,
+                aspect_ratio=getattr(args, "ratio", "") or "",
+                lighting=getattr(args, "lighting", "") or "",
+                camera=getattr(args, "camera", "") or "",
+                composition=getattr(args, "composition", "") or "",
+            )
+            print("\n" + "=" * 60)
+            print("PROMPT KOMERSIAL SIAP PAKAI:")
+            print("=" * 60)
+            print(result)
+            print("=" * 60 + "\n")
     except Exception as e:
         print(f"[ERROR] Gagal meracik prompt: {e}")
         sys.exit(1)
@@ -413,8 +437,11 @@ def main() -> None:
 
     subparsers = parser.add_subparsers(dest="command", help="Perintah yang tersedia:")
 
-    p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik 1 prompt komersial profesional terstandarisasi")
+    p_prompt = subparsers.add_parser("prompt", parents=[api_parser], help="Racik prompt komersial terstandarisasi")
     p_prompt.add_argument("idea", help="Konsep dasar / ide subjek gambar")
+    p_prompt.add_argument("--style", default="Foto Studio", help="Style visual (dari 32 style terkurasi, default: 'Foto Studio')")
+    p_prompt.add_argument("--series", action="store_true", help="Racik koleksi 5-sudut komersial terpadu")
+    p_prompt.add_argument("--restyle", action="store_true", help="Cetak formula Image-to-Image restyle foto")
     p_prompt.set_defaults(func=cmd_prompt)
 
     p_process = subparsers.add_parser("process", parents=[api_parser], help="Analisis folder gambar, susun metadata SEO, AI upscale, dan buat ZIP")

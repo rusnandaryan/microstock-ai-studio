@@ -456,6 +456,36 @@ class TestPromptEnhancer(unittest.TestCase):
         self.assertIn("Minimalist wooden desk", prompt_input)
         self.assertIn("16:9", prompt_input)
 
+    def test_visual_styles_32_count_and_content(self):
+        from microstock import config
+        self.assertEqual(len(config.VISUAL_STYLES_32), 32)
+        style_names = {s.name for s in config.VISUAL_STYLES_32}
+        self.assertIn("Lukisan Cat Minyak", style_names)
+        self.assertIn("Cat Air", style_names)
+        self.assertIn("Batik", style_names)
+        self.assertIn("Wayang", style_names)
+        self.assertIn("Foto Studio", style_names)
+        self.assertIn("Cyberpunk", style_names)
+
+    def test_format_photo_restyle_prompt(self):
+        from microstock import config
+        p = config.format_photo_restyle_prompt("Lukisan Cat Minyak")
+        self.assertIn("lukisan cat minyak", p)
+        self.assertIn("tekstur kuas tebal, klasik", p)
+        self.assertIn("Pertahankan wajah, pose", p)
+
+    def test_thematic_series_fallback_and_parse(self):
+        from microstock.prompt_enhancer import _build_fallback_series, parse_series_response
+        series = _build_fallback_series("Kopi espresso", "Foto Studio")
+        self.assertEqual(len(series), 5)
+        shot_ids = [s["id"] for s in series]
+        self.assertEqual(shot_ids, ["hero", "detail", "copy_space", "flatlay", "atmospheric"])
+
+        mock_json = '{"shots": [{"id": "hero", "title": "Hero Shot", "prompt": "Wide hero shot of espresso"}, {"id": "detail", "title": "Detail Shot", "prompt": "Macro shot of crema"}, {"id": "copy_space", "title": "Copy Space", "prompt": "Espresso with negative space"}]}'
+        parsed = parse_series_response(mock_json, "Kopi espresso", "Foto Studio")
+        self.assertEqual(len(parsed), 3)
+        self.assertEqual(parsed[0]["id"], "hero")
+
 
 class TestUpscalerBytes(unittest.TestCase):
     def test_upscale_bytes_fallback_when_binary_missing(self):
