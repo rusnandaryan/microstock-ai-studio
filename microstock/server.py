@@ -149,11 +149,14 @@ class DesktopAPIHandler(SimpleHTTPRequestHandler):
             try:
                 client = config.get_client(api_key)
                 if mode == "series":
-                    series = prompt_enhancer.generate_thematic_series(
-                        client=client,
-                        base_idea=idea,
-                        style_name=style_name,
-                    )
+                    try:
+                        series = prompt_enhancer.generate_thematic_series(
+                            client=client,
+                            base_idea=idea,
+                            style_name=style_name,
+                        )
+                    except Exception:
+                        series = prompt_enhancer._build_fallback_series(idea, style_name)
                     self._send_json(200, {"result": {"prompts": series}})
                 else:
                     prompt_res = prompt_enhancer.enhance_prompt(

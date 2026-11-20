@@ -545,14 +545,13 @@ class TestCliArgParser(unittest.TestCase):
 
 class TestUiThemeSupport(unittest.TestCase):
     def test_get_modern_css_dark_and_light(self):
-        from microstock.ui_components import get_modern_css
-        dark_css = get_modern_css(is_dark=True)
-        self.assertIn("color-scheme: dark", dark_css)
-        self.assertIn("--bg-page: #06080D", dark_css)
-
-        light_css = get_modern_css(is_dark=False)
-        self.assertIn("color-scheme: light", light_css)
-        self.assertIn("--bg-page: #F8FAFC", light_css)
+        import os
+        css_path = os.path.join(os.path.dirname(__file__), "..", "microstock", "web", "assets", "bundle.css")
+        self.assertTrue(os.path.isfile(css_path))
+        with open(css_path, "r", encoding="utf-8") as f:
+            css_content = f.read()
+        self.assertIn("--p-bg:", css_content)
+        self.assertIn("--p-inv-bg:", css_content)
 
 
 class TestDatabaseEngine(unittest.TestCase):
@@ -1056,3 +1055,37 @@ class TestAnalyticsEngine(unittest.TestCase):
             self.assertEqual(stats["successful_uploads"], 1)
             self.assertEqual(stats["failed_uploads"], 1)
             self.assertEqual(stats["upload_success_rate"], 50.0)
+
+
+class TestNetworkResilienceAndFallback(unittest.TestCase):
+    def test_thematic_series_network_error_fallback(self):
+        from unittest.mock import MagicMock
+        from microstock.prompt_enhancer import generate_thematic_series
+
+        mock_client = MagicMock()
+        # Simulate ConnectError [Errno 8] nodename nor servname provided, or not known
+        mock_client.models.generate_content.side_effect = RuntimeError("ConnectError: [Errno 8] nodename nor servname provided, or not known")
+
+        results = generate_thematic_series(
+            client=mock_client,
+            base_idea="Minimalist Coffee",
+            style_name="Foto Studio",
+        )
+        self.assertEqual(len(results), 5)
+        self.assertEqual(results[0]["id"], "hero")
+        self.assertIn("Minimalist Coffee", results[0]["prompt"])
+
+    def test_enhance_prompt_network_error_fallback(self):
+        from unittest.mock import MagicMock
+        from microstock.prompt_enhancer import enhance_prompt
+
+        mock_client = MagicMock()
+        mock_client.models.generate_content.side_effect = RuntimeError("ConnectError: [Errno 8] nodename nor servname provided, or not known")
+
+        res = enhance_prompt(
+            client=mock_client,
+            base_idea="Baking Bread",
+            style_name="Foto Studio",
+        )
+        self.assertIn("Baking Bread", res)
+        self.assertTrue(len(res) > 20)

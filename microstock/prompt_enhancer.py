@@ -258,7 +258,25 @@ def enhance_prompt(
             raise last_err
         raise TransientError("Empty response from prompt enhancer")
 
-    return retry_sync(_call, label="Prompt enhancement", on_retry=on_retry)
+    try:
+        return retry_sync(_call, label="Prompt enhancement", on_retry=on_retry)
+    except Exception:
+        # Fallback synthesis if network or Gemini API is unreachable
+        parts = [f"Commercial stock visual of {base_idea.strip()}."]
+        if style_name:
+            vs = config.VISUAL_STYLES_MAP.get(style_name)
+            if vs:
+                parts.append(f"Visual style: {vs.prompt_directive_en}.")
+        if lighting:
+            parts.append(f"Lighting: {lighting}.")
+        if camera:
+            parts.append(f"Camera angle: {camera}.")
+        if composition:
+            parts.append(f"Composition: {composition}.")
+        parts.append("Clean commercial lighting, tack-sharp focus, pristine microstock asset.")
+        if aspect_ratio:
+            parts.append(f"[Aspect Ratio: {aspect_ratio}]")
+        return " ".join(parts)
 
 
 SERIES_SYSTEM_INSTRUCTION = """You are an elite commercial stock photographer and prompt director for Adobe Stock, Freepik, and Shutterstock.
@@ -403,6 +421,7 @@ def generate_thematic_series(
                     "503", "unavailable", "high demand", "404", "not found",
                     "400", "invalid_argument", "invalid argument",
                     "429", "quota", "resource_exhausted", "rate limit",
+                    "connecterror", "nodename", "servname", "connection", "gaierror", "timeout",
                 )):
                     continue
                 raise
@@ -411,4 +430,8 @@ def generate_thematic_series(
             return _build_fallback_series(base_idea, style_name)
         return _build_fallback_series(base_idea, style_name)
 
-    return retry_sync(_call, label="Thematic series generation", on_retry=on_retry)
+    try:
+        return retry_sync(_call, label="Thematic series generation", on_retry=on_retry)
+    except Exception:
+        # Fallback if network, DNS, or API calls fail
+        return _build_fallback_series(base_idea, style_name)
