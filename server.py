@@ -9,6 +9,7 @@ import base64
 import io
 import json
 import os
+import subprocess
 import sys
 import time
 import uuid
@@ -242,30 +243,48 @@ async def scan_watcher(request: Request) -> JSONResponse:
 
 
 async def run_batch_vision(request: Request) -> JSONResponse:
-    """Process batch images with Gemini Vision, auto-upscale, IPTC metadata, and packaging."""
+    """Process batch images with Gemini Vision, auto-upscale, IPTC metadata, and direct folder output."""
     try:
-        body = await request.json()
-        file_paths = body.get("file_paths", [])
-        do_upscale = bool(body.get("do_upscale", False))
-        enforce_4mb = bool(body.get("enforce_4mb", False))
-        api_key = config.load_saved_api_key()
+        content_type = request.headers.get("content-type", "")
+        raw_items: List[tuple[str, bytes]] = []
+        do_upscale = False
+        enforce_4mb = False
 
+        if content_type.startswith("multipart/form-data"):
+            form = await request.form()
+            files = form.getlist("images") or form.getlist("files")
+            do_upscale = form.get("do_upscale") in ("true", "1", True)
+            enforce_4mb = form.get("enforce_4mb") in ("true", "1", True)
+            for f in files:
+                fname = getattr(f, "filename", "image.jpg")
+                content = await f.read()
+                if content:
+                    raw_items.append((fname, content))
+        else:
+            body = await request.json()
+            file_paths = body.get("file_paths", [])
+            do_upscale = bool(body.get("do_upscale", False))
+            enforce_4mb = bool(body.get("enforce_4mb", False))
+            for fpath in file_paths:
+                if os.path.exists(fpath):
+                    with open(fpath, "rb") as fr:
+                        raw_items.append((os.path.basename(fpath), fr.read()))
+
+        api_key = config.load_saved_api_key()
         if not api_key:
             return JSONResponse({"error": "Gemini API Key belum disetel di Pengaturan."}, status_code=400)
-        if not file_paths:
+        if not raw_items:
             return JSONResponse({"error": "Pilih minimal 1 gambar untuk diproses."}, status_code=400)
 
         client = config.get_client(api_key)
         processed_items: List[image_generator.BatchItem] = []
-        total = len(file_paths)
 
-        for idx, fpath in enumerate(file_paths):
-            if not os.path.exists(fpath):
-                continue
-            filename = os.path.basename(fpath)
-            with open(fpath, "rb") as f_raw:
-                raw_bytes = f_raw.read()
+        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        batch_folder_name = f"batch_{timestamp}"
+        out_dir = os.path.join(EXPORTS_DIR, batch_folder_name)
+        os.makedirs(out_dir, exist_ok=True)
 
+        for idx, (filename, raw_bytes) in enumerate(raw_items):
             mime = "image/jpeg"
             if filename.lower().endswith(".png"):
                 mime = "image/png"
@@ -305,6 +324,13 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 metadata=md,
             )
 
+            # Save directly into output folder as JPEG with injected IPTC metadata
+            base_name = os.path.splitext(filename)[0]
+            out_file_name = f"{base_name}.jpg"
+            out_file_path = os.path.join(out_dir, out_file_name)
+            with open(out_file_path, "wb") as f_out:
+                f_out.write(exp_bytes)
+
             phash_val = phash.compute_phash(exp_bytes)
             dups = db.find_near_duplicates_in_db(phash_val, max_hamming_distance=5)
             dup_risk = "HIGH" if (dups and dups[0][1] <= 3) else ("MEDIUM" if dups else None)
@@ -313,7 +339,7 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 index=idx,
                 variation=f"Batch {filename}",
                 final_prompt="",
-                filename=filename,
+                filename=out_file_name,
                 image_bytes=exp_bytes,
                 preview_bytes=prev_bytes,
                 mime_type=f_mime,
@@ -327,8 +353,8 @@ async def run_batch_vision(request: Request) -> JSONResponse:
             processed_items.append(item)
 
             db.save_asset(
-                file_path=fpath,
-                file_name=filename,
+                file_path=out_file_path,
+                file_name=out_file_name,
                 file_size_bytes=len(exp_bytes),
                 width=w,
                 height=h,
@@ -342,27 +368,6 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 is_xmp_injected=bool(md and md.title),
             )
 
-        df = exp.build_metadata_dataframe(processed_items)
-        zip_bytes = exp.build_zip(processed_items, None, df)
-        csv_bytes = exp.dataframe_to_csv_bytes(df)
-
-        batch_id = uuid.uuid4().hex[:8]
-        timestamp = time.strftime('%Y%m%d-%H%M%S')
-        zip_path = os.path.join(EXPORTS_DIR, f"microstock_{batch_id}_{timestamp}.zip")
-        csv_path = os.path.join(EXPORTS_DIR, f"metadata_{batch_id}_{timestamp}.csv")
-
-        with open(zip_path, "wb") as f_z:
-            f_z.write(zip_bytes)
-        with open(csv_path, "wb") as f_c:
-            f_c.write(csv_bytes)
-
-        _EXPORT_PACKAGES[batch_id] = {
-            "zip_path": zip_path,
-            "csv_path": csv_path,
-            "count": len(processed_items),
-        }
-
-        # Format items response
         results_preview = []
         for it in processed_items:
             results_preview.append({
@@ -380,13 +385,30 @@ async def run_batch_vision(request: Request) -> JSONResponse:
 
         return JSONResponse({
             "success": True,
-            "batch_id": batch_id,
             "processed_count": len(processed_items),
+            "folder_name": batch_folder_name,
+            "folder_path": out_dir,
             "results": results_preview,
-            "zip_url": f"/api/export/{batch_id}/zip",
-            "csv_url": f"/api/export/{batch_id}/csv",
         })
 
+    except Exception as e:
+        return JSONResponse({"error": str(e)}, status_code=500)
+
+
+async def open_system_folder(request: Request) -> JSONResponse:
+    """Open folder in OS file manager (Finder on macOS)."""
+    try:
+        body = await request.json()
+        folder_path = body.get("path", "")
+        if not folder_path or not os.path.exists(folder_path):
+            return JSONResponse({"error": "Folder tidak ditemukan di penyimpanan."}, status_code=404)
+        if sys.platform == "darwin":
+            subprocess.Popen(["open", folder_path])
+        elif sys.platform == "win32":
+            os.startfile(folder_path)
+        else:
+            subprocess.Popen(["xdg-open", folder_path])
+        return JSONResponse({"success": True})
     except Exception as e:
         return JSONResponse({"error": str(e)}, status_code=500)
 
@@ -484,6 +506,7 @@ routes = [
     Route("/api/assets/clear", clear_assets, methods=["POST"]),
     Route("/api/watcher/scan", scan_watcher, methods=["GET"]),
     Route("/api/vision/batch", run_batch_vision, methods=["POST"]),
+    Route("/api/folder/open", open_system_folder, methods=["POST"]),
     Route("/api/export/{batch_id}/{fmt}", download_export, methods=["GET"]),
     Route("/api/reverse-prompt", run_reverse_prompt, methods=["POST"]),
     Route("/api/accounts/test", test_agency_account, methods=["POST"]),
