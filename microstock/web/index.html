@@ -1,861 +1,1061 @@
 <!doctype html>
 <html lang="en" data-type="software" data-radius="soft" data-ground="sand" data-buttons="pill" data-motion>
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Microstock Studio: Commercial Prompt & Vision Workstation</title>
-<meta name="description" content="Microstock Studio generates 5-angle commercial series, inspects IPTC XMP metadata, and auto-syncs microstock visual assets.">
-<meta name="theme-color" content="#0a0d14">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Microstock Studio: Commercial Prompt & Vision Workstation</title>
+  <meta name="description"
+    content="Microstock Studio generates 5-angle commercial series, inspects IPTC XMP metadata, and auto-syncs microstock visual assets.">
+  <meta name="theme-color" content="#0a0d14">
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@400..700&family=IBM+Plex+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet">
 
-<link rel="stylesheet" href="assets/bundle.css">
+  <link rel="stylesheet" href="assets/bundle.css">
 
-<style>
-:root {
-  --p-bg: #0a0d14;
-  --p-surface: #111726;
-  --p-surface-card: #131824;
-  --p-ink: #e9edf3;
-  --p-muted: #8891a1;
-  --p-accent: #5ab9fc;
-  --p-accent-hover: #7ec7fd;
-  --p-success: #34d399;
-  --p-amber: #fbbf24;
-  --font-display: "Familjen Grotesk", system-ui, sans-serif;
-  --font-text: "Familjen Grotesk", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  --display-weight: 500;
-  --display-tracking: -0.03em;
-  --btn-h: 44px;
-}
+  <style>
+    :root {
+      --p-bg: #0a0d14;
+      --p-surface: #111726;
+      --p-surface-card: #131824;
+      --p-ink: #e9edf3;
+      --p-muted: #8891a1;
+      --p-accent: #5ab9fc;
+      --p-accent-hover: #7ec7fd;
+      --p-success: #34d399;
+      --p-amber: #fbbf24;
+      --font-display: "Familjen Grotesk", system-ui, sans-serif;
+      --font-text: "Familjen Grotesk", system-ui, sans-serif;
+      --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+      --display-weight: 500;
+      --display-tracking: -0.03em;
+      --btn-h: 44px;
+    }
 
-/* Nav refinements */
-@media (max-width: 639px) {
-  .logo-studio { display: none; }
-  .nav:not(.is-open) .nav__actions { display: none; }
-  .nav:not(.is-open) .nav__toggle { margin-left: auto; }
-}
+    /* Nav refinements */
+    @media (max-width: 639px) {
+      .logo-studio {
+        display: none;
+      }
 
-/* Hero Collage Desktop Window Elements */
-.d-win {
-  background: var(--p-surface);
-  color: var(--p-ink);
-  border-radius: 12px;
-  overflow: hidden;
-  font: 400 13px/1.4 var(--font-text);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 24px 60px -28px rgba(0, 0, 0, 0.8);
-  text-align: left;
-}
-.d-win__bar {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  height: 38px;
-  padding: 0 14px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 12px;
-  color: var(--p-muted);
-  background: rgba(10, 13, 20, 0.6);
-}
-.d-win__dots { display: flex; gap: 6px; }
-.d-win__dots i { width: 9px; height: 9px; border-radius: 50%; background: #263249; display: inline-block; }
-.d-win__dots i:nth-child(1) { background: #ef4444; }
-.d-win__dots i:nth-child(2) { background: #f59e0b; }
-.d-win__dots i:nth-child(3) { background: #10b981; }
+      .nav:not(.is-open) .nav__actions {
+        display: none;
+      }
 
-.d-win__body { display: grid; grid-template-columns: 140px 1fr; min-height: 360px; }
-.d-side {
-  padding: 14px 10px;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
-  display: grid;
-  align-content: start;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--p-muted);
-  background: rgba(10, 13, 20, 0.4);
-}
-.d-side > span {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: 28px;
-  padding: 0 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.d-side > span.is-on { background: rgba(90, 185, 252, 0.15); color: var(--p-accent); font-weight: 500; }
-.d-main { padding: 16px 18px; display: grid; align-content: start; gap: 12px; min-width: 0; }
-.d-main__head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
-.d-main__head h4 { font: 600 15px/1.2 var(--font-text); margin: 0; color: var(--p-ink); }
-.d-rows { display: grid; border-top: 1px solid rgba(255, 255, 255, 0.08); }
-.d-row {
-  display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 60px 86px;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 2px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  font-size: 12.5px;
-}
-.d-thumb {
-  width: 32px;
-  height: 32px;
-  border-radius: 6px;
-  background: rgba(90, 185, 252, 0.12);
-  border: 1px solid rgba(90, 185, 252, 0.25);
-  display: grid;
-  place-items: center;
-  color: var(--p-accent);
-  font-weight: 600;
-  font-size: 11px;
-}
-.d-row b { display: block; font-weight: 500; color: var(--p-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.d-row small { color: var(--p-muted); font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.d-row .num { text-align: right; font-variant-numeric: tabular-nums; color: var(--p-muted); font-size: 11.5px; }
+      .nav:not(.is-open) .nav__toggle {
+        margin-left: auto;
+      }
+    }
 
-.d-chip {
-  justify-self: end;
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  height: 22px;
-  padding: 0 8px;
-  border-radius: 99px;
-  font-size: 11.5px;
-  font-weight: 500;
-  background: rgba(16, 185, 129, 0.15);
-  color: var(--p-success);
-  border: 1px solid rgba(16, 185, 129, 0.3);
-  white-space: nowrap;
-}
-.d-chip-cyan {
-  background: rgba(90, 185, 252, 0.15);
-  color: var(--p-accent);
-  border: 1px solid rgba(90, 185, 252, 0.3);
-}
-.d-chip-amber {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--p-amber);
-  border: 1px solid rgba(245, 158, 11, 0.3);
-}
+    /* Hero Collage Desktop Window Elements */
+    .d-win {
+      background: var(--p-surface);
+      color: var(--p-ink);
+      border-radius: 12px;
+      overflow: hidden;
+      font: 400 13px/1.4 var(--font-text);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.4), 0 24px 60px -28px rgba(0, 0, 0, 0.8);
+      text-align: left;
+    }
 
-.d-card {
-  background: var(--p-surface-card);
-  color: var(--p-ink);
-  border-radius: 12px;
-  padding: 14px 16px;
-  font: 400 13px/1.4 var(--font-text);
-  text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 18px 44px -20px rgba(0, 0, 0, 0.8);
-}
-.d-note__line {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 7px 0;
-  font-size: 12.5px;
-  color: var(--p-muted);
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-.d-note__line:first-of-type { border-top: 0; }
-.d-note__line i {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  flex: none;
-  display: grid;
-  place-items: center;
-  font-style: normal;
-  font-size: 12px;
-  font-weight: 700;
-}
-.d-note__line b { font-weight: 500; color: var(--p-ink); }
+    .d-win__bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 38px;
+      padding: 0 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12px;
+      color: var(--p-muted);
+      background: rgba(10, 13, 20, 0.6);
+    }
 
-/* Hero Art Frame */
-.hero__art {
-  background:
-    radial-gradient(70% 60% at 20% 15%, rgba(90, 185, 252, 0.15), transparent 70%),
-    radial-gradient(60% 50% at 85% 90%, rgba(30, 41, 59, 0.8), transparent 70%),
-    #0e1320;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--r-lg);
-  position: relative;
-  overflow: hidden;
-  padding: 1rem;
-}
+    .d-win__dots {
+      display: flex;
+      gap: 6px;
+    }
 
-/* Interactive Form Styling */
-.studio-form {
-  display: grid;
-  gap: var(--s-4);
-}
-.form-field {
-  display: grid;
-  gap: var(--s-2);
-}
-.form-field label {
-  font-size: var(--t-small);
-  font-weight: 500;
-  color: var(--p-ink);
-}
-.form-field input,
-.form-field select,
-.form-field textarea {
-  width: 100%;
-  background: #0a0d14;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: var(--r-sm);
-  padding: 0.65rem 0.9rem;
-  color: var(--p-ink);
-  font-family: var(--font-text);
-  font-size: var(--t-small);
-  transition: border-color 0.15s ease;
-}
-.form-field input:focus-visible,
-.form-field select:focus-visible,
-.form-field textarea:focus-visible {
-  outline: 2px solid var(--p-accent);
-  outline-offset: 2px;
-  border-color: var(--p-accent);
-}
+    .d-win__dots i {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      background: #263249;
+      display: inline-block;
+    }
 
-/* Consoles */
-.console-panel {
-  background-color: var(--p-surface);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--r-md);
-  padding: var(--s-5);
-  display: grid;
-  align-content: start;
-  gap: var(--s-4);
-  min-height: 400px;
-}
-.console-panel .panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-bottom: var(--s-3);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-.console-panel .panel-head h3 {
-  font: 500 14px/1.2 var(--font-text);
-  color: var(--p-ink);
-  margin: 0;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.prompt-box {
-  background: #0a0d14;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: var(--r-sm);
-  padding: var(--s-4);
-  font-family: var(--font-mono);
-  font-size: 12.5px;
-  line-height: 1.5;
-  color: var(--p-accent);
-  word-break: break-word;
-}
+    .d-win__dots i:nth-child(1) {
+      background: #ef4444;
+    }
 
-/* Global Navigation Clearance & Harmonious Section Spacing */
-:root {
-  --nav-height: 72px;
-}
-@media (max-width: 639px) {
-  :root {
-    --nav-height: 56px;
-  }
-}
+    .d-win__dots i:nth-child(2) {
+      background: #f59e0b;
+    }
 
-html {
-  scroll-padding-top: calc(var(--nav-height) + 24px) !important;
-  scroll-behavior: smooth;
-}
+    .d-win__dots i:nth-child(3) {
+      background: #10b981;
+    }
 
-body {
-  margin: 0 !important;
-  padding: 0 !important;
-}
+    .d-win__body {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      min-height: 360px;
+    }
 
-main {
-  display: block;
-  position: relative;
-}
+    .d-side {
+      padding: 14px 10px;
+      border-right: 1px solid rgba(255, 255, 255, 0.08);
+      display: grid;
+      align-content: start;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--p-muted);
+      background: rgba(10, 13, 20, 0.4);
+    }
 
-/* Sections: Natural height, no 100vh lock, comfortable and distinct spacing */
-main > :is(section, .section):not(.hero, #top),
-main > section:not(.hero, #top) {
-  height: auto !important;
-  min-height: auto !important;
-  padding-top: 4rem !important;
-  padding-bottom: 4rem !important;
-  box-sizing: border-box !important;
-}
+    .d-side>span {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 28px;
+      padding: 0 8px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
 
-/* Hero section specifically: ample top breathing room below the navbar */
-main > :is(.hero, #top),
-main > section.hero,
-section#top.hero {
-  height: auto !important;
-  min-height: auto !important;
-  padding-top: calc(var(--nav-height) + 3.25rem) !important;
-  padding-bottom: 4rem !important;
-  box-sizing: border-box !important;
-}
+    .d-side>span.is-on {
+      background: rgba(90, 185, 252, 0.15);
+      color: var(--p-accent);
+      font-weight: 500;
+    }
 
-/* Prevent browser text-box trimming from cutting letter ascenders */
-.hero__text > h1,
-#hero-h {
-  text-box: normal !important;
-  -webkit-text-box-trim: none !important;
-  text-box-trim: none !important;
-  line-height: 1.25 !important;
-  margin-top: 0 !important;
-  padding-top: 8px !important;
-}
+    .d-main {
+      padding: 16px 18px;
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      min-width: 0;
+    }
 
-/* Section head headers have clear space above form fields */
-.section-head {
-  margin-bottom: 2rem !important;
-}
+    .d-main__head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
 
-/* Wrappers stay natural height */
-main > :is(section, .section) > :is(.wrap, .container),
-footer.closing > .wrap {
-  height: auto !important;
-}
+    .d-main__head h4 {
+      font: 600 15px/1.2 var(--font-text);
+      margin: 0;
+      color: var(--p-ink);
+    }
 
-.console-panel {
-  min-height: 340px;
-}
+    .d-rows {
+      display: grid;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
 
-/* File Upload & Dropzone Styling */
-.dropzone {
-  border: 2px dashed rgba(90, 185, 252, 0.35);
-  background: rgba(10, 13, 20, 0.6);
-  border-radius: 10px;
-  padding: 1.5rem 1rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.dropzone:hover, .dropzone.is-dragover {
-  border-color: var(--p-accent);
-  background: rgba(90, 185, 252, 0.08);
-}
-.upload-thumb-card {
-  position: relative;
-  background: #0a0d14;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  overflow: hidden;
-  padding: 5px 8px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.upload-thumb-card img {
-  width: 42px;
-  height: 42px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-.upload-thumb-card .meta {
-  flex: 1;
-  min-width: 0;
-  font-size: 11.5px;
-}
-.upload-thumb-card .meta b {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--p-ink);
-}
-.upload-thumb-card .meta span {
-  color: var(--p-muted);
-  font-size: 10.5px;
-}
-.upload-thumb-card .del-btn {
-  background: transparent;
-  border: none;
-  color: var(--p-muted);
-  cursor: pointer;
-  padding: 4px 6px;
-  font-size: 16px;
-  border-radius: 4px;
-}
-.upload-thumb-card .del-btn:hover {
-  color: #ef4444;
-  background: rgba(239, 68, 68, 0.15);
-}
+    .d-row {
+      display: grid;
+      grid-template-columns: 32px minmax(0, 1fr) 60px 86px;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 2px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      font-size: 12.5px;
+    }
 
-/* Pill Buttons */
-.btn {
-  height: 42px;
-  min-height: 42px;
-  max-height: 42px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 1.25rem;
-  border-radius: 999px;
-  font-size: 13.5px;
-  font-weight: 500;
-  white-space: nowrap;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  border: none;
-}
-.btn--primary {
-  background: var(--p-accent);
-  color: #0a0d14;
-  font-weight: 600;
-}
-.btn--primary:hover {
-  background: var(--p-accent-hover);
-  transform: translateY(-1px);
-}
-.btn--secondary {
-  background: rgba(255, 255, 255, 0.06);
-  color: var(--p-ink);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-.btn--secondary:hover {
-  border-color: var(--p-accent);
-  color: var(--p-accent);
-  background: rgba(255, 255, 255, 0.1);
-  transform: translateY(-1px);
-}
+    .d-thumb {
+      width: 32px;
+      height: 32px;
+      border-radius: 6px;
+      background: rgba(90, 185, 252, 0.12);
+      border: 1px solid rgba(90, 185, 252, 0.25);
+      display: grid;
+      place-items: center;
+      color: var(--p-accent);
+      font-weight: 600;
+      font-size: 11px;
+    }
 
-/* Watcher Thumbnail Grid */
-.thumb-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 0.6rem;
-  max-height: 220px;
-  overflow-y: auto;
-  padding: 0.5rem;
-  background: #0a0d14;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 8px;
-}
-.thumb-card {
-  background: var(--p-surface);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 6px;
-  overflow: hidden;
-  text-align: center;
-  font-size: 11px;
-  padding: 4px;
-}
-.thumb-card img {
-  width: 100%;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 4px;
-}
-.thumb-card b {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  color: var(--p-ink);
-  margin-top: 3px;
-}
+    .d-row b {
+      display: block;
+      font-weight: 500;
+      color: var(--p-ink);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
 
-/* Dialog / Modal */
-dialog {
-  background: var(--p-surface);
-  color: var(--p-ink);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  border-radius: 12px;
-  padding: 1.5rem;
-  max-width: 440px;
-  width: 90%;
-  box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.85);
-}
-dialog::backdrop {
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(4px);
-}
-</style>
+    .d-row small {
+      color: var(--p-muted);
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .d-row .num {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      color: var(--p-muted);
+      font-size: 11.5px;
+    }
+
+    .d-chip {
+      justify-self: end;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      height: 22px;
+      padding: 0 8px;
+      border-radius: 99px;
+      font-size: 11.5px;
+      font-weight: 500;
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--p-success);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      white-space: nowrap;
+    }
+
+    .d-chip-cyan {
+      background: rgba(90, 185, 252, 0.15);
+      color: var(--p-accent);
+      border: 1px solid rgba(90, 185, 252, 0.3);
+    }
+
+    .d-chip-amber {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--p-amber);
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+
+    .d-card {
+      background: var(--p-surface-card);
+      color: var(--p-ink);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font: 400 13px/1.4 var(--font-text);
+      text-align: left;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 18px 44px -20px rgba(0, 0, 0, 0.8);
+    }
+
+    .d-note__line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 7px 0;
+      font-size: 12.5px;
+      color: var(--p-muted);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .d-note__line:first-of-type {
+      border-top: 0;
+    }
+
+    .d-note__line i {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      flex: none;
+      display: grid;
+      place-items: center;
+      font-style: normal;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .d-note__line b {
+      font-weight: 500;
+      color: var(--p-ink);
+    }
+
+    /* Hero Art Frame */
+    .hero__art {
+      background:
+        radial-gradient(70% 60% at 20% 15%, rgba(90, 185, 252, 0.15), transparent 70%),
+        radial-gradient(60% 50% at 85% 90%, rgba(30, 41, 59, 0.8), transparent 70%),
+        #0e1320;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--r-lg);
+      position: relative;
+      overflow: hidden;
+      padding: 1rem;
+    }
+
+    /* Interactive Form Styling */
+    .studio-form {
+      display: grid;
+      gap: var(--s-4);
+    }
+
+    .form-field {
+      display: grid;
+      gap: var(--s-2);
+    }
+
+    .form-field label {
+      font-size: var(--t-small);
+      font-weight: 500;
+      color: var(--p-ink);
+    }
+
+    .form-field input,
+    .form-field select,
+    .form-field textarea {
+      width: 100%;
+      background: #0a0d14;
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: var(--r-sm);
+      padding: 0.65rem 0.9rem;
+      color: var(--p-ink);
+      font-family: var(--font-text);
+      font-size: var(--t-small);
+      transition: border-color 0.15s ease;
+    }
+
+    .form-field input:focus-visible,
+    .form-field select:focus-visible,
+    .form-field textarea:focus-visible {
+      outline: 2px solid var(--p-accent);
+      outline-offset: 2px;
+      border-color: var(--p-accent);
+    }
+
+    /* Consoles */
+    .console-panel {
+      background-color: var(--p-surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--r-md);
+      padding: var(--s-5);
+      display: grid;
+      align-content: start;
+      gap: var(--s-4);
+      min-height: 400px;
+    }
+
+    .console-panel .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: var(--s-3);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .console-panel .panel-head h3 {
+      font: 500 14px/1.2 var(--font-text);
+      color: var(--p-ink);
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .prompt-box {
+      background: #0a0d14;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--r-sm);
+      padding: var(--s-4);
+      font-family: var(--font-mono);
+      font-size: 12.5px;
+      line-height: 1.5;
+      color: var(--p-accent);
+      word-break: break-word;
+    }
+
+    /* Global Navigation Clearance & Harmonious Section Spacing */
+    :root {
+      --nav-height: 72px;
+    }
+
+    @media (max-width: 639px) {
+      :root {
+        --nav-height: 56px;
+      }
+    }
+
+    html {
+      /* Exactly aligns section top with the navbar bottom edge on menu click */
+      scroll-padding-top: var(--nav-height) !important;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0 !important;
+      padding: 0 !important;
+    }
+
+    main {
+      display: block;
+      position: relative;
+    }
+
+    /* Sections: Natural compact height, fits cleanly on screen without forced scroll */
+    main> :is(section, .section):not(.hero, #top),
+    main>section:not(.hero, #top) {
+      height: auto !important;
+      min-height: auto !important;
+      padding-top: 1.25rem !important;
+      padding-bottom: 2.5rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Hero section specifically: ample top breathing room below the navbar */
+    main> :is(.hero, #top),
+    main>section.hero,
+    section#top.hero {
+      height: auto !important;
+      min-height: auto !important;
+      padding-top: calc(var(--nav-height) + 3.25rem) !important;
+      padding-bottom: 4rem !important;
+      box-sizing: border-box !important;
+    }
+
+    /* Prevent browser text-box trimming from cutting letter ascenders */
+    .hero__text>h1,
+    #hero-h {
+      text-box: normal !important;
+      -webkit-text-box-trim: none !important;
+      text-box-trim: none !important;
+      line-height: 1.25 !important;
+      margin-top: 0 !important;
+      padding-top: 8px !important;
+    }
+
+    /* Section head: compact and sharp hierarchy */
+    .section-head {
+      margin-bottom: 1.15rem !important;
+      display: grid !important;
+      gap: 0.35rem !important;
+    }
+
+    .section-head h2 {
+      font-size: clamp(1.45rem, 2.5vw, 1.95rem) !important;
+      line-height: 1.15 !important;
+      margin: 0 !important;
+      letter-spacing: -0.02em !important;
+    }
+
+    .section-head .t-lead,
+    .section-head p {
+      font-size: 0.92rem !important;
+      line-height: 1.4 !important;
+      color: var(--p-muted) !important;
+      margin: 0 !important;
+      max-width: 65ch !important;
+    }
+
+    /* Wrappers stay natural height */
+    main> :is(section, .section)> :is(.wrap, .container),
+    footer.closing>.wrap {
+      height: auto !important;
+    }
+
+    .console-panel {
+      min-height: 320px;
+    }
+
+    /* File Upload & Dropzone Styling */
+    .dropzone {
+      border: 2px dashed rgba(90, 185, 252, 0.35);
+      background: rgba(10, 13, 20, 0.6);
+      border-radius: 10px;
+      padding: 1.5rem 1rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .dropzone:hover,
+    .dropzone.is-dragover {
+      border-color: var(--p-accent);
+      background: rgba(90, 185, 252, 0.08);
+    }
+
+    .upload-thumb-card {
+      position: relative;
+      background: #0a0d14;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      padding: 5px 8px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .upload-thumb-card img {
+      width: 42px;
+      height: 42px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .upload-thumb-card .meta {
+      flex: 1;
+      min-width: 0;
+      font-size: 11.5px;
+    }
+
+    .upload-thumb-card .meta b {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--p-ink);
+    }
+
+    .upload-thumb-card .meta span {
+      color: var(--p-muted);
+      font-size: 10.5px;
+    }
+
+    .upload-thumb-card .del-btn {
+      background: transparent;
+      border: none;
+      color: var(--p-muted);
+      cursor: pointer;
+      padding: 4px 6px;
+      font-size: 16px;
+      border-radius: 4px;
+    }
+
+    .upload-thumb-card .del-btn:hover {
+      color: #ef4444;
+      background: rgba(239, 68, 68, 0.15);
+    }
+
+    /* Pill Buttons */
+    .btn {
+      height: 42px;
+      min-height: 42px;
+      max-height: 42px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 1.25rem;
+      border-radius: 999px;
+      font-size: 13.5px;
+      font-weight: 500;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: none;
+    }
+
+    .btn--primary {
+      background: var(--p-accent);
+      color: #0a0d14;
+      font-weight: 600;
+    }
+
+    .btn--primary:hover {
+      background: var(--p-accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn--secondary {
+      background: rgba(255, 255, 255, 0.06);
+      color: var(--p-ink);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .btn--secondary:hover {
+      border-color: var(--p-accent);
+      color: var(--p-accent);
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-1px);
+    }
+
+    /* Watcher Thumbnail Grid */
+    .thumb-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+      gap: 0.6rem;
+      max-height: 220px;
+      overflow-y: auto;
+      padding: 0.5rem;
+      background: #0a0d14;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+    }
+
+    .thumb-card {
+      background: var(--p-surface);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 6px;
+      overflow: hidden;
+      text-align: center;
+      font-size: 11px;
+      padding: 4px;
+    }
+
+    .thumb-card img {
+      width: 100%;
+      height: 70px;
+      object-fit: cover;
+      border-radius: 4px;
+    }
+
+    .thumb-card b {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--p-ink);
+      margin-top: 3px;
+    }
+
+    /* Dialog / Modal */
+    dialog {
+      background: var(--p-surface);
+      color: var(--p-ink);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 1.5rem;
+      max-width: 440px;
+      width: 90%;
+      box-shadow: 0 24px 64px -12px rgba(0, 0, 0, 0.85);
+    }
+
+    dialog::backdrop {
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+    }
+  </style>
 </head>
+
 <body>
 
-<!-- Navigation Bar -->
-<header class="nav">
-  <div class="wrap nav__bar">
-    <a class="nav__logo" href="#top">
-      <span class="mark" data-mark="stack" aria-hidden="true"></span>
-      Microstock<span class="logo-studio"> Studio</span>
-    </a>
-    <nav class="nav__links" aria-label="Main">
-      <div class="nav__item"><a class="nav__link" href="#studio">Prompt Studio</a></div>
-      <div class="nav__item"><a class="nav__link" href="#vision">Vision & Injeksi Metadata</a></div>
-    </nav>
-    <div class="nav__actions" style="display:flex; align-items:center; gap:0.6rem;">
-      <span class="d-chip d-chip-cyan" id="nav-status-pill" onclick="openKeyModal()" style="cursor:pointer;" title="Klik untuk kelola API Key">
-        Memeriksa status...
-      </span>
-      <button class="btn btn--secondary" onclick="openKeyModal()" style="height:34px; min-height:34px; padding:0 0.85rem; font-size:12px;">
-        API Key
-      </button>
+  <!-- Navigation Bar -->
+  <header class="nav">
+    <div class="wrap nav__bar">
+      <a class="nav__logo" href="#top">
+        <span class="mark" data-mark="stack" aria-hidden="true"></span>
+        Microstock<span class="logo-studio"> Studio</span>
+      </a>
+      <nav class="nav__links" aria-label="Main">
+        <div class="nav__item"><a class="nav__link" href="#studio">Prompt Studio</a></div>
+        <div class="nav__item"><a class="nav__link" href="#vision">Vision & Injeksi Metadata</a></div>
+      </nav>
+      <div class="nav__actions" style="display:flex; align-items:center; gap:0.6rem;">
+        <span class="d-chip d-chip-cyan" id="nav-status-pill" onclick="openKeyModal()" style="cursor:pointer;"
+          title="Klik untuk kelola API Key">
+          Memeriksa status...
+        </span>
+        <button class="btn btn--secondary" onclick="openKeyModal()"
+          style="height:34px; min-height:34px; padding:0 0.85rem; font-size:12px;">
+          API Key
+        </button>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
-<main id="main">
+  <main id="main">
 
-  <!-- Section 1: Hero Workstation Window -->
-  <section class="hero hero--collage" id="top">
-    <div class="wrap"><div class="hero-text grid hero__grid">
-      <div class="hero__text span-5">
-        <h1 id="hero-h">Commercial prompt studio and vision auto-sync console</h1>
-        <p class="hero__lead">Generate 5-angle commercial series and inspect IPTC XMP metadata before submission. Zero monthly subscription.</p>
-        <div class="btn-row">
-          <a class="btn btn--primary" href="#studio">Start generator</a>
-          <a class="btn btn--secondary" href="#vision">Upload & Injeksi Metadata</a>
-        </div>
-        <p class="hero__proof">Direct Python Engine: Gemini Vision 3.5, SQLite WAL, ExifTool</p>
-      </div>
-      <div class="hero__art span-6 start-7" role="img" aria-label="Microstock Studio active prompt workstation interface">
-        <div class="d-win">
-          <div class="d-win__bar">
-            <span class="d-win__dots"><i></i><i></i><i></i></span>
-            <span>Microstock Studio · Active Prompt & Sequence Console</span>
-            <span class="d-chip" id="lbl-engine-chip" style="margin-left:auto;">Engine Standby</span>
-          </div>
-          <div class="d-win__body">
-            <div class="d-side">
-              <span class="is-on" onclick="location.href='#studio'">Prompt Series</span>
-              <span onclick="location.href='#vision'">Vision Upload</span>
+    <!-- Section 1: Hero Workstation Window -->
+    <section class="hero hero--collage" id="top">
+      <div class="wrap">
+        <div class="hero-text grid hero__grid">
+          <div class="hero__text span-5">
+            <h1 id="hero-h">Commercial prompt studio and vision auto-metadata</h1>
+            <p class="hero__lead">Generate 5-angle commercial series and inspect IPTC XMP metadata before submission.
+              Zero monthly subscription.</p>
+            <div class="btn-row">
+              <a class="btn btn--primary" href="#studio">Start generator</a>
+              <a class="btn btn--secondary" href="#vision">Upload & Injeksi Metadata</a>
             </div>
-            <div class="d-main">
-              <div class="d-main__head">
-                <h4 id="hero-sequence-title">Sequence: Specialty Coffee Barista</h4>
-                <span class="d-chip" id="hero-ready-chip">Ready</span>
+            <p class="hero__proof">Direct Python Engine: Gemini Vision 3.5, SQLite WAL, ExifTool</p>
+          </div>
+          <div class="hero__art span-6 start-7" role="img"
+            aria-label="Microstock Studio active prompt workstation interface">
+            <div class="d-win">
+              <div class="d-win__bar">
+                <span class="d-win__dots"><i></i><i></i><i></i></span>
+                <span>Microstock Studio · Active Prompt & Sequence Console</span>
+                <span class="d-chip" id="lbl-engine-chip" style="margin-left:auto;">Engine Standby</span>
               </div>
-              <div class="d-rows">
-                <div class="d-row">
-                  <span class="d-thumb">#1</span>
-                  <div><b>Hero close-up shot</b><small>Portrait orientation · Shallow focus</small></div>
-                  <span class="num">12.0 MP</span>
-                  <span class="d-chip">Generated</span>
+              <div class="d-win__body">
+                <div class="d-side">
+                  <span class="is-on" onclick="location.href='#studio'">Prompt Series</span>
+                  <span onclick="location.href='#vision'">Vision Upload</span>
                 </div>
-                <div class="d-row">
-                  <span class="d-thumb">#2</span>
-                  <div><b>Wide environmental frame</b><small>Morning sunlight on rustic cafe</small></div>
-                  <span class="num">8.3 MP</span>
-                  <span class="d-chip">Generated</span>
+                <div class="d-main">
+                  <div class="d-main__head">
+                    <h4 id="hero-sequence-title">Sequence: Specialty Coffee Barista</h4>
+                    <span class="d-chip" id="hero-ready-chip">Ready</span>
+                  </div>
+                  <div class="d-rows">
+                    <div class="d-row">
+                      <span class="d-thumb">#1</span>
+                      <div><b>Hero close-up shot</b><small>Portrait orientation · Shallow focus</small></div>
+                      <span class="num">12.0 MP</span>
+                      <span class="d-chip">Generated</span>
+                    </div>
+                    <div class="d-row">
+                      <span class="d-thumb">#2</span>
+                      <div><b>Wide environmental frame</b><small>Morning sunlight on rustic cafe</small></div>
+                      <span class="num">8.3 MP</span>
+                      <span class="d-chip">Generated</span>
+                    </div>
+                    <div class="d-row">
+                      <span class="d-thumb">#3</span>
+                      <div><b>Top-down flat-lay pour</b><small>Geometry and texture detail</small></div>
+                      <span class="num">9.0 MP</span>
+                      <span class="d-chip">Generated</span>
+                    </div>
+                  </div>
                 </div>
-                <div class="d-row">
-                  <span class="d-thumb">#3</span>
-                  <div><b>Top-down flat-lay pour</b><small>Geometry and texture detail</small></div>
-                  <span class="num">9.0 MP</span>
-                  <span class="d-chip">Generated</span>
-                </div>
+              </div>
+            </div>
+            <div class="d-card" style="margin-top:0.75rem;">
+              <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>Commercial
+                  safety score: <b>100/100 Verified</b></span></div>
+              <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>Model
+                  release audit: <b>Clean (Zero face clash)</b></span></div>
+              <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>64-bit
+                  dHash index: <b>Zero duplicate</b></span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Section 2: Prompt Studio -->
+    <section class="section" id="studio">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Curated visual styles. <span class="muted">Ready for production.</span></h2>
+          <p class="t-lead">Select from 32 handcrafted styles or formulate prompt transformations for commercial stock.
+          </p>
+        </div>
+
+        <div class="grid">
+          <div class="span-6">
+            <form class="studio-form" id="form-prompt" onsubmit="event.preventDefault(); generatePrompts('series');">
+              <div class="form-field">
+                <label for="inp-idea">Base commercial subject:</label>
+                <input type="text" id="inp-idea" value="Espresso cup on wooden table in morning sunlight" required>
+              </div>
+
+              <div class="form-field">
+                <label for="sel-style">Visual style selection (32 curated aesthetics):</label>
+                <select id="sel-style">
+                  <option value="Foto Studio" selected>Foto Studio (clean commercial portrait, soft lighting)</option>
+                  <option value="Polaroid">Polaroid (vintage instant film, white border)</option>
+                  <option value="Film Noir">Film Noir (high-contrast monochrome, dramatic shadow)</option>
+                  <option value="Lukisan Cat Minyak">Lukisan Cat Minyak (thick impasto brushwork, classic)</option>
+                  <option value="Cat Air">Cat Air (fluid watercolor wash, soft edge)</option>
+                  <option value="Sketsa Pensil">Sketsa Pensil (delicate graphite hatching line)</option>
+                  <option value="Impresionis">Impresionis (luminous brushstrokes, vibrant natural light)</option>
+                  <option value="Ukiyo-e">Ukiyo-e (traditional Japanese woodblock print)</option>
+                  <option value="Lukisan Tinta Cina">Lukisan Tinta Cina (sumi-e brush ink, intentional negative space)
+                  </option>
+                  <option value="Kaca Patri">Kaca Patri (stained glass leaded segments)</option>
+                  <option value="Batik">Batik (traditional Indonesian wax-resist canting pattern)</option>
+                  <option value="Wayang">Wayang (shadow puppet silhouette and filigree motif)</option>
+                  <option value="Animasi 3D Keluarga">Animasi 3D Keluarga (stylized character render, warm tone)
+                  </option>
+                  <option value="Anime">Anime (crisp cel shading, dynamic composition)</option>
+                  <option value="Claymation">Claymation (plasticine stop-motion tactile texture)</option>
+                  <option value="Boneka Rajut">Boneka Rajut (knitted yarn macro texture)</option>
+                  <option value="Mainan Balok">Mainan Balok (interlocking plastic brick assembly)</option>
+                  <option value="Low-Poly">Low-Poly (faceted geometric polygonal surfaces)</option>
+                  <option value="Vector Flat">Vector Flat (clean geometric vector silhouettes)</option>
+                  <option value="Pop Art">Pop Art (halftone dots, vibrant screenprint contrast)</option>
+                  <option value="Komik Lawas">Komik Lawas (vintage pulp comic ink line)</option>
+                  <option value="Pixel Art">Pixel Art (nostalgic 8-bit precision sprite)</option>
+                  <option value="Mural Jalanan">Mural Jalanan (urban aerosol street mural)</option>
+                  <option value="Neon Line">Neon Line (luminous electroluminescent contour)</option>
+                  <option value="Glitch">Glitch (digital artifact datamosh aesthetic)</option>
+                  <option value="Cyberpunk">Cyberpunk (rain-slicked neon metropolitan nocturne)</option>
+                  <option value="Steampunk">Steampunk (Victorian brass gearing and clockwork)</option>
+                  <option value="Gotik">Gotik (moody Gothic cathedral architectural drama)</option>
+                  <option value="Dongeng">Dongeng (storybook fairy tale illustration)</option>
+                  <option value="Kubisme">Kubisme (fragmented multi-perspective geometric planes)</option>
+                  <option value="Surealis">Surealis (dreamlike juxtaposition and melting geometry)</option>
+                  <option value="Mesir Kuno">Mesir Kuno (ancient sandstone hieroglyphic bas-relief)</option>
+                </select>
+              </div>
+
+              <div class="btn-row" style="margin-top:0.4rem; display:flex; gap:0.6rem;">
+                <button type="submit" class="btn btn--primary" id="btn-submit-series">Generate</button>
+                <button type="button" class="btn btn--secondary" id="btn-submit-restyle"
+                  onclick="generatePrompts('restyle')">Restyle Foto</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="span-6 start-7 console-panel" role="img" aria-label="Studio prompt sequence console">
+            <div class="panel-head">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ab9fc" stroke-width="2">
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
+                </svg>
+                Prompt Stream Generator
+              </h3>
+              <span class="d-chip d-chip-cyan" id="prompt-status-chip">Prompt Ready</span>
+            </div>
+            <div id="prompt-output-container" style="max-height:360px; overflow-y:auto;">
+              <div class="prompt-box">
+                <b>Shot 1: Commercial Product Hero</b><br>
+                Commercial photography of espresso cup on wooden table in morning sunlight, artisanal steam rising, soft
+                studio directional light, depth of field, 8k resolution, stock asset aesthetic [Aspect Ratio: 4:3]
+              </div>
+              <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
+                <button type="button" class="btn btn--secondary" onclick="copyCurrentPrompt()">Copy</button>
+                <a class="btn btn--primary" href="https://gemini.google.com" target="_blank" rel="noopener">Open Gemini
+                  Web</a>
               </div>
             </div>
           </div>
         </div>
-        <div class="d-card" style="margin-top:0.75rem;">
-          <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>Commercial safety score: <b>100/100 Verified</b></span></div>
-          <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>Model release audit: <b>Clean (Zero face clash)</b></span></div>
-          <div class="d-note__line"><i style="background:rgba(90,185,252,0.18);color:#5ab9fc;">✓</i><span>64-bit dHash index: <b>Zero duplicate</b></span></div>
+      </div>
+    </section>
+
+    <!-- Section 3: Vision & Injeksi Metadata -->
+    <section class="section" id="vision">
+      <div class="wrap">
+        <div class="section-head">
+          <h2>Metadata Injector. <span class="muted">Directly save to folder Automaticaly.</span></h2>
+          <p class="t-lead">Upload foto komersial Anda, ekstrak kata kunci & judul via Gemini Vision, lalu simpan
+            langsung ke folder tujuan dengan metadata IPTC XMP tertanam tanpa ribet file zip atau excel.</p>
+        </div>
+
+        <div class="grid">
+          <div class="span-6">
+            <div class="d-card" style="padding:1rem;">
+              <b style="font-size:0.9rem; color:var(--p-ink); display:block; margin-bottom:0.5rem;">Upload Gambar
+                Visual</b>
+
+              <!-- Drag & Drop Zone -->
+              <div class="dropzone" id="vision-dropzone" onclick="document.getElementById('inp-file-upload').click()"
+                style="padding:1rem 0.85rem;">
+                <input type="file" id="inp-file-upload" multiple accept="image/jpeg,image/png,image/webp"
+                  style="display:none;" onchange="handleFilesSelected(this.files)">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--p-accent)" stroke-width="2"
+                  style="margin-bottom:0.3rem; display:inline-block;">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="17 8 12 3 7 8" />
+                  <line x1="12" y1="3" x2="12" y2="15" />
+                </svg>
+                <b style="display:block; font-size:12.5px; color:var(--p-ink); margin-bottom:2px;">Klik untuk Pilih
+                  Gambar atau Tarik File ke Sini</b>
+                <span style="font-size:11px; color:var(--p-muted);">Mendukung JPEG, PNG, dan WEBP multi-file
+                  sekaligus</span>
+              </div>
+
+              <!-- Selected Files Tray -->
+              <div style="margin:0.65rem 0;">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
+                  <span style="font-size:0.78rem; color:var(--p-muted);">File Antrean Terpilih:</span>
+                  <div style="display:flex; align-items:center; gap:0.5rem;">
+                    <span class="d-chip d-chip-cyan" id="upload-count-badge"
+                      style="height:20px; font-size:11px; padding:0 6px;">0 File</span>
+                    <button type="button" onclick="clearSelectedFiles()"
+                      style="background:transparent; border:none; color:var(--p-muted); font-size:11px; cursor:pointer;"
+                      title="Bersihkan antrean">Hapus Semua</button>
+                  </div>
+                </div>
+                <div id="upload-files-list"
+                  style="display:grid; gap:0.4rem; max-height:160px; overflow-y:auto; padding-right:4px;">
+                  <p
+                    style="color:var(--p-muted); font-size:11.5px; text-align:center; padding:0.85rem 0; margin:0; border:1px dashed rgba(255,255,255,0.08); border-radius:6px;">
+                    Belum ada gambar yang dipilih. Silakan browse file dari komputer Anda.</p>
+                </div>
+              </div>
+
+              <!-- Processing Options -->
+              <div style="display:grid; gap:0.3rem; margin:0.6rem 0; font-size:12px;">
+                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                  <input type="checkbox" id="chk-upscale" checked> Upscale resolusi standar stock (≥ 4 MP)
+                </label>
+                <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
+                  <input type="checkbox" id="chk-4mb"> Wajib file fisik ≥ 4 MB (Freepik / Vecteezy)
+                </label>
+              </div>
+
+              <button type="button" class="btn btn--primary" id="btn-run-vision" onclick="processSelectedImages()"
+                style="width:100%; height:40px; margin-top:0.3rem; font-size:13px;">
+                Proses & Injeksi Metadata Langsung ke Folder
+              </button>
+            </div>
+          </div>
+
+          <div class="span-6 start-7 console-panel" style="padding:1rem;">
+            <div class="panel-head" style="padding-bottom:0.5rem;">
+              <h3>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+                </svg>
+                Hasil & Folder Ekspor
+              </h3>
+              <span class="d-chip" id="vision-status-chip">Standby</span>
+            </div>
+
+            <div id="vision-result-container">
+              <div style="text-align:center; padding:2.25rem 1rem; color:var(--p-muted);">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)"
+                  stroke-width="1.5" style="margin-bottom:0.5rem; display:inline-block;">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
+                </svg>
+                <p style="font-size:12.5px; margin:0;">Pilih atau tarik gambar di panel sebelah kiri, lalu klik Proses.
+                </p>
+                <p style="font-size:11px; margin:0.25rem 0 0; color:var(--p-muted);">File hasil akan tersimpan rapi
+                  langsung di dalam folder disk komputer Anda.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div></div>
-  </section>
+    </section>
 
-  <!-- Section 2: Prompt Studio -->
-  <section class="section g2m" id="studio">
+  </main>
+
+  <!-- API Key Management Dialog Modal -->
+  <dialog id="modal-apikey">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+      <b style="font-size:1.1rem; color:var(--p-ink);">Pengaturan Gemini API Key</b>
+      <button onclick="closeKeyModal()"
+        style="background:transparent; border:none; color:var(--p-muted); cursor:pointer; font-size:18px;">✕</button>
+    </div>
+    <p style="font-size:12.5px; color:var(--p-muted); margin-bottom:1rem;">
+      API Key disimpan di perangkat lokal Anda secara terenkripsi untuk menjalankan analisis visual Gemini dan peracikan
+      prompt seri.
+    </p>
+    <div style="margin-bottom:1rem;">
+      <label style="display:block; font-size:12px; margin-bottom:0.35rem; color:var(--p-ink);">Kunci Saat Ini:</label>
+      <div id="modal-current-key"
+        style="background:#0a0d14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:0.45rem 0.75rem; font-family:var(--font-mono); font-size:12px; color:var(--p-accent);">
+        Belum terpasang
+      </div>
+    </div>
+    <div style="margin-bottom:1.2rem;">
+      <label for="inp-new-api-key"
+        style="display:block; font-size:12px; margin-bottom:0.35rem; color:var(--p-ink);">Pasang Kunci Baru:</label>
+      <input type="password" id="inp-new-api-key" placeholder="AIzaSy..."
+        style="width:100%; background:#0a0d14; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:0.6rem 0.75rem; color:#e9edf3; font-size:13px;">
+    </div>
+    <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
+      <button class="btn btn--secondary" onclick="deleteApiKey()">Hapus Kunci</button>
+      <button class="btn btn--primary" onclick="saveApiKey()">Simpan Kunci</button>
+    </div>
+  </dialog>
+
+  <!-- Footer & Professional Signature -->
+  <footer class="footer closing" id="signature"
+    style="border-top:1px solid rgba(255,255,255,0.08); padding:2.5rem 0; background:rgba(10,13,20,0.92);">
     <div class="wrap">
-      <div class="section-head">
-        <h2>Curated visual styles. <span class="muted">Ready for production.</span></h2>
-        <p class="t-lead">Select from 32 handcrafted styles or formulate prompt transformations for commercial stock.</p>
-      </div>
-
-      <div class="grid">
-        <div class="span-6">
-          <form class="studio-form" id="form-prompt" onsubmit="event.preventDefault(); generatePrompts('series');">
-            <div class="form-field">
-              <label for="inp-idea">Base commercial subject:</label>
-              <input type="text" id="inp-idea" value="Espresso cup on wooden table in morning sunlight" required>
-            </div>
-
-            <div class="form-field">
-              <label for="sel-style">Visual style selection (32 curated aesthetics):</label>
-              <select id="sel-style">
-                <option value="Foto Studio" selected>Foto Studio (clean commercial portrait, soft lighting)</option>
-                <option value="Polaroid">Polaroid (vintage instant film, white border)</option>
-                <option value="Film Noir">Film Noir (high-contrast monochrome, dramatic shadow)</option>
-                <option value="Lukisan Cat Minyak">Lukisan Cat Minyak (thick impasto brushwork, classic)</option>
-                <option value="Cat Air">Cat Air (fluid watercolor wash, soft edge)</option>
-                <option value="Sketsa Pensil">Sketsa Pensil (delicate graphite hatching line)</option>
-                <option value="Impresionis">Impresionis (luminous brushstrokes, vibrant natural light)</option>
-                <option value="Ukiyo-e">Ukiyo-e (traditional Japanese woodblock print)</option>
-                <option value="Lukisan Tinta Cina">Lukisan Tinta Cina (sumi-e brush ink, intentional negative space)</option>
-                <option value="Kaca Patri">Kaca Patri (stained glass leaded segments)</option>
-                <option value="Batik">Batik (traditional Indonesian wax-resist canting pattern)</option>
-                <option value="Wayang">Wayang (shadow puppet silhouette and filigree motif)</option>
-                <option value="Animasi 3D Keluarga">Animasi 3D Keluarga (stylized character render, warm tone)</option>
-                <option value="Anime">Anime (crisp cel shading, dynamic composition)</option>
-                <option value="Claymation">Claymation (plasticine stop-motion tactile texture)</option>
-                <option value="Boneka Rajut">Boneka Rajut (knitted yarn macro texture)</option>
-                <option value="Mainan Balok">Mainan Balok (interlocking plastic brick assembly)</option>
-                <option value="Low-Poly">Low-Poly (faceted geometric polygonal surfaces)</option>
-                <option value="Vector Flat">Vector Flat (clean geometric vector silhouettes)</option>
-                <option value="Pop Art">Pop Art (halftone dots, vibrant screenprint contrast)</option>
-                <option value="Komik Lawas">Komik Lawas (vintage pulp comic ink line)</option>
-                <option value="Pixel Art">Pixel Art (nostalgic 8-bit precision sprite)</option>
-                <option value="Mural Jalanan">Mural Jalanan (urban aerosol street mural)</option>
-                <option value="Neon Line">Neon Line (luminous electroluminescent contour)</option>
-                <option value="Glitch">Glitch (digital artifact datamosh aesthetic)</option>
-                <option value="Cyberpunk">Cyberpunk (rain-slicked neon metropolitan nocturne)</option>
-                <option value="Steampunk">Steampunk (Victorian brass gearing and clockwork)</option>
-                <option value="Gotik">Gotik (moody Gothic cathedral architectural drama)</option>
-                <option value="Dongeng">Dongeng (storybook fairy tale illustration)</option>
-                <option value="Kubisme">Kubisme (fragmented multi-perspective geometric planes)</option>
-                <option value="Surealis">Surealis (dreamlike juxtaposition and melting geometry)</option>
-                <option value="Mesir Kuno">Mesir Kuno (ancient sandstone hieroglyphic bas-relief)</option>
-              </select>
-            </div>
-
-            <div class="btn-row" style="margin-top:0.4rem; display:flex; gap:0.6rem;">
-              <button type="submit" class="btn btn--primary" id="btn-submit-series">Racik 5 Sudut Seri</button>
-              <button type="button" class="btn btn--secondary" id="btn-submit-restyle" onclick="generatePrompts('restyle')">Format Foto Restyle</button>
-            </div>
-          </form>
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:2rem;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.4rem;">
+            <span class="mark" data-mark="stack" aria-hidden="true" style="width:14px; height:14px;"></span>
+            <b style="font-size:14.5px; color:var(--p-ink); letter-spacing:-0.02em;">Microstock AI Studio Precision
+              Workstation</b>
+          </div>
+          <p style="font-size:12.5px; color:var(--p-muted); margin:0 0 0.75rem; max-width:540px; line-height:1.6;">
+            Arsitektur workflow dan engineering sistem dirancang khusus untuk percepatan produksi microstock berstandar
+            komersial oleh <b>Ryan Rusnanda</b>.
+            Injeksi langsung metadata EXIF, IPTC Core, dan Adobe XMP tanpa kompresi pihak ketiga.
+          </p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="d-chip d-chip-cyan" style="font-size:10px; height:20px;">Zero Monthly Telemetry</span>
+            <span class="d-chip" style="font-size:10px; height:20px;">Local SQLite WAL</span>
+            <span class="d-chip d-chip-cyan" style="font-size:10px; height:20px;">Direct Folder Export</span>
+            <span class="d-chip" style="font-size:10px; height:20px;">Vulkan NCNN AI Acceleration</span>
+          </div>
         </div>
-
-        <div class="span-6 start-7 console-panel" role="img" aria-label="Studio prompt sequence console">
-          <div class="panel-head">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5ab9fc" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              Prompt Stream Generator
-            </h3>
-            <span class="d-chip d-chip-cyan" id="prompt-status-chip">Siap Digunakan</span>
-          </div>
-          <div id="prompt-output-container" style="max-height:360px; overflow-y:auto;">
-            <div class="prompt-box">
-              <b>Shot 1: Commercial Product Hero</b><br>
-              Commercial photography of espresso cup on wooden table in morning sunlight, artisanal steam rising, soft studio directional light, depth of field, 8k resolution, stock asset aesthetic [Aspect Ratio: 4:3]
-            </div>
-            <div style="margin-top:0.75rem; display:flex; gap:0.5rem;">
-              <button type="button" class="btn btn--secondary" onclick="copyCurrentPrompt()">Salin Prompt</button>
-              <a class="btn btn--primary" href="https://gemini.google.com" target="_blank" rel="noopener">Buka Gemini Web</a>
-            </div>
-          </div>
+        <div style="text-align:right; font-size:12px; color:var(--p-muted);">
+          <p style="margin:0 0 0.25rem; font-weight:600; color:var(--p-ink);">Commercial Microstock Production Suite</p>
+          <p style="margin:0;">Crafted with precision by <b>Ryan Rusnanda</b></p>
+          <p style="margin:0.25rem 0 0; font-family:var(--font-mono); font-size:11px; color:var(--p-muted);">Engine:
+            Python Starlette · Uvicorn · Pillow · ExifTool</p>
         </div>
       </div>
     </div>
-  </section>
+  </footer>
 
-  <!-- Section 3: Vision & Injeksi Metadata -->
-  <section class="section g2m" id="vision">
-    <div class="wrap">
-      <div class="section-head">
-        <h2>Vision & Metadata Injektor. <span class="muted">Upload langsung & simpan ke folder.</span></h2>
-        <p class="t-lead">Upload foto komersial Anda, ekstrak kata kunci & judul via Gemini Vision, lalu simpan langsung ke folder tujuan dengan metadata IPTC XMP tertanam tanpa ribet file zip atau excel.</p>
-      </div>
+  <script>
+    let scannedFilesList = [];
+    let currentPromptText = '';
 
-      <div class="grid">
-        <div class="span-6">
-          <div class="d-card" style="padding:1.25rem;">
-            <b style="font-size:0.92rem; color:var(--p-ink); display:block; margin-bottom:0.75rem;">Upload Gambar Visual</b>
-            
-            <!-- Drag & Drop Zone -->
-            <div class="dropzone" id="vision-dropzone" onclick="document.getElementById('inp-file-upload').click()">
-              <input type="file" id="inp-file-upload" multiple accept="image/jpeg,image/png,image/webp" style="display:none;" onchange="handleFilesSelected(this.files)">
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--p-accent)" stroke-width="2" style="margin-bottom:0.4rem; display:inline-block;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-              <b style="display:block; font-size:13px; color:var(--p-ink); margin-bottom:3px;">Klik untuk Pilih Gambar atau Tarik File ke Sini</b>
-              <span style="font-size:11.5px; color:var(--p-muted);">Mendukung JPEG, PNG, dan WEBP multi-file sekaligus</span>
-            </div>
-
-            <!-- Selected Files Tray -->
-            <div style="margin:0.85rem 0;">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.45rem;">
-                <span style="font-size:0.8rem; color:var(--p-muted);">File Antrean Terpilih:</span>
-                <div style="display:flex; align-items:center; gap:0.5rem;">
-                  <span class="d-chip d-chip-cyan" id="upload-count-badge">0 File</span>
-                  <button type="button" onclick="clearSelectedFiles()" style="background:transparent; border:none; color:var(--p-muted); font-size:11px; cursor:pointer;" title="Bersihkan antrean">Hapus Semua</button>
-                </div>
-              </div>
-              <div id="upload-files-list" style="display:grid; gap:0.45rem; max-height:210px; overflow-y:auto; padding-right:4px;">
-                <p style="color:var(--p-muted); font-size:12px; text-align:center; padding:1.25rem 0; margin:0; border:1px dashed rgba(255,255,255,0.08); border-radius:6px;">Belum ada gambar yang dipilih. Silakan browse file dari komputer Anda.</p>
-              </div>
-            </div>
-
-            <!-- Processing Options -->
-            <div style="display:grid; gap:0.4rem; margin:0.8rem 0; font-size:12.5px;">
-              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                <input type="checkbox" id="chk-upscale" checked> Upscale resolusi standar stock (≥ 4 MP)
-              </label>
-              <label style="display:flex; align-items:center; gap:0.5rem; cursor:pointer;">
-                <input type="checkbox" id="chk-4mb"> Wajib file fisik ≥ 4 MB (Freepik / Vecteezy)
-              </label>
-            </div>
-
-            <button type="button" class="btn btn--primary" id="btn-run-vision" onclick="processSelectedImages()" style="width:100%; height:44px; margin-top:0.4rem;">
-              Proses & Injeksi Metadata Langsung ke Folder
-            </button>
-          </div>
-        </div>
-
-        <div class="span-6 start-7 console-panel">
-          <div class="panel-head">
-            <h3>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-              Hasil & Folder Ekspor
-            </h3>
-            <span class="d-chip" id="vision-status-chip">Standby</span>
-          </div>
-
-          <div id="vision-result-container">
-            <div style="text-align:center; padding:3.5rem 1rem; color:var(--p-muted);">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1.5" style="margin-bottom:0.75rem; display:inline-block;"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <p style="font-size:13px; margin:0;">Pilih atau tarik gambar di panel sebelah kiri, lalu klik Proses.</p>
-              <p style="font-size:11.5px; margin:0.35rem 0 0; color:var(--p-muted);">File hasil akan tersimpan rapi langsung di dalam folder disk komputer Anda.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-</main>
-
-<!-- API Key Management Dialog Modal -->
-<dialog id="modal-apikey">
-  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-    <b style="font-size:1.1rem; color:var(--p-ink);">Pengaturan Gemini API Key</b>
-    <button onclick="closeKeyModal()" style="background:transparent; border:none; color:var(--p-muted); cursor:pointer; font-size:18px;">✕</button>
-  </div>
-  <p style="font-size:12.5px; color:var(--p-muted); margin-bottom:1rem;">
-    API Key disimpan di perangkat lokal Anda secara terenkripsi untuk menjalankan analisis visual Gemini dan peracikan prompt seri.
-  </p>
-  <div style="margin-bottom:1rem;">
-    <label style="display:block; font-size:12px; margin-bottom:0.35rem; color:var(--p-ink);">Kunci Saat Ini:</label>
-    <div id="modal-current-key" style="background:#0a0d14; border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:0.45rem 0.75rem; font-family:var(--font-mono); font-size:12px; color:var(--p-accent);">
-      Belum terpasang
-    </div>
-  </div>
-  <div style="margin-bottom:1.2rem;">
-    <label for="inp-new-api-key" style="display:block; font-size:12px; margin-bottom:0.35rem; color:var(--p-ink);">Pasang Kunci Baru:</label>
-    <input type="password" id="inp-new-api-key" placeholder="AIzaSy..." style="width:100%; background:#0a0d14; border:1px solid rgba(255,255,255,0.14); border-radius:6px; padding:0.6rem 0.75rem; color:#e9edf3; font-size:13px;">
-  </div>
-  <div style="display:flex; justify-content:flex-end; gap:0.5rem;">
-    <button class="btn btn--secondary" onclick="deleteApiKey()">Hapus Kunci</button>
-    <button class="btn btn--primary" onclick="saveApiKey()">Simpan Kunci</button>
-  </div>
-</dialog>
-
-<!-- Footer & Professional Signature -->
-<footer class="footer closing" id="signature" style="border-top:1px solid rgba(255,255,255,0.08); padding:2.5rem 0; background:rgba(10,13,20,0.92);">
-  <div class="wrap">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:2rem;">
-      <div>
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:0.4rem;">
-          <span class="mark" data-mark="stack" aria-hidden="true" style="width:14px; height:14px;"></span>
-          <b style="font-size:14.5px; color:var(--p-ink); letter-spacing:-0.02em;">Microstock AI Studio Precision Workstation</b>
-        </div>
-        <p style="font-size:12.5px; color:var(--p-muted); margin:0 0 0.75rem; max-width:540px; line-height:1.6;">
-          Arsitektur workflow dan engineering sistem dirancang khusus untuk percepatan produksi microstock berstandar komersial oleh <b>Ryan Rusnanda</b>.
-          Injeksi langsung metadata EXIF, IPTC Core, dan Adobe XMP tanpa kompresi pihak ketiga.
-        </p>
-        <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
-          <span class="d-chip d-chip-cyan" style="font-size:10px; height:20px;">Zero Monthly Telemetry</span>
-          <span class="d-chip" style="font-size:10px; height:20px;">Local SQLite WAL</span>
-          <span class="d-chip d-chip-cyan" style="font-size:10px; height:20px;">Direct Folder Export</span>
-          <span class="d-chip" style="font-size:10px; height:20px;">Vulkan NCNN AI Acceleration</span>
-        </div>
-      </div>
-      <div style="text-align:right; font-size:12px; color:var(--p-muted);">
-        <p style="margin:0 0 0.25rem; font-weight:600; color:var(--p-ink);">Commercial Microstock Production Suite</p>
-        <p style="margin:0;">Crafted with precision by <b>Ryan Rusnanda</b></p>
-        <p style="margin:0.25rem 0 0; font-family:var(--font-mono); font-size:11px; color:var(--p-muted);">Engine: Python Starlette · Uvicorn · Pillow · ExifTool</p>
-      </div>
-    </div>
-  </div>
-</footer>
-
-<script>
-  let scannedFilesList = [];
-  let currentPromptText = '';
-
-  // Load Status and Update Badges
-  async function loadStatus() {
-    try {
-      const res = await fetch('/api/status');
-      if (res.ok) {
-        const data = await res.json();
-        const pill = document.getElementById('nav-status-pill');
-        if (data.has_api_key) {
-          pill.className = 'd-chip';
-          pill.innerText = `Gemini Aktif (${data.api_key_masked})`;
-          document.getElementById('modal-current-key').innerText = data.api_key_masked;
-          document.getElementById('lbl-engine-chip').innerText = 'Gemini 3.5 Ready';
-        } else {
-          pill.className = 'd-chip d-chip-amber';
-          pill.innerText = 'Pasang API Key';
-          document.getElementById('modal-current-key').innerText = 'Belum terpasang';
-          document.getElementById('lbl-engine-chip').innerText = 'Key Needed';
+    // Load Status and Update Badges
+    async function loadStatus() {
+      try {
+        const res = await fetch('/api/status');
+        if (res.ok) {
+          const data = await res.json();
+          const pill = document.getElementById('nav-status-pill');
+          if (data.has_api_key) {
+            pill.className = 'd-chip';
+            pill.innerText = `Gemini Aktif (${data.api_key_masked})`;
+            document.getElementById('modal-current-key').innerText = data.api_key_masked;
+            document.getElementById('lbl-engine-chip').innerText = 'Gemini 3.5 Ready';
+          } else {
+            pill.className = 'd-chip d-chip-amber';
+            pill.innerText = 'Pasang API Key';
+            document.getElementById('modal-current-key').innerText = 'Belum terpasang';
+            document.getElementById('lbl-engine-chip').innerText = 'Key Needed';
+          }
         }
+      } catch (e) {
+        console.error('Gagal memuat status:', e);
       }
-    } catch (e) {
-      console.error('Gagal memuat status:', e);
     }
-  }
 
-  // Generate Prompts (Series & Restyle)
-  async function generatePrompts(mode = 'series') {
-    const idea = document.getElementById('inp-idea').value.trim();
-    const styleName = document.getElementById('sel-style').value;
-    const cont = document.getElementById('prompt-output-container');
-    const chip = document.getElementById('prompt-status-chip');
+    // Generate Prompts (Series & Restyle)
+    async function generatePrompts(mode = 'series') {
+      const idea = document.getElementById('inp-idea').value.trim();
+      const styleName = document.getElementById('sel-style').value;
+      const cont = document.getElementById('prompt-output-container');
+      const chip = document.getElementById('prompt-status-chip');
 
-    chip.className = 'd-chip d-chip-amber';
-    chip.innerText = 'Meracik prompt...';
-    cont.innerHTML = '<p style="color:var(--p-muted); padding:1rem 0;">Menghubungkan ke Gemini API dan meracik prompt komersial...</p>';
+      chip.className = 'd-chip d-chip-amber';
+      chip.innerText = 'Meracik prompt...';
+      cont.innerHTML = '<p style="color:var(--p-muted); padding:1rem 0;">Menghubungkan ke Gemini API dan meracik prompt komersial...</p>';
 
-    try {
-      const res = await fetch('/api/prompt/generate', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ idea, style: styleName, mode }),
-      });
-      const data = await res.json();
-      if (res.ok && data.result) {
-        renderPromptResult(data.result.prompts || data.result);
-        chip.className = 'd-chip';
-        chip.innerText = mode === 'series' ? '5 Sudut Siap' : 'Restyle Siap';
-        return;
-      } else {
-        alert(data.error || 'Gagal meracik prompt.');
+      try {
+        const res = await fetch('/api/prompt/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ idea, style: styleName, mode }),
+        });
+        const data = await res.json();
+        if (res.ok && data.result) {
+          renderPromptResult(data.result.prompts || data.result);
+          chip.className = 'd-chip';
+          chip.innerText = mode === 'series' ? '5 Sudut Siap' : 'Restyle Siap';
+          return;
+        } else {
+          alert(data.error || 'Gagal meracik prompt.');
+        }
+      } catch (e) {
+        alert('Gagal memanggil server: ' + e.message);
       }
-    } catch (e) {
-      alert('Gagal memanggil server: ' + e.message);
+      chip.className = 'd-chip d-chip-cyan';
+      chip.innerText = 'Siap Digunakan';
     }
-    chip.className = 'd-chip d-chip-cyan';
-    chip.innerText = 'Siap Digunakan';
-  }
 
-  function renderPromptResult(prompts) {
-    const cont = document.getElementById('prompt-output-container');
-    if (!Array.isArray(prompts)) prompts = [prompts];
-    
-    currentPromptText = prompts.map(p => p.prompt || p).join('\n\n');
-    cont.innerHTML = prompts.map((p, idx) => {
-      const pTitle = p.title || `Shot #${idx+1}`;
-      const pBadge = p.badge || 'Commercial';
-      const pText = p.prompt || p;
-      return `
+    function renderPromptResult(prompts) {
+      const cont = document.getElementById('prompt-output-container');
+      if (!Array.isArray(prompts)) prompts = [prompts];
+
+      currentPromptText = prompts.map(p => p.prompt || p).join('\n\n');
+      cont.innerHTML = prompts.map((p, idx) => {
+        const pTitle = p.title || `Shot #${idx + 1}`;
+        const pBadge = p.badge || 'Commercial';
+        const pText = p.prompt || p;
+        return `
         <div class="prompt-box" style="margin-bottom:0.75rem;">
           <div style="display:flex; justify-content:space-between; margin-bottom:0.35rem;">
             <b>${pTitle}</b>
@@ -868,48 +1068,48 @@ dialog::backdrop {
           </div>
         </div>
       `;
-    }).join('');
-  }
-
-  function copyCurrentPrompt() {
-    if (!currentPromptText) {
-      const el = document.querySelector('.prompt-box');
-      if (el) currentPromptText = el.innerText;
+      }).join('');
     }
-    if (currentPromptText) {
-      navigator.clipboard.writeText(currentPromptText);
-      alert('Prompt disalin ke clipboard.');
-    }
-  }
 
-  let selectedFilesList = [];
-  let lastOutputFolderPath = '';
-
-  // File Selection & Upload Handling
-  function handleFilesSelected(files) {
-    if (!files || files.length === 0) return;
-    for (const f of files) {
-      if (!selectedFilesList.some(item => item.name === f.name && item.size === f.size)) {
-        selectedFilesList.push(f);
+    function copyCurrentPrompt() {
+      if (!currentPromptText) {
+        const el = document.querySelector('.prompt-box');
+        if (el) currentPromptText = el.innerText;
+      }
+      if (currentPromptText) {
+        navigator.clipboard.writeText(currentPromptText);
+        alert('Prompt disalin ke clipboard.');
       }
     }
-    renderSelectedFiles();
-  }
 
-  function renderSelectedFiles() {
-    const list = document.getElementById('upload-files-list');
-    const badge = document.getElementById('upload-count-badge');
-    badge.innerText = `${selectedFilesList.length} File`;
+    let selectedFilesList = [];
+    let lastOutputFolderPath = '';
 
-    if (selectedFilesList.length === 0) {
-      list.innerHTML = '<p style="color:var(--p-muted); font-size:12px; text-align:center; padding:1.25rem 0; margin:0; border:1px dashed rgba(255,255,255,0.08); border-radius:6px;">Belum ada gambar yang dipilih. Silakan browse file dari komputer Anda.</p>';
-      return;
+    // File Selection & Upload Handling
+    function handleFilesSelected(files) {
+      if (!files || files.length === 0) return;
+      for (const f of files) {
+        if (!selectedFilesList.some(item => item.name === f.name && item.size === f.size)) {
+          selectedFilesList.push(f);
+        }
+      }
+      renderSelectedFiles();
     }
 
-    list.innerHTML = selectedFilesList.map((f, i) => {
-      const sizeKb = (f.size / 1024).toFixed(1);
-      const url = URL.createObjectURL(f);
-      return `
+    function renderSelectedFiles() {
+      const list = document.getElementById('upload-files-list');
+      const badge = document.getElementById('upload-count-badge');
+      badge.innerText = `${selectedFilesList.length} File`;
+
+      if (selectedFilesList.length === 0) {
+        list.innerHTML = '<p style="color:var(--p-muted); font-size:12px; text-align:center; padding:1.25rem 0; margin:0; border:1px dashed rgba(255,255,255,0.08); border-radius:6px;">Belum ada gambar yang dipilih. Silakan browse file dari komputer Anda.</p>';
+        return;
+      }
+
+      list.innerHTML = selectedFilesList.map((f, i) => {
+        const sizeKb = (f.size / 1024).toFixed(1);
+        const url = URL.createObjectURL(f);
+        return `
         <div class="upload-thumb-card">
           <img src="${url}" alt="${f.name}">
           <div class="meta">
@@ -919,92 +1119,92 @@ dialog::backdrop {
           <button type="button" class="del-btn" onclick="removeSelectedFile(${i})" title="Hapus file ini">✕</button>
         </div>
       `;
-    }).join('');
-  }
-
-  function removeSelectedFile(idx) {
-    selectedFilesList.splice(idx, 1);
-    renderSelectedFiles();
-  }
-
-  function clearSelectedFiles() {
-    selectedFilesList = [];
-    const inp = document.getElementById('inp-file-upload');
-    if (inp) inp.value = '';
-    renderSelectedFiles();
-  }
-
-  // Drag and drop listeners for dropzone
-  window.addEventListener('DOMContentLoaded', () => {
-    const dz = document.getElementById('vision-dropzone');
-    if (dz) {
-      ['dragenter', 'dragover'].forEach(name => {
-        dz.addEventListener(name, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          dz.classList.add('is-dragover');
-        });
-      });
-      ['dragleave', 'drop'].forEach(name => {
-        dz.addEventListener(name, (e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          dz.classList.remove('is-dragover');
-        });
-      });
-      dz.addEventListener('drop', (e) => {
-        if (e.dataTransfer && e.dataTransfer.files) {
-          handleFilesSelected(e.dataTransfer.files);
-        }
-      });
-    }
-  });
-
-  // Process and Inject Metadata directly to output folder
-  async function processSelectedImages() {
-    if (selectedFilesList.length === 0) {
-      alert('Pilih minimal 1 gambar terlebih dahulu untuk diproses.');
-      return;
+      }).join('');
     }
 
-    const doUpscale = document.getElementById('chk-upscale').checked;
-    const enforce4mb = document.getElementById('chk-4mb').checked;
-    const btn = document.getElementById('btn-run-vision');
-    const cont = document.getElementById('vision-result-container');
-    const chip = document.getElementById('vision-status-chip');
+    function removeSelectedFile(idx) {
+      selectedFilesList.splice(idx, 1);
+      renderSelectedFiles();
+    }
 
-    btn.disabled = true;
-    btn.innerText = 'Sedang Menganalisis & Injeksi Metadata...';
-    chip.className = 'd-chip d-chip-amber';
-    chip.innerText = 'Memproses...';
+    function clearSelectedFiles() {
+      selectedFilesList = [];
+      const inp = document.getElementById('inp-file-upload');
+      if (inp) inp.value = '';
+      renderSelectedFiles();
+    }
 
-    cont.innerHTML = `
+    // Drag and drop listeners for dropzone
+    window.addEventListener('DOMContentLoaded', () => {
+      const dz = document.getElementById('vision-dropzone');
+      if (dz) {
+        ['dragenter', 'dragover'].forEach(name => {
+          dz.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dz.classList.add('is-dragover');
+          });
+        });
+        ['dragleave', 'drop'].forEach(name => {
+          dz.addEventListener(name, (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dz.classList.remove('is-dragover');
+          });
+        });
+        dz.addEventListener('drop', (e) => {
+          if (e.dataTransfer && e.dataTransfer.files) {
+            handleFilesSelected(e.dataTransfer.files);
+          }
+        });
+      }
+    });
+
+    // Process and Inject Metadata directly to output folder
+    async function processSelectedImages() {
+      if (selectedFilesList.length === 0) {
+        alert('Pilih minimal 1 gambar terlebih dahulu untuk diproses.');
+        return;
+      }
+
+      const doUpscale = document.getElementById('chk-upscale').checked;
+      const enforce4mb = document.getElementById('chk-4mb').checked;
+      const btn = document.getElementById('btn-run-vision');
+      const cont = document.getElementById('vision-result-container');
+      const chip = document.getElementById('vision-status-chip');
+
+      btn.disabled = true;
+      btn.innerText = 'Sedang Menganalisis & Injeksi Metadata...';
+      chip.className = 'd-chip d-chip-amber';
+      chip.innerText = 'Memproses...';
+
+      cont.innerHTML = `
       <div style="padding:2.5rem 1rem; text-align:center;">
         <p style="color:var(--p-accent); font-weight:600; font-size:14px; margin:0 0 0.4rem;">Menganalisis ${selectedFilesList.length} gambar dengan Gemini Vision...</p>
         <p style="color:var(--p-muted); font-size:12px; margin:0;">Menyusun judul komersial, deskripsi, dan menginjeksi 50 tag IPTC langsung ke file fisik.</p>
       </div>
     `;
 
-    try {
-      const formData = new FormData();
-      for (const f of selectedFilesList) {
-        formData.append('images', f);
-      }
-      formData.append('do_upscale', doUpscale);
-      formData.append('enforce_4mb', enforce4mb);
+      try {
+        const formData = new FormData();
+        for (const f of selectedFilesList) {
+          formData.append('images', f);
+        }
+        formData.append('do_upscale', doUpscale);
+        formData.append('enforce_4mb', enforce4mb);
 
-      const res = await fetch('/api/vision/batch', {
-        method: 'POST',
-        body: formData,
-      });
-      const data = await res.json();
+        const res = await fetch('/api/vision/batch', {
+          method: 'POST',
+          body: formData,
+        });
+        const data = await res.json();
 
-      if (res.ok && data.success) {
-        lastOutputFolderPath = data.folder_path;
-        chip.className = 'd-chip';
-        chip.innerText = 'Selesai';
+        if (res.ok && data.success) {
+          lastOutputFolderPath = data.folder_path;
+          chip.className = 'd-chip';
+          chip.innerText = 'Selesai';
 
-        const itemsHtml = (data.results || []).map((r, i) => `
+          const itemsHtml = (data.results || []).map((r, i) => `
           <div class="d-card" style="margin-bottom:0.75rem; padding:0.85rem; border:1px solid rgba(255,255,255,0.06);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.35rem;">
               <b style="font-size:13px; color:var(--p-ink);">${r.filename}</b>
@@ -1019,7 +1219,7 @@ dialog::backdrop {
           </div>
         `).join('');
 
-        cont.innerHTML = `
+          cont.innerHTML = `
           <div style="background:var(--p-surface-card); border:1px solid rgba(90,185,252,0.3); border-radius:10px; padding:1.1rem; margin-bottom:1rem;">
             <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:0.75rem;">
               <div>
@@ -1044,76 +1244,77 @@ dialog::backdrop {
             ${itemsHtml}
           </div>
         `;
-      } else {
-        alert(data.error || 'Pemrosesan gagal.');
+        } else {
+          alert(data.error || 'Pemrosesan gagal.');
+        }
+      } catch (e) {
+        alert('Gagal memproses batch: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Proses & Injeksi Metadata Langsung ke Folder';
       }
-    } catch (e) {
-      alert('Gagal memproses batch: ' + e.message);
-    } finally {
-      btn.disabled = false;
-      btn.innerText = 'Proses & Injeksi Metadata Langsung ke Folder';
     }
-  }
 
-  // Open destination folder in OS Finder
-  async function openOutputFolder() {
-    if (!lastOutputFolderPath) return;
-    try {
-      const res = await fetch('/api/folder/open', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ path: lastOutputFolderPath }),
-      });
-      const data = await res.json();
-      if (!res.ok) alert(data.error || 'Gagal membuka folder.');
-    } catch (e) {
-      alert('Gagal membuka folder: ' + e.message);
+    // Open destination folder in OS Finder
+    async function openOutputFolder() {
+      if (!lastOutputFolderPath) return;
+      try {
+        const res = await fetch('/api/folder/open', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ path: lastOutputFolderPath }),
+        });
+        const data = await res.json();
+        if (!res.ok) alert(data.error || 'Gagal membuka folder.');
+      } catch (e) {
+        alert('Gagal membuka folder: ' + e.message);
+      }
     }
-  }
 
-  // API Key Modal Controls
-  function openKeyModal() {
-    document.getElementById('modal-apikey').showModal();
-  }
-  function closeKeyModal() {
-    document.getElementById('modal-apikey').close();
-  }
-  async function saveApiKey() {
-    const key = document.getElementById('inp-new-api-key').value.trim();
-    if (!key) return alert('Kunci API tidak boleh kosong.');
-    try {
-      const res = await fetch('/api/key', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ api_key: key }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        alert('API Key berhasil disimpan.');
+    // API Key Modal Controls
+    function openKeyModal() {
+      document.getElementById('modal-apikey').showModal();
+    }
+    function closeKeyModal() {
+      document.getElementById('modal-apikey').close();
+    }
+    async function saveApiKey() {
+      const key = document.getElementById('inp-new-api-key').value.trim();
+      if (!key) return alert('Kunci API tidak boleh kosong.');
+      try {
+        const res = await fetch('/api/key', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ api_key: key }),
+        });
+        const data = await res.json();
+        if (res.ok) {
+          alert('API Key berhasil disimpan.');
+          closeKeyModal();
+          loadStatus();
+        } else {
+          alert(data.error || 'Gagal menyimpan.');
+        }
+      } catch (e) {
+        alert(e.message);
+      }
+    }
+    async function deleteApiKey() {
+      if (!confirm('Hapus API Key dari penyimpanan lokal?')) return;
+      try {
+        await fetch('/api/key', { method: 'DELETE' });
+        alert('API Key dihapus.');
         closeKeyModal();
         loadStatus();
-      } else {
-        alert(data.error || 'Gagal menyimpan.');
+      } catch (e) {
+        alert(e.message);
       }
-    } catch (e) {
-      alert(e.message);
     }
-  }
-  async function deleteApiKey() {
-    if (!confirm('Hapus API Key dari penyimpanan lokal?')) return;
-    try {
-      await fetch('/api/key', { method: 'DELETE' });
-      alert('API Key dihapus.');
-      closeKeyModal();
-      loadStatus();
-    } catch (e) {
-      alert(e.message);
-    }
-  }
 
-  // Initial load
-  loadStatus();
-</script>
+    // Initial load
+    loadStatus();
+  </script>
 
 </body>
+
 </html>

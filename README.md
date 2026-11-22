@@ -94,7 +94,7 @@ Server lokal akan berjalan (default `http://127.0.0.1:8505`) dan aplikasi dibuka
   - Input **Konsep Subjek**.
   - Pilih **Style Visual (32 pilihan)**.
   - Aksi: **Racik 5 Sudut Seri** (butuh API key) atau **Format Foto Restyle**.
-  - Hasil: daftar prompt seri/restyle dengan opsi salin (code block) dan tombol **Buka Gemini Web**.
+  - Hasil: daftar prompt seri/restyle dengan opsi salin (code block) dan tombol ****.
 - **Vision & Auto-Sync (kolom kanan)**
   - **Folder Unduhan** + **Rentang** waktu scan, tombol **Pindai Folder**, deteksi file yang masih diunduh browser.
   - Pilih/impor gambar hasil scan atau **unggah manual** (JPG/PNG/WEBP).
