@@ -263,13 +263,23 @@
 }
 
 /* Global Navigation Clearance & Harmonious Section Spacing */
+:root {
+  --nav-height: 72px;
+}
+@media (max-width: 639px) {
+  :root {
+    --nav-height: 56px;
+  }
+}
+
 html {
-  scroll-padding-top: 100px;
+  scroll-padding-top: calc(var(--nav-height) + 24px) !important;
   scroll-behavior: smooth;
 }
 
 body {
-  padding-top: 76px !important; /* Offsets the 72px fixed navbar so content is NEVER hidden */
+  margin: 0 !important;
+  padding: 0 !important;
 }
 
 main {
@@ -282,8 +292,8 @@ main > :is(section, .section):not(.hero, #top),
 main > section:not(.hero, #top) {
   height: auto !important;
   min-height: auto !important;
-  padding-top: 3.5rem !important;
-  padding-bottom: 3.5rem !important;
+  padding-top: 4rem !important;
+  padding-bottom: 4rem !important;
   box-sizing: border-box !important;
 }
 
@@ -293,7 +303,7 @@ main > section.hero,
 section#top.hero {
   height: auto !important;
   min-height: auto !important;
-  padding-top: 3rem !important;
+  padding-top: calc(var(--nav-height) + 3.25rem) !important;
   padding-bottom: 4rem !important;
   box-sizing: border-box !important;
 }
@@ -302,9 +312,11 @@ section#top.hero {
 .hero__text > h1,
 #hero-h {
   text-box: normal !important;
+  -webkit-text-box-trim: none !important;
+  text-box-trim: none !important;
   line-height: 1.25 !important;
   margin-top: 0 !important;
-  padding-top: 6px !important;
+  padding-top: 8px !important;
 }
 
 /* Section head headers have clear space above form fields */
@@ -510,7 +522,7 @@ dialog::backdrop {
           <a class="btn btn--primary" href="#studio">Start generator</a>
           <a class="btn btn--secondary" href="#vision">Upload & Injeksi Metadata</a>
         </div>
-        <p class="hero__proof">Direct Python Engine: Gemini Vision 2.5, SQLite WAL, ExifTool</p>
+        <p class="hero__proof">Direct Python Engine: Gemini Vision 3.5, SQLite WAL, ExifTool</p>
       </div>
       <div class="hero__art span-6 start-7" role="img" aria-label="Microstock Studio active prompt workstation interface">
         <div class="d-win">
@@ -788,7 +800,7 @@ dialog::backdrop {
           pill.className = 'd-chip';
           pill.innerText = `Gemini Aktif (${data.api_key_masked})`;
           document.getElementById('modal-current-key').innerText = data.api_key_masked;
-          document.getElementById('lbl-engine-chip').innerText = 'Gemini 2.5 Ready';
+          document.getElementById('lbl-engine-chip').innerText = 'Gemini 3.5 Ready';
         } else {
           pill.className = 'd-chip d-chip-amber';
           pill.innerText = 'Pasang API Key';
