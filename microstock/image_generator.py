@@ -168,3 +168,18 @@ def finalize_image(
     pbuf = io.BytesIO()
     preview.save(pbuf, format="JPEG", quality=85)
     return export_bytes, pbuf.getvalue(), mime, width, height
+
+
+def detect_aspect_ratio(width: int, height: int) -> str:
+    """Detect the closest standard microstock aspect ratio for given pixel dimensions."""
+    if width <= 0 or height <= 0:
+        return "16:9"
+    ratio = width / height
+    candidates = [
+        (1.0, "1:1"),
+        (16 / 9, "16:9"),
+        (9 / 16, "9:16"),
+        (4 / 3, "4:3"),
+        (3 / 4, "3:4"),
+    ]
+    return min(candidates, key=lambda c: abs(c[0] - ratio))[1]

@@ -351,12 +351,13 @@ def _create_json(client: genai.Client, system_instruction: str, contents: Any, s
     for model_name in config.TEXT_MODEL_FALLBACKS:
         try:
             if hasattr(client, "models") and hasattr(client.models, "generate_content"):
-                from google.genai import types
-                cfg = types.GenerateContentConfig(
+                cfg = config.build_generation_config(
                     system_instruction=system_instruction,
                     response_mime_type="application/json",
                     response_schema=schema,
                     temperature=0.3,
+                    max_output_tokens=4096,
+                    thinking_level="LOW",
                 )
                 response = client.models.generate_content(
                     model=model_name,

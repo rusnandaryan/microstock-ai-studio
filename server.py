@@ -1,26 +1,23 @@
 """Local Desktop ASGI Server for Microstock AI Studio.
 High-performance Starlette + Uvicorn server connecting the modern web UI directly
-to the microstock Python core engine (Gemini Vision, Watcher, SQLite, ExifTool).
+to the microstock Python core engine (Gemini 4 Hydrogen Vision, Real-ESRGAN, SQLite, IPTC/XMP).
 """
 from __future__ import annotations
 
 import asyncio
-import base64
 import io
-import json
 import os
 import subprocess
 import sys
 import time
-import uuid
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from PIL import Image
 from starlette.applications import Starlette
 from starlette.middleware import Middleware
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
-from starlette.responses import FileResponse, JSONResponse, Response
+from starlette.responses import JSONResponse
 from starlette.routing import Mount, Route
 from starlette.staticfiles import StaticFiles
 import uvicorn
@@ -31,28 +28,18 @@ if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from microstock import (
-    analytics,
-    compliance,
     config,
     db,
-    distributor,
-    export as exp,
-    folder_watcher,
     image_generator,
     metadata,
     phash,
     prompt_enhancer,
-    reverse_prompt,
-    security,
     upscaler,
 )
 
 WEB_DIR = os.path.join(PROJECT_ROOT, "microstock", "web")
 EXPORTS_DIR = os.path.join(PROJECT_ROOT, "exports")
 os.makedirs(EXPORTS_DIR, exist_ok=True)
-
-# In-memory storage for active export batches
-_EXPORT_PACKAGES: Dict[str, Dict[str, Any]] = {}
 
 
 # -----------------------------------------------------------------------------
@@ -64,14 +51,15 @@ async def get_status(request: Request) -> JSONResponse:
     api_key = config.load_saved_api_key()
     masked = (api_key[:6] + "..." + api_key[-4:]) if (api_key and len(api_key) > 12) else ("••••••••" if api_key else "")
     recent_assets = db.list_recent_assets(limit=100)
-    
+
     return JSONResponse({
         "status": "online",
         "version": "2.5.0-desktop",
+        "active_model": config.PRIMARY_GEMINI_MODEL,
+        "model_label": config.PRIMARY_GEMINI_LABEL,
         "total_assets": len(recent_assets),
         "has_api_key": bool(api_key),
         "api_key_masked": masked,
-        "default_download_dir": folder_watcher.get_default_downloads_dir(),
         "database_mode": "SQLite WAL",
         "styles_count": len(config.VISUAL_STYLES_32),
     })
@@ -131,7 +119,6 @@ async def generate_prompt(request: Request) -> JSONResponse:
 
         api_key = body.get("api_key") or config.load_saved_api_key()
         if not api_key:
-            # High-quality fallback synthesis if API key is not yet set
             vs = config.VISUAL_STYLES_MAP.get(style_name)
             style_desc = vs.prompt_directive_en if vs else "clean commercial photography, studio directional lighting"
             shots = [
@@ -166,25 +153,6 @@ async def generate_prompt(request: Request) -> JSONResponse:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-async def check_compliance(request: Request) -> JSONResponse:
-    """Evaluate metadata against stock agency rejection policies."""
-    try:
-        body = await request.json()
-        title = str(body.get("title", "")).strip()
-        desc = str(body.get("description", "")).strip()
-        raw_kw = body.get("keywords", [])
-        if isinstance(raw_kw, str):
-            keywords = [k.strip() for k in raw_kw.split(",") if k.strip()]
-        else:
-            keywords = [str(k).strip() for k in raw_kw if str(k).strip()]
-        prompt_txt = str(body.get("prompt", "")).strip()
-
-        rep = compliance.evaluate_commercial_compliance(title, desc, keywords, prompt_txt)
-        return JSONResponse({"compliance": rep.to_dict()})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
 async def list_assets(request: Request) -> JSONResponse:
     """Get list of locally indexed assets from SQLite."""
     limit = int(request.query_params.get("limit", 50))
@@ -202,44 +170,6 @@ async def clear_assets(request: Request) -> JSONResponse:
     """Clear all assets from database."""
     cleared = db.clear_all_assets()
     return JSONResponse({"success": True, "cleared": cleared})
-
-
-async def scan_watcher(request: Request) -> JSONResponse:
-    """Scan downloads or target folder for recent images."""
-    watch_dir = request.query_params.get("path") or config.load_saved_api_key() or folder_watcher.get_default_downloads_dir()
-    window = request.query_params.get("window", "1 Jam Terakhir")
-    
-    cutoff = folder_watcher.get_cutoff_timestamp(window)
-    found_files = folder_watcher.scan_recent_images(watch_dir, since_timestamp=cutoff, max_files=40)
-    
-    items = []
-    for fn, fpath, mtime, fsize in found_files:
-        # Generate lightweight base64 thumbnail
-        thumb_data = ""
-        try:
-            with Image.open(fpath) as im:
-                im.thumbnail((160, 160))
-                buf = io.BytesIO()
-                im.save(buf, format="JPEG", quality=75)
-                thumb_data = "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode("ascii")
-        except Exception:
-            pass
-
-        items.append({
-            "filename": fn,
-            "filepath": fpath,
-            "size_kb": fsize // 1024,
-            "mtime": mtime,
-            "thumbnail": thumb_data,
-        })
-
-    pending = folder_watcher.check_pending_downloads(watch_dir)
-    return JSONResponse({
-        "files": items,
-        "count": len(items),
-        "pending_downloads": pending,
-        "watch_dir": watch_dir,
-    })
 
 
 async def run_batch_vision(request: Request) -> JSONResponse:
@@ -279,7 +209,7 @@ async def run_batch_vision(request: Request) -> JSONResponse:
         client = config.get_client(api_key)
         processed_items: List[image_generator.BatchItem] = []
 
-        timestamp = time.strftime('%Y%m%d_%H%M%S')
+        timestamp = time.strftime("%Y%m%d_%H%M%S")
         batch_folder_name = f"batch_{timestamp}"
         out_dir = os.path.join(EXPORTS_DIR, batch_folder_name)
         os.makedirs(out_dir, exist_ok=True)
@@ -324,7 +254,6 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 metadata=md,
             )
 
-            # Save directly into output folder as JPEG with injected IPTC metadata
             base_name = os.path.splitext(filename)[0]
             out_file_name = f"{base_name}.jpg"
             out_file_path = os.path.join(out_dir, out_file_name)
@@ -358,7 +287,7 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 file_size_bytes=len(exp_bytes),
                 width=w,
                 height=h,
-                aspect_ratio=reverse_prompt._detect_ratio(w, h),
+                aspect_ratio=image_generator.detect_aspect_ratio(w, h),
                 phash_hex=phash_val,
                 title=md.title if md else "",
                 description=md.description if md else "",
@@ -368,9 +297,8 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 is_xmp_injected=bool(md and md.title),
             )
 
-        results_preview = []
-        for it in processed_items:
-            results_preview.append({
+        results_preview = [
+            {
                 "filename": it.filename,
                 "width": it.width,
                 "height": it.height,
@@ -381,7 +309,9 @@ async def run_batch_vision(request: Request) -> JSONResponse:
                 "adobe_category": f"#{it.metadata.adobe_category} {it.metadata.adobe_category_name}" if it.metadata else "",
                 "duplicate_risk": it.duplicate_risk,
                 "is_xmp_injected": it.is_xmp_injected,
-            })
+            }
+            for it in processed_items
+        ]
 
         return JSONResponse({
             "success": True,
@@ -413,83 +343,6 @@ async def open_system_folder(request: Request) -> JSONResponse:
         return JSONResponse({"error": str(e)}, status_code=500)
 
 
-async def download_export(request: Request) -> Response:
-    """Download generated ZIP or CSV package."""
-    batch_id = request.path_params.get("batch_id")
-    fmt = request.path_params.get("fmt", "zip").lower()
-    
-    pkg = _EXPORT_PACKAGES.get(batch_id)
-    if not pkg:
-        return JSONResponse({"error": "Paket ekspor tidak ditemukan atau kedaluwarsa."}, status_code=404)
-
-    if fmt == "csv":
-        return FileResponse(pkg["csv_path"], media_type="text/csv", filename=f"metadata_{batch_id}.csv")
-    return FileResponse(pkg["zip_path"], media_type="application/zip", filename=f"microstock_pack_{batch_id}.zip")
-
-
-async def run_reverse_prompt(request: Request) -> JSONResponse:
-    """Extract prompt and aspect ratio from reference image."""
-    try:
-        body = await request.json()
-        img_b64 = body.get("image_base64", "")
-        api_key = config.load_saved_api_key()
-
-        if not api_key:
-            return JSONResponse({"error": "Gemini API Key belum disetel."}, status_code=400)
-        if not img_b64:
-            return JSONResponse({"error": "Gambar referensi kosong."}, status_code=400)
-
-        raw_bytes = base64.b64decode(img_b64.split(",")[-1])
-        with Image.open(io.BytesIO(raw_bytes)) as im:
-            w, h = im.size
-
-        client = config.get_client(api_key)
-        prompt_str = await reverse_prompt.generate_reverse_prompt_async(
-            client=client,
-            image_bytes=raw_bytes,
-            mime_type="image/jpeg",
-            label="Reverse Prompt",
-            width=w,
-            height=h,
-        )
-        return JSONResponse({"prompt": prompt_str, "width": w, "height": h, "aspect_ratio": reverse_prompt._detect_ratio(w, h)})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
-async def test_agency_account(request: Request) -> JSONResponse:
-    """Test FTP / SFTP agency connection."""
-    try:
-        body = await request.json()
-        host = body.get("host", "")
-        port = int(body.get("port", 21))
-        proto = body.get("protocol", "ftp")
-        user = body.get("username", "")
-        pwd = body.get("password", "")
-
-        ok, msg = distributor.test_agency_connection(host, port, proto, user, pwd)
-        return JSONResponse({"success": ok, "message": msg})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
-async def save_agency_account(request: Request) -> JSONResponse:
-    """Save agency credentials to local SQLite storage."""
-    try:
-        body = await request.json()
-        agency = body.get("agency_name", "")
-        host = body.get("host", "")
-        port = int(body.get("port", 21))
-        proto = body.get("protocol", "ftp")
-        user = body.get("username", "")
-        pwd = body.get("password", "")
-
-        db.save_agency_account(agency, host, port, proto, user, pwd)
-        return JSONResponse({"success": True, "message": f"Kredensial untuk {agency} berhasil disimpan."})
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
-
-
 # -----------------------------------------------------------------------------
 # Starlette Application Routing & Construction
 # -----------------------------------------------------------------------------
@@ -500,17 +353,11 @@ routes = [
     Route("/api/key", save_key, methods=["POST"]),
     Route("/api/key", delete_key, methods=["DELETE"]),
     Route("/api/prompt/generate", generate_prompt, methods=["POST"]),
-    Route("/api/compliance/check", check_compliance, methods=["POST"]),
     Route("/api/assets", list_assets, methods=["GET"]),
     Route("/api/assets/prune", prune_assets, methods=["POST"]),
     Route("/api/assets/clear", clear_assets, methods=["POST"]),
-    Route("/api/watcher/scan", scan_watcher, methods=["GET"]),
     Route("/api/vision/batch", run_batch_vision, methods=["POST"]),
     Route("/api/folder/open", open_system_folder, methods=["POST"]),
-    Route("/api/export/{batch_id}/{fmt}", download_export, methods=["GET"]),
-    Route("/api/reverse-prompt", run_reverse_prompt, methods=["POST"]),
-    Route("/api/accounts/test", test_agency_account, methods=["POST"]),
-    Route("/api/accounts/save", save_agency_account, methods=["POST"]),
     Mount("/", app=StaticFiles(directory=WEB_DIR, html=True), name="static"),
 ]
 

@@ -229,11 +229,11 @@ def enhance_prompt(
         for model_name in config.TEXT_MODEL_FALLBACKS:
             try:
                 if hasattr(client, "models") and hasattr(client.models, "generate_content"):
-                    from google.genai import types
-                    config_obj = types.GenerateContentConfig(
+                    config_obj = config.build_generation_config(
                         system_instruction=PROMPTFORGE_X_SYSTEM_INSTRUCTION,
                         temperature=0.75,
-                        max_output_tokens=600,
+                        max_output_tokens=2048,
+                        thinking_level="LOW",
                     )
                     response = client.models.generate_content(
                         model=model_name,
@@ -387,13 +387,13 @@ def generate_thematic_series(
         for model_name in config.TEXT_MODEL_FALLBACKS:
             try:
                 if hasattr(client, "models") and hasattr(client.models, "generate_content"):
-                    from google.genai import types
                     try:
-                        config_obj = types.GenerateContentConfig(
+                        config_obj = config.build_generation_config(
                             system_instruction=SERIES_SYSTEM_INSTRUCTION,
                             temperature=0.75,
-                            max_output_tokens=2000,
+                            max_output_tokens=4096,
                             response_mime_type="application/json",
+                            thinking_level="LOW",
                         )
                         response = client.models.generate_content(
                             model=model_name,
@@ -401,10 +401,11 @@ def generate_thematic_series(
                             config=config_obj,
                         )
                     except Exception:
-                        config_obj = types.GenerateContentConfig(
+                        config_obj = config.build_generation_config(
                             system_instruction=SERIES_SYSTEM_INSTRUCTION,
                             temperature=0.75,
-                            max_output_tokens=2000,
+                            max_output_tokens=4096,
+                            thinking_level="LOW",
                         )
                         response = client.models.generate_content(
                             model=model_name,

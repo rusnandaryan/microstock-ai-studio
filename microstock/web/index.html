@@ -671,7 +671,7 @@
               <a class="btn btn--primary" href="#studio">Start generator</a>
               <a class="btn btn--secondary" href="#vision">Upload & Injeksi Metadata</a>
             </div>
-            <p class="hero__proof">Direct Python Engine: Gemini Vision 3.5, SQLite WAL, ExifTool</p>
+            <p class="hero__proof">Direct Python Engine: Gemini 4 Hydrogen, SQLite WAL, ExifTool</p>
           </div>
           <div class="hero__art span-6 start-7" role="img"
             aria-label="Microstock Studio active prompt workstation interface">
@@ -1000,7 +1000,7 @@
             pill.className = 'd-chip';
             pill.innerText = `Gemini Aktif (${data.api_key_masked})`;
             document.getElementById('modal-current-key').innerText = data.api_key_masked;
-            document.getElementById('lbl-engine-chip').innerText = 'Gemini 3.5 Ready';
+            document.getElementById('lbl-engine-chip').innerText = `${data.model_label || 'Gemini 4 Hydrogen'} Ready`;
           } else {
             pill.className = 'd-chip d-chip-amber';
             pill.innerText = 'Pasang API Key';

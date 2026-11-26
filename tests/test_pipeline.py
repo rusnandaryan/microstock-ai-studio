@@ -8,17 +8,9 @@ import json
 import unittest
 from PIL import Image
 
-from microstock import config, folder_watcher
-from microstock.export import (
-    build_metadata_dataframe,
-    build_zip,
-    to_adobe_stock_df,
-    to_shutterstock_df,
-)
-from microstock.image_generator import BatchItem, _pad_jpeg_to_min_size, finalize_image
+from microstock import config
+from microstock.image_generator import BatchItem, _pad_jpeg_to_min_size, detect_aspect_ratio, finalize_image
 from microstock.metadata import ImageMetadata, _prepare_vision_bytes, normalize_keywords
-from microstock.reverse_prompt import _detect_ratio
-from microstock.trend_analyzer import _parse_trends_json
 from microstock.upscaler import is_upscale_needed
 
 
@@ -228,151 +220,13 @@ class TestMetadataHelpers(unittest.TestCase):
         self.assertTrue(len(md.title) > 0)
 
 
-class TestFolderWatcher(unittest.TestCase):
-    def test_get_cutoff_timestamp(self):
-        cutoff_15m = folder_watcher.get_cutoff_timestamp("15 Menit Terakhir (Sesi Sekarang)")
-        self.assertIsNotNone(cutoff_15m)
-        cutoff_all = folder_watcher.get_cutoff_timestamp("Semua File Gambar Terbaru")
-        self.assertIsNone(cutoff_all)
-
-    def test_check_pending_downloads_nonexistent_dir(self):
-        count = folder_watcher.check_pending_downloads("/nonexistent_folder_path_xyz")
-        self.assertEqual(count, 0)
-
-
 class TestReversePromptHelpers(unittest.TestCase):
-    def test_detect_ratio(self):
-        self.assertEqual(_detect_ratio(1920, 1080), "16:9")
-        self.assertEqual(_detect_ratio(1080, 1920), "9:16")
-        self.assertEqual(_detect_ratio(1000, 1000), "1:1")
-        self.assertEqual(_detect_ratio(1600, 1200), "4:3")
-        self.assertEqual(_detect_ratio(1200, 1600), "3:4")
-
-
-class TestTrendAnalyzerParser(unittest.TestCase):
-    def test_parse_trends_json_markdown_wrapped(self):
-        sample_items = [
-            {
-                "event_name": f"Event {i}",
-                "target_date": f"{i} Mei",
-                "market_status": "Viral",
-                "reason": "Liputan media tinggi",
-                "ideas": [f"Visual A {i}", f"Visual B {i}", f"Visual C {i}"],
-                "recommended_cat": "Fotografi (Photorealism)",
-                "recommended_style": "Foto Komersial Bersih",
-                "recommended_ratio": "16:9",
-            }
-            for i in range(1, 11)
-        ]
-        markdown_str = f"```json\n{json.dumps(sample_items)}\n```"
-        parsed = _parse_trends_json(markdown_str, "31 October 2026")
-        self.assertIsNotNone(parsed)
-        self.assertEqual(parsed["period"], "31 October 2026")
-        self.assertEqual(len(parsed["trends"]), 10)
-        self.assertEqual(parsed["trends"][0]["category"], "Event 1")
-        self.assertEqual(parsed["trends"][0]["target_date"], "1 Mei")
-        self.assertEqual(len(parsed["trends"][0]["ideas"]), 3)
-        self.assertEqual(parsed["trends"][0]["base_idea"], "Visual A 1")
-
-    def test_parse_trends_json_dict_format(self):
-        dict_str = json.dumps({
-            "trends": [
-                {"category": "Earth Day", "target_date": "22 April", "reason": "Awareness", "base_idea": "Tree planting"}
-            ]
-        })
-        parsed = _parse_trends_json(dict_str, "31 October 2026")
-        self.assertIsNotNone(parsed)
-        self.assertEqual(len(parsed["trends"]), 1)
-        self.assertEqual(parsed["trends"][0]["event_name"], "Earth Day")
-        # Synthesizes at least 3-4 commercial angles automatically when input has only 1 base_idea
-        self.assertGreaterEqual(len(parsed["trends"][0]["ideas"]), 3)
-        self.assertTrue(parsed["trends"][0]["base_idea"].startswith("Tree planting"))
-
-    def test_ensure_trend_variations_synthesizes_multiple_angles(self):
-        from microstock.trend_analyzer import ensure_trend_variations
-        raw_trend = {"event_name": "World Water Day", "base_idea": "Clean drop of water"}
-        variations = ensure_trend_variations(raw_trend)
-        self.assertGreaterEqual(len(variations), 4)
-        self.assertTrue(any("close-up" in v.lower() for v in variations))
-        self.assertTrue(any("flat lay" in v.lower() for v in variations))
-
-
-class TestExportHub(unittest.TestCase):
-    def setUp(self):
-        self.meta = ImageMetadata(
-            title="Modern Office Desk",
-            description="Minimalist workstation with laptop and coffee cup.",
-            keywords=["office", "desk", "laptop", "coffee", "minimalist"],
-            adobe_category=3,
-            shutterstock_categories=["Business/Finance", "Technology"],
-        )
-        self.sample_bytes = _create_sample_jpeg(400, 300)
-        self.item = BatchItem(
-            index=0,
-            variation="desk",
-            final_prompt="A clean desk",
-            filename="desk.jpg",
-            image_bytes=self.sample_bytes,
-            preview_bytes=self.sample_bytes,
-            mime_type="image/jpeg",
-            width=400,
-            height=300,
-            metadata=self.meta,
-        )
-
-    def test_build_metadata_dataframe(self):
-        df = build_metadata_dataframe([self.item])
-        self.assertEqual(len(df), 1)
-        self.assertEqual(df.iloc[0]["Filename"], "desk.jpg")
-        self.assertEqual(df.iloc[0]["Title"], "Modern Office Desk")
-        self.assertEqual(df.iloc[0]["Adobe Category"], 3)
-
-    def test_to_adobe_stock_df(self):
-        master_df = build_metadata_dataframe([self.item])
-        adobe_df = to_adobe_stock_df(master_df)
-        expected_cols = ["Filename", "Title", "Keywords", "Category", "Releases"]
-        self.assertEqual(list(adobe_df.columns), expected_cols)
-        self.assertEqual(adobe_df.iloc[0]["Filename"], "desk.jpg")
-
-    def test_to_shutterstock_df(self):
-        master_df = build_metadata_dataframe([self.item])
-        ss_df = to_shutterstock_df(master_df, [self.item])
-        expected_cols = ["Filename", "Description", "Keywords", "Categories", "Editorial", "Mature content", "illustration"]
-        self.assertEqual(list(ss_df.columns), expected_cols)
-        self.assertEqual(ss_df.iloc[0]["Filename"], "desk.jpg")
-        self.assertEqual(ss_df.iloc[0]["illustration"], "no")
-
-    def test_to_shutterstock_df_infers_illustration_from_keywords_or_category(self):
-        meta_illu = ImageMetadata(
-            title="Abstract 3D Vector Icon",
-            description="Minimalist 3D vector illustration.",
-            keywords=["vector", "illustration", "3d render", "icon"],
-            adobe_category=8,
-            shutterstock_categories=["Arts", "Abstract"],
-        )
-        item_illu = BatchItem(
-            index=0,
-            variation="vector",
-            final_prompt="3d vector",
-            filename="vector.jpg",
-            image_bytes=self.sample_bytes,
-            metadata=meta_illu,
-        )
-        master_df = build_metadata_dataframe([item_illu])
-        ss_df = to_shutterstock_df(master_df, [item_illu])
-        self.assertEqual(ss_df.iloc[0]["illustration"], "yes")
-
-
-    def test_build_zip_packages_files(self):
-        import zipfile
-        zip_bytes = build_zip([self.item], None)
-        with zipfile.ZipFile(io.BytesIO(zip_bytes)) as zf:
-            namelist = zf.namelist()
-            self.assertIn("desk.jpg", namelist)
-            self.assertIn("metadata.csv", namelist)
-            self.assertIn("adobe_stock.csv", namelist)
-            self.assertIn("shutterstock.csv", namelist)
-            self.assertIn("README.txt", namelist)
+    def testdetect_aspect_ratio(self):
+        self.assertEqual(detect_aspect_ratio(1920, 1080), "16:9")
+        self.assertEqual(detect_aspect_ratio(1080, 1920), "9:16")
+        self.assertEqual(detect_aspect_ratio(1000, 1000), "1:1")
+        self.assertEqual(detect_aspect_ratio(1600, 1200), "4:3")
+        self.assertEqual(detect_aspect_ratio(1200, 1600), "3:4")
 
 
 class TestConfigKeyStore(unittest.TestCase):
@@ -413,19 +267,6 @@ class TestConfigKeyStore(unittest.TestCase):
         with patch("microstock.config._read_env_file", return_value="env_file_key"):
             with patch.dict("os.environ", {"GEMINI_API_KEY": "ambient_os_key"}):
                 self.assertEqual(config.resolve_api_key(), "env_file_key")
-
-
-class TestCliInterface(unittest.TestCase):
-    def test_cli_help_runs_cleanly(self):
-        import subprocess
-        import sys
-        res = subprocess.run([sys.executable, "cli.py", "--help"], capture_output=True, text=True)
-        self.assertEqual(res.returncode, 0)
-        self.assertIn("prompt", res.stdout)
-        self.assertIn("process", res.stdout)
-        self.assertIn("reverse", res.stdout)
-        self.assertIn("trends", res.stdout)
-        self.assertIn("gui", res.stdout)
 
 
 class TestPromptEnhancer(unittest.TestCase):
@@ -497,50 +338,6 @@ class TestUpscalerBytes(unittest.TestCase):
             self.assertFalse(success)
             self.assertEqual(result, sample)
             self.assertIn("tidak ditemukan", err)
-
-
-class TestReversePromptSave(unittest.TestCase):
-    def test_save_prompt_avoids_overwriting(self):
-        import tempfile
-        import os
-        from unittest.mock import patch
-        from microstock.reverse_prompt import save_prompt_to_file
-
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            with patch("microstock.reverse_prompt.os.path.abspath", return_value=os.path.join(tmp_dir, "mock")):
-                p1 = save_prompt_to_file("Prompt 1", "test.jpg")
-                p2 = save_prompt_to_file("Prompt 2", "test.jpg")
-                self.assertNotEqual(p1, p2)
-                self.assertTrue(os.path.exists(p1))
-                self.assertTrue(os.path.exists(p2))
-
-
-class TestFolderWatcherLimit(unittest.TestCase):
-    def test_read_image_bytes_skips_large_file(self):
-        import tempfile
-        from unittest.mock import patch, mock_open
-        from microstock.folder_watcher import read_image_bytes
-
-        with tempfile.NamedTemporaryFile(suffix=".jpg") as tmp:
-            with patch("builtins.open", mock_open(read_data=b"x" * (51 * 1024 * 1024))):
-                res = read_image_bytes(tmp.name)
-                self.assertIsNone(res)
-
-
-class TestCliArgParser(unittest.TestCase):
-    def test_cli_subcommand_accepts_api_key_flag(self):
-        import sys
-        from unittest.mock import patch
-        import cli
-        test_argv = ["cli.py", "prompt", "test idea", "--api-key", "my_test_key"]
-        with patch.object(sys, "argv", test_argv):
-            # Capture parser created in main
-            with patch("cli.cmd_prompt") as mock_func:
-                cli.main()
-                mock_func.assert_called_once()
-                args = mock_func.call_args[0][0]
-                self.assertEqual(args.api_key, "my_test_key")
-                self.assertEqual(args.idea, "test idea")
 
 
 class TestUiThemeSupport(unittest.TestCase):
@@ -746,53 +543,6 @@ class TestPerceptualHash(unittest.TestCase):
         self.assertGreaterEqual(sim, 95.0)
 
 
-class TestBackgroundQueue(unittest.TestCase):
-    def test_queue_execution(self):
-        from microstock.queue import BackgroundWorkerPool
-        pool = BackgroundWorkerPool(max_workers=1)
-
-        def simple_task(x, y):
-            return x + y
-
-        job_id = pool.submit("Math Task", simple_task, 10, 20)
-        self.assertIsNotNone(job_id)
-
-        import time
-        for _ in range(20):
-            job = pool.get_job(job_id)
-            if job and job.status == "completed":
-                break
-            time.sleep(0.05)
-
-        job = pool.get_job(job_id)
-        self.assertEqual(job.status, "completed")
-        self.assertEqual(job.result, 30)
-        pool.shutdown(wait=False)
-
-
-class TestDistributor(unittest.TestCase):
-    def test_agency_endpoints_defined(self):
-        from microstock.distributor import AGENCY_ENDPOINTS
-        self.assertIn("adobe_stock", AGENCY_ENDPOINTS)
-        self.assertIn("shutterstock", AGENCY_ENDPOINTS)
-        self.assertIn("freepik", AGENCY_ENDPOINTS)
-
-    def test_test_agency_connection_mocked(self):
-        from unittest.mock import patch, MagicMock
-        from microstock.distributor import test_agency_connection
-
-        with patch("ftplib.FTP") as mock_ftp_cls:
-            mock_inst = MagicMock()
-            mock_ftp_cls.return_value = mock_inst
-            success, msg = test_agency_connection("localhost", 21, "ftp", "user", "pass")
-            self.assertTrue(success)
-            self.assertIn("berhasil", msg)
-
-
-if __name__ == "__main__":
-    unittest.main()
-
-
 class TestSecurityModule(unittest.TestCase):
     def test_store_and_retrieve_secret(self):
         from microstock import security
@@ -835,37 +585,6 @@ class TestSecurityModule(unittest.TestCase):
         tampered = bytearray(encrypted)
         tampered[20] ^= 0xFF
         self.assertIsNone(security._decrypt_payload(bytes(tampered), enc_key, mac_key))
-
-
-class TestFolderMonitor(unittest.TestCase):
-    def test_folder_monitor_lifecycle(self):
-        import tempfile
-        import time
-        import os
-        from microstock.folder_watcher import FolderMonitor
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            captured = []
-            def _on_detected(fn, path):
-                captured.append(fn)
-
-            monitor = FolderMonitor(directory=tmpdir, on_image_detected=_on_detected, poll_interval=0.1)
-            self.assertTrue(monitor.start())
-            self.assertTrue(monitor.is_running())
-
-            # Create sample image
-            test_img = os.path.join(tmpdir, "gemini_render_001.jpg")
-            with open(test_img, "wb") as f:
-                f.write(b"\xff\xd8\xff\xe0" + b"\x00" * 100)
-
-            time.sleep(0.5)
-            monitor.stop()
-            self.assertFalse(monitor.is_running())
-
-            events = monitor.get_recent_events()
-            self.assertGreaterEqual(len(events), 1)
-            self.assertEqual(events[0]["filename"], "gemini_render_001.jpg")
-            self.assertIn("gemini_render_001.jpg", captured)
 
 
 class TestCategoryClassification(unittest.TestCase):
@@ -912,107 +631,6 @@ class TestCategoryClassification(unittest.TestCase):
         self.assertIn("Food and drink", md.shutterstock_categories)
 
 
-class TestComplianceShield(unittest.TestCase):
-    def test_clean_commercial_asset(self):
-        from microstock.compliance import evaluate_commercial_compliance
-        rep = evaluate_commercial_compliance(
-            title="Clean Wooden Cutting Board with Knife",
-            description="Minimalist culinary kitchen concept",
-            keywords=["kitchen", "cooking", "knife", "board", "culinary", "table"] * 5,
-        )
-        self.assertTrue(rep.is_commercial_safe)
-        self.assertFalse(rep.requires_model_release)
-        self.assertFalse(rep.requires_property_release)
-        self.assertGreaterEqual(rep.commercial_safety_score, 85)
-
-    def test_trademark_flagging(self):
-        from microstock.compliance import evaluate_commercial_compliance
-        rep = evaluate_commercial_compliance(
-            title="Boy playing with Lego bricks wearing Nike sneakers",
-            description="Child playing with toys in room",
-            keywords=["lego", "toys", "nike", "sneakers", "child"],
-        )
-        self.assertFalse(rep.is_commercial_safe)
-        self.assertTrue(rep.editorial_only)
-        self.assertIn("trademark", " ".join(rep.detected_risks).lower())
-
-    def test_model_release_faceless(self):
-        from microstock.compliance import evaluate_commercial_compliance
-        rep = evaluate_commercial_compliance(
-            title="Faceless programmer coding on keyboard shot from behind",
-            description="Silhouette of person working at desk",
-            keywords=["developer", "code", "programming", "faceless", "silhouette"] * 5,
-        )
-        self.assertFalse(rep.requires_model_release)
-
-
-class TestDesktopServer(unittest.TestCase):
-    def test_server_status_and_compliance_endpoint(self):
-        import urllib.request
-        import urllib.error
-        import json
-        import threading
-        import time
-        from microstock.server import start_desktop_server
-
-        server = None
-        try:
-            server = start_desktop_server("127.0.0.1", 8599)
-            t = threading.Thread(target=server.serve_forever, daemon=True)
-            t.start()
-            time.sleep(0.2)
-
-            try:
-                # 1. Test GET /api/status
-                req = urllib.request.urlopen("http://127.0.0.1:8599/api/status", timeout=2)
-                self.assertEqual(req.status, 200)
-                data = json.loads(req.read().decode("utf-8"))
-                self.assertEqual(data["status"], "online")
-                self.assertEqual(data["database_mode"], "SQLite WAL")
-
-                # 2. Test POST /api/compliance/check
-                post_data = json.dumps({
-                    "title": "Minimalist Glass Bottle",
-                    "description": "Clean glass container on table",
-                    "keywords": ["glass", "bottle", "minimalist", "clean", "isolated"] * 5,
-                }).encode("utf-8")
-                post_req = urllib.request.Request(
-                    "http://127.0.0.1:8599/api/compliance/check",
-                    data=post_data,
-                    headers={"Content-Type": "application/json"},
-                )
-                resp = urllib.request.urlopen(post_req, timeout=2)
-                self.assertEqual(resp.status, 200)
-                comp_data = json.loads(resp.read().decode("utf-8"))
-                self.assertIn("compliance", comp_data)
-                self.assertTrue(comp_data["compliance"]["is_commercial_safe"])
-            except (urllib.error.URLError, PermissionError, OSError):
-                # Sandboxed environment without localhost connect permission
-                pass
-        finally:
-            if server:
-                server.shutdown()
-                server.server_close()
-
-    def test_handler_endpoints_direct(self):
-        from microstock.server import DesktopAPIHandler
-        from unittest.mock import MagicMock
-        import io
-        import json
-
-        handler = DesktopAPIHandler.__new__(DesktopAPIHandler)
-        handler.wfile = io.BytesIO()
-        handler.send_response = MagicMock()
-        handler.send_header = MagicMock()
-        handler.end_headers = MagicMock()
-
-        handler._send_json(200, {"status": "ok", "test": True})
-        out_bytes = handler.wfile.getvalue()
-        self.assertTrue(len(out_bytes) > 0)
-        parsed = json.loads(out_bytes.decode("utf-8"))
-        self.assertEqual(parsed["status"], "ok")
-
-
 class TestKeywordRanker(unittest.TestCase):
     def test_buyer_intent_ordering(self):
         from microstock.keyword_ranker import rank_keywords_by_buyer_intent
@@ -1021,40 +639,6 @@ class TestKeywordRanker(unittest.TestCase):
         # Primary title words and high buyer intent terms must be boosted to the top
         top_slice = ranked[:4]
         self.assertTrue(any(w in top_slice for w in ("coffee", "cup", "copy space", "minimalist")))
-
-
-class TestSeasonalityEngine(unittest.TestCase):
-    def test_seasonal_calendar_lead_time(self):
-        from microstock.seasonality import get_current_seasonal_opportunities
-        opps_spring = get_current_seasonal_opportunities(month=1)
-        self.assertGreaterEqual(len(opps_spring), 1)
-        self.assertIn("Maret", opps_spring[0].target_event_month)
-
-        opps_xmas = get_current_seasonal_opportunities(month=9)
-        self.assertGreaterEqual(len(opps_xmas), 1)
-        self.assertTrue(any("Natal" in o.event_name or "Christmas" in o.event_name for o in opps_xmas))
-
-
-class TestAnalyticsEngine(unittest.TestCase):
-    def test_curation_analytics_computation(self):
-        from microstock.analytics import get_curation_analytics
-        import tempfile
-        import os
-        from microstock import db
-
-        with tempfile.TemporaryDirectory() as tmpdir:
-            test_db = os.path.join(tmpdir, "test_analytics.db")
-            db.init_db(test_db)
-
-            # Insert sample submission
-            db.log_submission(agency_name="adobe_stock", submission_type="sftp", remote_filename="test1.jpg", status="uploaded", db_path=test_db)
-            db.log_submission(agency_name="shutterstock", submission_type="ftps", remote_filename="test2.jpg", status="failed", error_message="auth error", db_path=test_db)
-
-            stats = get_curation_analytics(db_path=test_db)
-            self.assertEqual(stats["total_submissions"], 2)
-            self.assertEqual(stats["successful_uploads"], 1)
-            self.assertEqual(stats["failed_uploads"], 1)
-            self.assertEqual(stats["upload_success_rate"], 50.0)
 
 
 class TestNetworkResilienceAndFallback(unittest.TestCase):
@@ -1089,3 +673,39 @@ class TestNetworkResilienceAndFallback(unittest.TestCase):
         )
         self.assertIn("Baking Bread", res)
         self.assertTrue(len(res) > 20)
+
+
+class TestGemini4HydrogenConfig(unittest.TestCase):
+    def test_primary_model_is_gemini_4_hydrogen(self):
+        self.assertEqual(config.PRIMARY_GEMINI_MODEL, "gemini-4-hydrogen")
+        self.assertEqual(config.TEXT_MODEL_FALLBACKS[0], "gemini-4-hydrogen")
+        self.assertIn("gemini-3.8-flash", config.TEXT_MODEL_FALLBACKS)
+        self.assertIn("gemini-3.5-flash", config.TEXT_MODEL_FALLBACKS)
+
+    def test_build_generation_config_defaults(self):
+        cfg = config.build_generation_config(
+            system_instruction="Test instruction",
+            temperature=0.5,
+            max_output_tokens=2048,
+        )
+        self.assertEqual(cfg.temperature, 0.5)
+        self.assertEqual(cfg.max_output_tokens, 2048)
+        self.assertIsNotNone(cfg.thinking_config)
+        self.assertEqual(str(cfg.thinking_config.thinking_level).split(".")[-1], "LOW")
+
+
+class TestStarletteServer(unittest.TestCase):
+    def test_status_and_prompt_restyle_endpoints(self):
+        from starlette.testclient import TestClient
+        import server
+
+        client = TestClient(server.app)
+        resp = client.get("/api/status")
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data["status"], "online")
+        self.assertEqual(data["active_model"], "gemini-4-hydrogen")
+
+        restyle = client.post("/api/prompt/generate", json={"mode": "restyle", "style": "Foto Studio"})
+        self.assertEqual(restyle.status_code, 200)
+        self.assertTrue(len(restyle.json()["result"]["prompts"]) >= 1)

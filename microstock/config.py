@@ -13,13 +13,17 @@ from typing import Dict, List, Optional
 
 from google import genai
 
-# Text models with fallback list for 503 or high demand errors
+# Primary and fallback models (Gemini 4 Hydrogen primary, 3.x Flash fallbacks on 503 spikes)
+PRIMARY_GEMINI_MODEL = "gemini-4-hydrogen"
+PRIMARY_GEMINI_LABEL = "Gemini 4 Hydrogen"
+
 TEXT_MODEL_FALLBACKS = [
-    "gemini-3.5-flash",
-    "gemini-3.6-flash",
-    "gemini-3.5-flash-lite",
-    "gemini-3.1-flash-lite",
+    "gemini-4-hydrogen",
     "gemini-3.8-flash",
+    "gemini-3.7-flash",
+    "gemini-3.6-flash",
+    "gemini-3.5-flash",
+    "gemini-3.5-flash-lite",
 ]
 
 # Microstock resolution requirements (Adobe Stock and Shutterstock)
@@ -679,19 +683,12 @@ def delete_saved_api_key() -> None:
 
 
 def resolve_api_key(user_supplied: Optional[str] = None) -> Optional[str]:
-    """Priority: user input > saved .env > Streamlit secrets > environment variables."""
+    """Priority: user input > saved .env > environment variables."""
     if user_supplied and user_supplied.strip():
         return user_supplied.strip()
     saved = _read_env_file()
     if saved:
         return saved
-    try:
-        import streamlit as st  # local import keeps this module UI-agnostic
-        for key in ("GEMINI_API_KEY", "GOOGLE_API_KEY"):
-            if key in st.secrets:
-                return str(st.secrets[key])
-    except Exception:
-        pass
     return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 
 
@@ -701,3 +698,30 @@ def get_client(api_key: str) -> genai.Client:
     if not api_key:
         raise ValueError("A Gemini API key is required.")
     return genai.Client(api_key=api_key)
+
+
+def build_generation_config(
+    *,
+    system_instruction: Optional[str] = None,
+    temperature: float = 0.7,
+    max_output_tokens: Optional[int] = None,
+    response_mime_type: Optional[str] = None,
+    response_schema: Optional[dict] = None,
+    thinking_level: str = "LOW",
+):
+    """Build GenerateContentConfig tuned for Gemini 4 Hydrogen and 3.x fallbacks."""
+    from google.genai import types
+
+    kwargs = {
+        "temperature": temperature,
+        "thinking_config": types.ThinkingConfig(thinking_level=thinking_level),
+    }
+    if system_instruction is not None:
+        kwargs["system_instruction"] = system_instruction
+    if max_output_tokens is not None:
+        kwargs["max_output_tokens"] = max_output_tokens
+    if response_mime_type is not None:
+        kwargs["response_mime_type"] = response_mime_type
+    if response_schema is not None:
+        kwargs["response_schema"] = response_schema
+    return types.GenerateContentConfig(**kwargs)
